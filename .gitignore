@@ -1,0 +1,77 @@
+# Node modules
+node_modules/
+functions/node_modules/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Deploy logs
+deploy-log.txt
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# iCloud
+*.icloud
+
+# Sensitive files - NEVER commit these
+GoogleService-Info.plist
+# ─────────────────────────────────────────────
+# Add these to your .gitignore before publishing
+# (create the file if you don't have one)
+# ─────────────────────────────────────────────
+
+# Firebase — points at YOUR project, keep it out
+GoogleService-Info.plist
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+
+# Cloud Functions
+functions/node_modules/
+functions/.env
+functions/.env.*
+functions/*-service-account*.json
+functions/serviceAccountKey.json
+
+# Apple signing — never publish these
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+DerivedData/
+build/
+*.moved-aside
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+
+# Your own notes — don't ship these
+PRE-PUBLISH-CHECKLIST.md

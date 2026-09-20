@@ -1,0 +1,292 @@
+// Firestore Security Rules for Avenue3
+// Deploy these rules to Firebase Console → Firestore Database → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userID) {
+      return isSignedIn() && request.auth.uid == userID;
+    }
+    
+    function isValidUser(userData) {
+      return userData.keys().hasAll([
+        'displayName',
+        'photoURLs',
+        'activityIDs',
+        'daySlotCombos',
+        'latitude',
+        'longitude',
+        'radiusMiles',
+        'isProfileComplete'
+      ]);
+    }
+    
+    // ====================
+    // USERS COLLECTION
+    // ====================
+    match /users/{userID} {
+      // Users can read their own document
+      allow read: if isOwner(userID);
+      
+      // Users can read other completed profiles (for discovery)
+      allow read: if isSignedIn() && 
+                     resource.data.isProfileComplete == true;
+      
+      // Users can create their own document
+      allow create: if isOwner(userID) && 
+                       isValidUser(request.resource.data);
+      
+      // Users can update only their own document
+      allow update: if isOwner(userID);
+
+      // showUpTotal / showUpThumbsUp are written exclusively by the applyShowUpReport
+      // Cloud Function via Admin SDK, which bypasses these rules. No client-side
+      // cross-user write is permitted.
+
+      // Users can delete their own document
+      allow delete: if isOwner(userID);
+    }
+    
+    // ====================
+    // ACTIVITIES COLLECTION
+    // ====================
+    match /activities/{activityID} {
+      // All authenticated users can read activities
+      allow read: if isSignedIn();
+      
+      // Authenticated users can add new activities
+      allow create: if isSignedIn() && 
+                       request.resource.data.keys().hasAll(['name', 'isUserAdded', 'createdAt']) &&
+                       request.resource.data.name is string &&
+                       request.resource.data.name.size() > 0 &&
+                       request.resource.data.name.size() <= 50;
+      
+      // Only allow updates to activities that were user-added (optional, can be restricted)
+      allow update: if false; // Activities are immutable once created
+      
+      // Prevent deletion of activities
+      allow delete: if false; // Activities never deleted
+    }
+    
+    // ====================
+    // MATCHES COLLECTION
+    // ====================
+    match /matches/{matchID} {
+      // Users can read matches they're part of
+      allow read: if isSignedIn() && 
+                     (resource.data.user1ID == request.auth.uid || 
+                      resource.data.user2ID == request.auth.uid);
+      
+      // System/backend creates matches (or users for now)
+      // Allow creation if the creator is one of the users in the match
+      allow create: if isSignedIn() && 
+                       (request.resource.data.user1ID == request.auth.uid || 
+                        request.resource.data.user2ID == request.auth.uid);
+      
+      // Users can update matches they're part of (for Yay/Nay decisions)
+      // But only to update their own decision field
+      allow update: if isSignedIn() && 
+                       (resource.data.user1ID == request.auth.uid || 
+                        resource.data.user2ID == request.auth.uid) &&
+                       // Ensure only specific fields are modified
+                       (request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['user1Decision', 'user2Decision', 'isMutualMatch', 'updatedAt']));
+      
+      // Matches cannot be deleted by users
+      allow delete: if false;
+    }
+    
+    // ====================
+    // PLANS COLLECTION
+    // ====================
+    match /plans/{planID} {
+      // Direct document fetch: only the proposer or receiver may read.
+      allow get: if isSignedIn() &&
+                    (resource.data.proposerID == request.auth.uid ||
+                     resource.data.receiverID == request.auth.uid);
+
+      // List queries (whereField by matchID, proposerID, or receiverID): open to any
+      // signed-in user. Firestore can't evaluate proposer/receiver constraints against
+      // a matchID-filtered query at the collection level. The matchID UUID is the
+      // practical access gate — callers must already hold a valid match relationship
+      // to know the ID. Follows the same pattern used for the messages collection.
+      allow list: if isSignedIn();
+
+      // Only the proposer can create a plan
+      allow create: if isSignedIn() &&
+                       request.resource.data.proposerID == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'matchID', 'proposerID', 'receiverID',
+                         'activity', 'proposedDates', 'status', 'createdAt', 'updatedAt'
+                       ]);
+
+      // Proposer or receiver can update (confirm, counter-propose, decline, cancel, mark viewed)
+      allow update: if isSignedIn() &&
+                       (resource.data.proposerID == request.auth.uid ||
+                        resource.data.receiverID == request.auth.uid);
+
+      // Plans are never hard-deleted; status changes handle lifecycle
+      allow delete: if false;
+    }
+
+    // ====================
+    // MESSAGES COLLECTION
+    // ====================
+    match /messages/{messageID} {
+      // Any authenticated user can read messages.
+      // The matchID UUID is the practical access control — callers must already know
+      // the matchID to form a valid query (.whereField("matchID", ==, matchID)).
+      // A resource.data field check here would break list queries because Firestore
+      // can't statically prove senderID/receiverID constraints from a matchID filter.
+      allow read: if isSignedIn();
+      
+      // Users can create messages only as the sender
+      allow create: if isSignedIn() && 
+                       request.resource.data.senderID == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'matchID',
+                         'senderID', 
+                         'receiverID',
+                         'text',
+                         'sentAt',
+                         'isRead'
+                       ]) &&
+                       request.resource.data.text is string &&
+                       request.resource.data.text.size() > 0 &&
+                       request.resource.data.text.size() <= 5000; // Max message length
+      
+      // Users can update messages only to mark as read
+      // Only the receiver can mark messages as read
+      allow update: if isSignedIn() && 
+                       resource.data.receiverID == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['isRead']) &&
+                       request.resource.data.isRead == true;
+      
+      // Messages cannot be deleted
+      allow delete: if false;
+    }
+    
+    // ====================
+    // TODAY PLANS COLLECTION
+    // ====================
+    match /todayPlans/{planID} {
+      // Any authenticated user can read open plans (feed).
+      // Participants can read their own plans in any status (for history and show-up prompts).
+      allow read: if isSignedIn() && (
+        resource.data.status == "open" ||
+        resource.data.creatorID == request.auth.uid ||
+        resource.data.claimerID == request.auth.uid
+      );
+
+      // Any authenticated user can create a plan on their own behalf.
+      // Status must start as "open"; claimerID must be absent.
+      allow create: if isSignedIn() &&
+        request.resource.data.creatorID == request.auth.uid &&
+        request.resource.data.status == "open" &&
+        !("claimerID" in request.resource.data) &&
+        request.resource.data.keys().hasAll([
+          "creatorID", "activity", "scheduledTime", "status", "createdAt", "updatedAt"
+        ]);
+
+      // Claim: a non-creator atomically marks the plan claimed.
+      // Only the three claim fields may change; any other field change is rejected.
+      allow update: if isSignedIn() &&
+        resource.data.status == "open" &&
+        resource.data.creatorID != request.auth.uid &&
+        request.resource.data.status == "claimed" &&
+        request.resource.data.claimerID == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["status", "claimerID", "updatedAt"]);
+
+      // Creator can edit mutable fields (note) on their own open plan.
+      allow update: if isSignedIn() &&
+        resource.data.creatorID == request.auth.uid &&
+        resource.data.status == "open" &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["note", "updatedAt"]);
+
+      // Show-up report: creator submits their verdict about the claimer.
+      allow update: if isSignedIn() &&
+        resource.data.creatorID == request.auth.uid &&
+        resource.data.status == "claimed" &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["creatorReportedClaimer", "updatedAt"]);
+
+      // Show-up report: claimer submits their verdict about the creator.
+      allow update: if isSignedIn() &&
+        resource.data.claimerID == request.auth.uid &&
+        resource.data.status == "claimed" &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["claimerReportedCreator", "updatedAt"]);
+
+      // Only the creator can delete their own plan, and only while it is still open.
+      allow delete: if isSignedIn() &&
+        resource.data.creatorID == request.auth.uid &&
+        resource.data.status == "open";
+    }
+
+    // ====================
+    // SIMPATICO ANSWERS COLLECTION
+    // ====================
+    match /simpaticoAnswers/{userID} {
+      // Any signed-in user can read any questionnaire document.
+      // Both users in a match must read each other's answers to compute a Simpatico
+      // score client-side. Firestore rules cannot efficiently cross-check the matches
+      // collection, so we follow the same open-read pattern used for messages:
+      // the practical access control is the match relationship enforced in the app.
+      // The data (importance ratings on a 3-point scale) is not sensitive.
+      allow read: if isSignedIn();
+
+      // Only the owner can write their own questionnaire.
+      allow create: if isOwner(userID);
+      allow update: if isOwner(userID);
+
+      // Questionnaires are never deleted.
+      allow delete: if false;
+    }
+
+    // ====================
+    // SHOW-UP REPORTS COLLECTION
+    // ====================
+    match /showUpReports/{reportID} {
+      // A user may create a report only for themselves as the reporter.
+      // The applyShowUpReport Cloud Function handles all downstream writes via Admin SDK.
+      allow create: if isSignedIn() &&
+        request.auth.uid == request.resource.data.reporterID &&
+        request.resource.data.keys().hasAll([
+          "reporterID", "reportedUserID", "planID", "didShowUp", "createdAt"
+        ]) &&
+        request.resource.data.didShowUp is bool;
+
+      // Reports are write-once — no client reads, updates, or deletes.
+      allow read, update, delete: if false;
+    }
+
+    // ====================
+    // WAITLIST SIGNUPS COLLECTION
+    // ====================
+    match /waitlistSignups/{docID} {
+      // Unauthenticated clients can create a signup with a valid email shape.
+      // Exactly two fields required — extra fields are rejected.
+      allow create: if request.resource.data.keys().hasAll(['email', 'submittedAt']) &&
+                       request.resource.data.email is string &&
+                       request.resource.data.email.matches('[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}') &&
+                       request.resource.data.keys().size() == 2;
+
+      // No client reads, updates, or deletes — admin console / export only.
+      allow read, update, delete: if false;
+    }
+
+    // ====================
+    // DENY ALL OTHER ACCESS
+    // ====================
+    // Any other collections or documents are denied by default
+  }
+}
