@@ -20,12 +20,12 @@ struct SimpaticoView: View {
                     ProgressView()
                         .tint(Color.appPrimary)
                         .scaleEffect(1.2)
-                } else if viewModel.questionnaire.isComplete {
-                    SimpaticoCompleteView()
-                } else if viewModel.questionnaire.answers.isEmpty && !introDismissed {
-                    // Show intro only when the user has zero saved answers.
+                } else if viewModel.isComplete {
+                    SimpaticoCompleteView(viewModel: viewModel)
+                } else if viewModel.state.answers.isEmpty && !introDismissed {
+                    // Show intro only when the user has zero saved v2 answers.
                     // Once they've answered even one question the flow resumes directly.
-                    SimpaticoIntroView { introDismissed = true }
+                    SimpaticoIntroView(showUpgradeBanner: viewModel.showUpgradeBanner) { introDismissed = true }
                 } else {
                     SimpaticoQuestionFlowView(viewModel: viewModel)
                 }
@@ -51,6 +51,7 @@ struct SimpaticoView: View {
 // MARK: - Intro screen
 
 struct SimpaticoIntroView: View {
+    let showUpgradeBanner: Bool
     let onStart: () -> Void
 
     var body: some View {
@@ -72,11 +73,11 @@ struct SimpaticoIntroView: View {
 
                 // Headline + summary
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Before you begin")
+                    Text(showUpgradeBanner ? "Simpatico got an upgrade" : "Before you begin")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundColor(Color.appNavy)
 
-                    Text("Simpatico is an 18-question self-assessment about what matters to you in a friendship. Once you and a connected friend have both finished, a compatibility score shows up next to their name in Messages.")
+                    Text(headline)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
                         .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
                         .lineSpacing(4)
@@ -87,12 +88,12 @@ struct SimpaticoIntroView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     IntroFactRow(
                         icon: "checkmark.seal.fill",
-                        text: "All 18 questions need to be answered before any score is calculated. Partial answers don't count."
+                        text: "12 quick questions. Every one is skippable — skip anything you're not sure about."
                     )
                     Divider().padding(.leading, 38)
                     IntroFactRow(
                         icon: "clock.fill",
-                        text: "It takes roughly 30 minutes — no need to rush."
+                        text: "Takes just a few minutes."
                     )
                     Divider().padding(.leading, 38)
                     IntroFactRow(
@@ -144,6 +145,13 @@ struct SimpaticoIntroView: View {
                 Color.clear.frame(height: MainTabView.tabBarHeight)
             }
         }
+    }
+
+    private var headline: String {
+        if showUpgradeBanner {
+            return "It's quicker, and it helps find friends who actually fit — not just people who rated the same virtues \"very important.\""
+        }
+        return "A few quick questions about what you're actually like to hang out with. Once you and a connected friend have both answered enough, a compatibility score shows up next to their name in Messages."
     }
 }
 
@@ -231,7 +239,7 @@ struct SimpaticoProgressHeader: View {
 
                 Spacer()
 
-                Text(viewModel.currentComponent.category.displayName)
+                Text(viewModel.currentQuestion.category.displayName)
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundColor(Color.appPrimary)
                     .padding(.horizontal, 10)
@@ -265,33 +273,53 @@ struct SimpaticoProgressHeader: View {
 struct SimpaticoQuestionCard: View {
     @Bindable var viewModel: SimpaticoViewModel
 
-    private var component: SimpaticoComponent { viewModel.currentComponent }
+    private var question: SimpaticoQuestion { viewModel.currentQuestion }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(component.displayName)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
-
-                Text(component.componentDescription)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                    .lineSpacing(3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            Text(question.prompt)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                .fixedSize(horizontal: false, vertical: true)
 
             Divider()
 
-            RatingPicker(
-                question: "To you, is this important?",
-                selection: $viewModel.selectedToYou
+            SimpaticoOptionSection(
+                title: "Your answer",
+                options: question.options,
+                isSelected: { viewModel.selectedAnswerID == $0.id },
+                onTap: { viewModel.selectAnswer($0.id) }
             )
 
-            RatingPicker(
-                question: "To a friend, is this important?",
-                selection: $viewModel.selectedToFriend
+            SimpaticoOptionSection(
+                title: "I'm good with friends who say…",
+                options: question.options,
+                isSelected: { viewModel.selectedAcceptable.contains($0.id) },
+                onTap: { viewModel.toggleAcceptable($0.id) }
             )
+
+            if viewModel.doesNotMatter {
+                Text("Doesn't matter to you")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color.appPrimary)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("How much does this matter?")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+
+                    HStack(spacing: 8) {
+                        ForEach(SimpaticoImportance.allCases, id: \.self) { importance in
+                            SimpaticoOptionButton(
+                                text: importance.displayName,
+                                isSelected: viewModel.selectedImportance == importance
+                            ) {
+                                viewModel.selectImportance(importance)
+                            }
+                        }
+                    }
+                }
+            }
         }
         .padding(20)
         .background(
@@ -302,23 +330,28 @@ struct SimpaticoQuestionCard: View {
     }
 }
 
-// MARK: - Rating picker
+// MARK: - Option section (single- or multi-select, styled the same way)
 
-struct RatingPicker: View {
-    let question: String
-    @Binding var selection: SimpaticoRating?
+private struct SimpaticoOptionSection: View {
+    let title: String
+    let options: [SimpaticoOption]
+    let isSelected: (SimpaticoOption) -> Bool
+    let onTap: (SimpaticoOption) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(question)
+            Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
 
-            HStack(spacing: 8) {
-                ForEach(SimpaticoRating.allCases, id: \.self) { rating in
-                    RatingOptionButton(rating: rating, isSelected: selection == rating) {
+            VStack(spacing: 8) {
+                ForEach(options) { option in
+                    SimpaticoOptionButton(
+                        text: option.text,
+                        isSelected: isSelected(option)
+                    ) {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            selection = rating
+                            onTap(option)
                         }
                     }
                 }
@@ -327,26 +360,39 @@ struct RatingPicker: View {
     }
 }
 
-struct RatingOptionButton: View {
-    let rating: SimpaticoRating
+struct SimpaticoOptionButton: View {
+    let text: String
     let isSelected: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            Text(rating.shortName)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .medium, design: .rounded))
-                .foregroundColor(isSelected ? .white : Color.appPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 11)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(
-                            isSelected
-                                ? Color.appPrimary
-                                : Color.appPrimary.opacity(0.10)
-                        )
-                )
+            HStack(spacing: 8) {
+                Text(text)
+                    .font(.system(size: 14, weight: isSelected ? .semibold : .medium, design: .rounded))
+                    .foregroundColor(isSelected ? .white : Color.appPrimary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 0)
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(
+                        isSelected
+                            ? Color.appPrimary
+                            : Color.appPrimary.opacity(0.10)
+                    )
+            )
         }
         .buttonStyle(.plain)
     }
@@ -363,20 +409,29 @@ struct SimpaticoNavButtons: View {
                 Button {
                     viewModel.goBack()
                 } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Back")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    }
-                    .foregroundColor(Color.appPrimary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(14)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color.appPrimary)
+                        .frame(width: 52, height: 52)
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(14)
                 }
                 .buttonStyle(.plain)
             }
+
+            Button {
+                Task { await viewModel.skip() }
+            } label: {
+                Text("Skip")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color.appPrimary)
+                    .frame(height: 52)
+                    .padding(.horizontal, 20)
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(14)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.isSaving)
 
             Button {
                 Task { await viewModel.saveAndAdvance() }
@@ -422,6 +477,8 @@ struct SimpaticoNavButtons: View {
 // MARK: - Completion screen
 
 struct SimpaticoCompleteView: View {
+    let viewModel: SimpaticoViewModel
+
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
@@ -439,7 +496,7 @@ struct SimpaticoCompleteView: View {
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundColor(Color.appNavy)
 
-                    Text("Your Simpatico answers are saved.")
+                    Text("You answered \(viewModel.answeredCount) of \(viewModel.totalCount)")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 }
@@ -459,6 +516,19 @@ struct SimpaticoCompleteView: View {
                 .padding(20)
                 .background(Color.white.opacity(0.70))
                 .cornerRadius(16)
+
+                Button {
+                    viewModel.startEditing()
+                } label: {
+                    Text("Edit answers")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color.appPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(14)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
             .padding(.top, 64)

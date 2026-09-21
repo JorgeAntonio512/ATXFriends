@@ -35,14 +35,13 @@ final class TodayPlanService {
 
     // MARK: - Fetch Open Plans
 
-    /// Fetches open, non-expired plans for today — both filters applied server-side.
+    /// Fetches open plans whose start time hasn't passed yet — not bounded to any calendar day.
+    /// A plan posted at 11pm for 9am tomorrow stays in this result set straight through midnight.
     /// Requires composite index: status ASC + scheduledTime ASC.
     func fetchOpenPlans() async throws -> [TodayPlan] {
-        let (_, end) = todayBounds()
         let snapshot = try await db.collection(collection)
             .whereField("status", isEqualTo: TodayPlanStatus.open.rawValue)
             .whereField("scheduledTime", isGreaterThan: Timestamp(date: Date()))
-            .whereField("scheduledTime", isLessThanOrEqualTo: Timestamp(date: end))
             .order(by: "scheduledTime", descending: false)
             .getDocuments()
         return snapshot.documents.compactMap { decode(id: $0.documentID, data: $0.data()) }
@@ -50,16 +49,15 @@ final class TodayPlanService {
 
     // MARK: - Real-time Listener
 
-    /// Listens to open plans for today's calendar date.
-    /// Uses start-of-day as the lower bound so the listener stays stable as time passes;
+    /// Listens to open plans whose start time hasn't passed yet — not bounded to any calendar day.
+    /// The lower bound is fixed at listener-attach time (not recomputed at midnight), so a plan
+    /// posted for tomorrow morning keeps matching the query straight through the day rollover;
     /// TodayViewModel.filteredPlans trims any entries that expire between snapshots.
     /// Requires composite index: status ASC + scheduledTime ASC.
     func listenToOpenPlans(completion: @escaping ([TodayPlan]) -> Void) -> ListenerRegistration {
-        let (start, end) = todayBounds()
         return db.collection(collection)
             .whereField("status", isEqualTo: TodayPlanStatus.open.rawValue)
-            .whereField("scheduledTime", isGreaterThan: Timestamp(date: start))
-            .whereField("scheduledTime", isLessThanOrEqualTo: Timestamp(date: end))
+            .whereField("scheduledTime", isGreaterThan: Timestamp(date: Date()))
             .order(by: "scheduledTime", descending: false)
             .addSnapshotListener { snapshot, error in
                 if let error {
@@ -270,13 +268,6 @@ final class TodayPlanService {
     }
 
     // MARK: - Helpers
-
-    private func todayBounds() -> (start: Date, end: Date) {
-        let cal = Calendar.current
-        let start = cal.startOfDay(for: Date())
-        let end = cal.date(byAdding: .day, value: 1, to: start)!.addingTimeInterval(-1)
-        return (start, end)
-    }
 
     private func serviceError(_ message: String, code: Int = -1) -> NSError {
         NSError(domain: "TodayPlanService", code: code, userInfo: [NSLocalizedDescriptionKey: message])

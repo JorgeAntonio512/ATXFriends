@@ -74,21 +74,18 @@ struct MicrosoftCalendarService {
         }
     }
 
-    /// Creates an event on the user's Outlook calendar matching the given plan. Mirrors the
+    /// Creates an event on the user's Outlook calendar matching the given fields. Mirrors the
     /// title/start/end/location/notes mapping used for the Apple EKEvent and Google Calendar
     /// event so all three providers produce equivalent events. Graph's event shape differs
     /// from Google's — built to Graph's own schema rather than reusing Google's JSON body.
-    func createEvent(for plan: Plan, otherUserDisplayName: String, accessToken: String) async throws {
-        let start = plan.confirmedDate ?? Date()
-        let end = start.addingTimeInterval(2 * 60 * 60)
-
+    func createEvent(for fields: CalendarEventFields, accessToken: String) async throws {
         var body: [String: Any] = [
-            "subject": plan.activity.name,
-            "start": ["dateTime": Self.graphDateTime.string(from: start), "timeZone": "UTC"],
-            "end": ["dateTime": Self.graphDateTime.string(from: end), "timeZone": "UTC"],
-            "body": ["contentType": "text", "content": "Hanging out with \(otherUserDisplayName)"]
+            "subject": fields.title,
+            "start": ["dateTime": Self.graphDateTime.string(from: fields.start), "timeZone": "UTC"],
+            "end": ["dateTime": Self.graphDateTime.string(from: fields.end), "timeZone": "UTC"],
+            "body": ["contentType": "text", "content": fields.notes]
         ]
-        if let location = plan.location, !location.isEmpty {
+        if let location = fields.location, !location.isEmpty {
             body["location"] = ["displayName": location]
         }
 

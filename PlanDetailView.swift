@@ -408,8 +408,11 @@ struct PlanDetailView: View {
                 Button {
                     calendarHandler.tap(
                         provider: provider,
-                        plan: plan,
-                        otherUserDisplayName: otherUser?.displayName ?? "your friend"
+                        planID: plan.id,
+                        fields: CalendarEventFields(
+                            plan: plan,
+                            otherUserDisplayName: otherUser?.displayName ?? "your friend"
+                        )
                     )
                 } label: {
                     Label(

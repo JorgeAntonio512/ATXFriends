@@ -253,6 +253,44 @@ service cloud.firestore {
     }
 
     // ====================
+    // GROUP PLANS COLLECTION
+    // ====================
+    match /groupPlans/{planID} {
+      // Read: the host, or anyone invited.
+      allow read: if isSignedIn() &&
+                     (resource.data.hostID == request.auth.uid ||
+                      request.auth.uid in resource.data.inviteeIDs);
+
+      // Only the host can create, only with a non-empty invitee list, and every invitee's
+      // response must start as "invited".
+      allow create: if isSignedIn() &&
+                       request.resource.data.hostID == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'hostID', 'inviteeIDs', 'responses',
+                         'activity', 'date', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       request.resource.data.inviteeIDs.size() > 0 &&
+                       request.resource.data.responses.values().hasOnly(['invited']);
+
+      // Host can update any field except hostID.
+      allow update: if isSignedIn() &&
+                       resource.data.hostID == request.auth.uid &&
+                       request.resource.data.hostID == resource.data.hostID;
+
+      // An invitee can update only their own key in responses, and only to going or
+      // cantMake. The nested diff on responses ensures no other invitee's entry moves;
+      // the outer diff ensures no other field (activity, date, status, hostID, ...) moves.
+      allow update: if isSignedIn() &&
+                       request.auth.uid in resource.data.inviteeIDs &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses', 'updatedAt']) &&
+                       request.resource.data.responses.diff(resource.data.responses).affectedKeys().hasOnly([request.auth.uid]) &&
+                       request.resource.data.responses[request.auth.uid] in ['going', 'cantMake'];
+
+      // Cancel instead of delete.
+      allow delete: if false;
+    }
+
+    // ====================
     // SHOW-UP REPORTS COLLECTION
     // ====================
     match /showUpReports/{reportID} {

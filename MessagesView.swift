@@ -36,10 +36,10 @@ struct MessagesView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 24) {
-                            // Regular Messages Section (Individuals & Couples)
+                            // Regular Messages Section (Individuals — the app is individuals-only)
                             if !viewModel.regularThreads.isEmpty {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    Text("Individuals & Couples")
+                                    Text("Individuals")
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
                                         .foregroundColor(Color.appNavy)
                                         .padding(.horizontal, 20)

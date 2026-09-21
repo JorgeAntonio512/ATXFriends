@@ -9,6 +9,7 @@ import FirebaseAuth
 
 /// Firestore service for Simpatico questionnaire documents.
 /// Collection: "simpaticoAnswers" — one document per user, keyed by userID.
+/// The legacy "answers" field (pre-v2) is left untouched: it is never read or written here.
 final class SimpaticoService {
 
     static let shared = SimpaticoService()
@@ -19,76 +20,78 @@ final class SimpaticoService {
 
     // MARK: - Fetch
 
-    /// Returns the user's saved questionnaire, or an empty one if they haven't started yet.
-    func fetchQuestionnaire(userID: String) async throws -> SimpaticoQuestionnaire {
+    /// Returns the user's saved v2 state, or an empty one if they haven't started yet.
+    func fetchState(userID: String) async throws -> SimpaticoV2State {
         let doc = try await db.collection(collection).document(userID).getDocument()
         guard doc.exists, let data = doc.data() else {
-            return SimpaticoQuestionnaire(userID: userID)
+            return SimpaticoV2State(userID: userID)
         }
         return decode(userID: userID, data: data)
     }
 
     // MARK: - Save (partial)
 
-    /// Writes a single answer without touching any other answers already saved.
+    /// Writes a single v2 answer without touching any other answers already saved.
     /// Creates the Firestore document on the first call; subsequent calls merge into it.
-    ///
-    /// Uses setData with mergeFields so:
-    /// - The document is created if it does not yet exist (unlike updateData).
-    /// - Only the targeted nested field and the timestamp are written (unlike setData + merge: true,
-    ///   which would replace the entire "answers" map with the single entry passed in).
-    func saveAnswer(_ answer: SimpaticoAnswer, for component: SimpaticoComponent, userID: String) async throws {
-        let answerDict: [String: Any] = [
-            "toYou": answer.toYou.rawValue,
-            "toFriend": answer.toFriend.rawValue
+    func saveV2Answer(_ answer: SimpaticoV2Answer, for questionID: String, userID: String) async throws {
+        var answerDict: [String: Any] = [
+            "answer": answer.answer,
+            "acceptable": answer.acceptable
         ]
+        if let importance = answer.importance {
+            answerDict["importance"] = importance.rawValue
+        }
         let data: [String: Any] = [
             "userID": userID,
-            "updatedAt": Timestamp(date: Date()),
-            "answers": [component.rawValue: answerDict]
+            "v2Answers": [questionID: answerDict]
         ]
-        // FieldPath(["answers", component.rawValue]) targets the nested map entry
-        // without clobbering sibling answer fields.
+        // FieldPath(["v2Answers", questionID]) targets the nested map entry without
+        // clobbering sibling answers or the legacy "answers" field.
         try await db.collection(collection).document(userID).setData(
             data,
             mergeFields: [
                 FieldPath(["userID"]),
-                FieldPath(["updatedAt"]),
-                FieldPath(["answers", component.rawValue])
+                FieldPath(["v2Answers", questionID])
             ]
+        )
+    }
+
+    /// Marks the v2 flow finished (Finish tapped, or Skip past the last question).
+    func markV2Complete(userID: String) async throws {
+        try await db.collection(collection).document(userID).setData(
+            ["v2CompletedAt": Timestamp(date: Date())],
+            mergeFields: [FieldPath(["v2CompletedAt"])]
         )
     }
 
     // MARK: - Score
 
-    /// Fetches both questionnaires concurrently and returns the live-computed score,
-    /// or nil if either user hasn't answered all 18 questions yet.
-    /// Follows the same pattern as showUpMeter: raw data is stored, the number is
-    /// derived on access rather than persisted.
+    /// Fetches both users' v2 state concurrently and returns the live-computed score,
+    /// or nil if they share fewer than 5 answered questions.
     func fetchScore(userID: String, friendID: String) async throws -> Int? {
-        async let q1 = fetchQuestionnaire(userID: userID)
-        async let q2 = fetchQuestionnaire(userID: friendID)
-        let (a, b) = try await (q1, q2)
-        return SimpaticoQuestionnaire.score(between: a, and: b)
+        async let s1 = fetchState(userID: userID)
+        async let s2 = fetchState(userID: friendID)
+        let (a, b) = try await (s1, s2)
+        return SimpaticoV2State.score(between: a, and: b)
     }
 
     // MARK: - Decode
 
-    private func decode(userID: String, data: [String: Any]) -> SimpaticoQuestionnaire {
-        let updatedAt = (data["updatedAt"] as? Timestamp)?.dateValue() ?? Date()
-        let rawAnswers = data["answers"] as? [String: [String: String]] ?? [:]
+    private func decode(userID: String, data: [String: Any]) -> SimpaticoV2State {
+        let hasLegacyAnswers = !(data["answers"] as? [String: Any] ?? [:]).isEmpty
+        let completedAt = (data["v2CompletedAt"] as? Timestamp)?.dateValue()
+        let rawV2Answers = data["v2Answers"] as? [String: [String: Any]] ?? [:]
 
-        var answers: [String: SimpaticoAnswer] = [:]
-        for (key, dict) in rawAnswers {
+        var answers: [String: SimpaticoV2Answer] = [:]
+        for (questionID, dict) in rawV2Answers {
             guard
-                let toYouRaw   = dict["toYou"],
-                let toFriendRaw = dict["toFriend"],
-                let toYou      = SimpaticoRating(rawValue: toYouRaw),
-                let toFriend   = SimpaticoRating(rawValue: toFriendRaw)
+                let answerID = dict["answer"] as? String,
+                let acceptable = dict["acceptable"] as? [String]
             else { continue }
-            answers[key] = SimpaticoAnswer(toYou: toYou, toFriend: toFriend)
+            let importance = (dict["importance"] as? String).flatMap(SimpaticoImportance.init(rawValue:))
+            answers[questionID] = SimpaticoV2Answer(answer: answerID, acceptable: acceptable, importance: importance)
         }
 
-        return SimpaticoQuestionnaire(userID: userID, answers: answers, updatedAt: updatedAt)
+        return SimpaticoV2State(userID: userID, answers: answers, completedAt: completedAt, hasLegacyAnswers: hasLegacyAnswers)
     }
 }

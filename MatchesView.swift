@@ -323,6 +323,7 @@ struct MatchesView: View {
                     }
                     .padding(.trailing, 20)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -695,10 +696,13 @@ struct ConnectedMatchRow: View {
                         Text(matchWithUser.otherUser.displayName)
                             .font(.system(size: 17, weight: .bold, design: .rounded))
                             .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                        
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 14))
                             .foregroundColor(Color.appPrimary)
+                            .fixedSize()
                     }
                     
                     if let firstActivity = matchWithUser.sharedActivities.first {
@@ -707,7 +711,7 @@ struct ConnectedMatchRow: View {
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                     }
 
-                    HStack(spacing: 8) {
+                    FlowLayout(spacing: 8) {
                         HStack(spacing: 4) {
                             Image(systemName: "calendar.badge.plus")
                                 .font(.system(size: 11))
@@ -717,7 +721,6 @@ struct ConnectedMatchRow: View {
                                 .foregroundColor(Color.appPrimary)
                                 .lineLimit(1)
                         }
-                        .fixedSize(horizontal: true, vertical: false)
 
                         if let score = simpaticoScore {
                             HStack(spacing: 3) {
@@ -732,7 +735,6 @@ struct ConnectedMatchRow: View {
                             .padding(.vertical, 2)
                             .background(Color.appPrimary.opacity(0.12))
                             .clipShape(Capsule())
-                            .fixedSize(horizontal: true, vertical: false)
                         }
 
                         if let distanceText = matchWithUser.distanceText {
@@ -740,18 +742,16 @@ struct ConnectedMatchRow: View {
                                 Image(systemName: "location.fill")
                                     .font(.system(size: 11))
                                     .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                Text(distanceText)
+                                Text(distanceText.replacingOccurrences(of: " away", with: ""))
                                     .font(.system(size: 12, weight: .medium, design: .rounded))
                                     .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                                     .lineLimit(1)
                             }
-                            .fixedSize(horizontal: true, vertical: false)
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
-                
                 // Plan button
                 Button(action: onPlan) {
                     Image(systemName: "calendar.badge.plus")

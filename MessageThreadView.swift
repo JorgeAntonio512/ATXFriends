@@ -85,8 +85,11 @@ struct MessageThreadView: View {
                             onAddToCalendar: { provider in
                                 calendarHandler.tap(
                                     provider: provider,
-                                    plan: plan,
-                                    otherUserDisplayName: thread.otherUser.displayName
+                                    planID: plan.id,
+                                    fields: CalendarEventFields(
+                                        plan: plan,
+                                        otherUserDisplayName: thread.otherUser.displayName
+                                    )
                                 )
                             }
                         )

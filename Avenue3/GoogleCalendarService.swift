@@ -134,20 +134,17 @@ struct GoogleCalendarService {
         }
     }
 
-    /// Creates an event on the user's primary Google Calendar matching the given plan.
+    /// Creates an event on the user's primary Google Calendar matching the given fields.
     /// Mirrors the title/start/end/location/notes mapping used for the Apple EKEvent so
     /// both providers produce equivalent events.
-    func createEvent(for plan: Plan, otherUserDisplayName: String, accessToken: String) async throws {
-        let start = plan.confirmedDate ?? Date()
-        let end = start.addingTimeInterval(2 * 60 * 60)
-
+    func createEvent(for fields: CalendarEventFields, accessToken: String) async throws {
         var body: [String: Any] = [
-            "summary": plan.activity.name,
-            "start": ["dateTime": Self.iso8601.string(from: start)],
-            "end": ["dateTime": Self.iso8601.string(from: end)],
-            "description": "Hanging out with \(otherUserDisplayName)"
+            "summary": fields.title,
+            "start": ["dateTime": Self.iso8601.string(from: fields.start)],
+            "end": ["dateTime": Self.iso8601.string(from: fields.end)],
+            "description": fields.notes
         ]
-        if let location = plan.location, !location.isEmpty {
+        if let location = fields.location, !location.isEmpty {
             body["location"] = location
         }
 

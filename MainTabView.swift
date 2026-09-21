@@ -89,13 +89,14 @@ private struct SimpaticoPlaceholderView: View {
 enum Tab: Int, CaseIterable {
     case matches   = 0
     case today     = 1
-    case simpatico = 2
-    case messages  = 3
-    case settings  = 4
+    case upcoming  = 2
+    case simpatico = 3
+    case messages  = 4
+    case settings  = 5
 }
 
 /// Main tab view for authenticated users
-/// Five tabs: Matches, Today, Simpatico, Messages, Settings
+/// Six tabs: Matches, Today, Upcoming, Simpatico, Messages, Settings
 struct MainTabView: View {
     @State private var selectedTab: Tab = .matches
     @StateObject private var unreadState = UnreadState.shared
@@ -118,6 +119,11 @@ struct MainTabView: View {
                         }
                 case .today:
                     TodayView()
+                        .safeAreaInset(edge: .bottom) {
+                            Color.clear.frame(height: tabBarHeight)
+                        }
+                case .upcoming:
+                    UpcomingView()
                         .safeAreaInset(edge: .bottom) {
                             Color.clear.frame(height: tabBarHeight)
                         }
@@ -262,6 +268,16 @@ struct CustomTabBar: View {
                         hasBadge: false
                     )
                     
+                    // Upcoming Tab
+                    CustomTabItem(
+                        tab: .upcoming,
+                        selectedTab: $selectedTab,
+                        label: "Upcoming",
+                        selectedIcon: "calendar.badge.clock",
+                        unselectedIcon: "calendar.badge.clock",
+                        hasBadge: false
+                    )
+
                     // Simpatico Tab
                     CustomTabItem(
                         tab: .simpatico,
@@ -300,6 +316,7 @@ struct CustomTabBar: View {
         .frame(height: 50)
         .opacity(tabBarOpacity)
         .animation(.easeInOut(duration: 0.25), value: tabBarOpacity)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 }
 

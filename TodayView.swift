@@ -224,6 +224,20 @@ struct TodayPlanCard: View {
 
     @State private var isClaiming = false
 
+    /// "Today 7:00 PM" or "Tomorrow 9:00 AM" — the calendar-day comparison is re-evaluated on
+    /// every render, so a plan posted for "Tomorrow" relabels itself once midnight passes.
+    static func timeBadgeLabel(for date: Date) -> String {
+        let time = date.formatted(date: .omitted, time: .shortened)
+        let cal = Calendar.current
+        if cal.isDateInToday(date) {
+            return "Today \(time)"
+        } else if cal.isDateInTomorrow(date) {
+            return "Tomorrow \(time)"
+        } else {
+            return time
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
 
@@ -233,7 +247,7 @@ struct TodayPlanCard: View {
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(Color.appNavy)
                 Spacer()
-                Text(plan.scheduledTime.formatted(date: .omitted, time: .shortened))
+                Text(Self.timeBadgeLabel(for: plan.scheduledTime))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
                     .padding(.horizontal, 10)

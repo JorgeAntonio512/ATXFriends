@@ -25,6 +25,19 @@ enum CalendarProvider: String, CaseIterable, Identifiable {
     }
 }
 
+/// A plan with a routable location — implemented by both the 1-on-1 `Plan` and the
+/// multi-invitee `GroupPlan`, which store the same three location fields with the same
+/// meaning. Lets `NavigationApp` and `CalendarEventFields` work off either without
+/// duplicating logic per type.
+protocol MapRoutable {
+    var location: String? { get }
+    var locationLatitude: Double? { get }
+    var locationLongitude: Double? { get }
+}
+
+extension Plan: MapRoutable {}
+extension GroupPlan: MapRoutable {}
+
 /// A maps app that can be launched with directions to a plan's location. Apple Maps is the
 /// guaranteed system fallback; Google Maps and Waze are offered only when actually installed.
 enum NavigationApp: String, CaseIterable, Identifiable {
@@ -90,13 +103,40 @@ enum NavigationApp: String, CaseIterable, Identifiable {
 
     /// Best-available directions URL for a plan: exact coordinates when on file, otherwise a
     /// free-text query using the display string.
-    func directionsURL(for plan: Plan) -> URL? {
+    func directionsURL(for plan: MapRoutable) -> URL? {
         if let lat = plan.locationLatitude, let lng = plan.locationLongitude {
             return directionsURL(to: CLLocationCoordinate2D(latitude: lat, longitude: lng))
         } else if let location = plan.location, !location.isEmpty {
             return directionsURL(query: location)
         }
         return nil
+    }
+}
+
+/// The fields every calendar provider actually needs, extracted once from either a 1-on-1
+/// `Plan` or a `GroupPlan` so the Apple/Google/Microsoft event-creation code never needs to
+/// branch on which source it came from.
+struct CalendarEventFields {
+    let title: String
+    let start: Date
+    let location: String?
+    let notes: String
+
+    var end: Date { start.addingTimeInterval(2 * 60 * 60) }
+
+    /// Mirrors the exact title/start/location/notes mapping the 1-on-1 flow always used.
+    init(plan: Plan, otherUserDisplayName: String) {
+        self.title = plan.activity.name
+        self.start = plan.confirmedDate ?? Date()
+        self.location = plan.location
+        self.notes = "Hanging out with \(otherUserDisplayName)"
+    }
+
+    init(groupPlan: GroupPlan, hostName: String, inviteeNames: [String]) {
+        self.title = groupPlan.activity.name
+        self.start = groupPlan.date
+        self.location = groupPlan.location
+        self.notes = "Hosted by \(hostName). Invited: \(inviteeNames.joined(separator: ", "))."
     }
 }
 
@@ -148,14 +188,14 @@ final class PlanCalendarActionHandler {
         })
     }
 
-    func tap(provider: CalendarProvider, plan: Plan, otherUserDisplayName: String) {
+    func tap(provider: CalendarProvider, planID: String, fields: CalendarEventFields) {
         switch provider {
         case .apple:
-            tapApple(plan: plan, otherUserDisplayName: otherUserDisplayName)
+            tapApple(planID: planID, fields: fields)
         case .google:
-            tapGoogle(plan: plan, otherUserDisplayName: otherUserDisplayName)
+            tapGoogle(planID: planID, fields: fields)
         case .microsoft:
-            tapMicrosoft(plan: plan, otherUserDisplayName: otherUserDisplayName)
+            tapMicrosoft(planID: planID, fields: fields)
         }
     }
 
@@ -168,7 +208,7 @@ final class PlanCalendarActionHandler {
         eventToAdd = nil
     }
 
-    private func tapApple(plan: Plan, otherUserDisplayName: String) {
+    private func tapApple(planID: String, fields: CalendarEventFields) {
         if isAdded(.apple) {
             if let url = URL(string: "calshow:") {
                 UIApplication.shared.open(url)
@@ -179,18 +219,14 @@ final class PlanCalendarActionHandler {
         Task {
             let granted = await eventKitManager.requestWriteOnlyAccess()
             if granted {
-                eventToAdd = Self.makeAppleEvent(
-                    for: plan,
-                    eventStore: eventKitManager.eventStore,
-                    otherUserDisplayName: otherUserDisplayName
-                )
+                eventToAdd = Self.makeAppleEvent(for: fields, eventStore: eventKitManager.eventStore)
             } else {
                 showCalendarPermissionAlert = true
             }
         }
     }
 
-    private func tapGoogle(plan: Plan, otherUserDisplayName: String) {
+    private func tapGoogle(planID: String, fields: CalendarEventFields) {
         if isAdded(.google) {
             if let url = URL(string: "https://calendar.google.com/calendar/r") {
                 UIApplication.shared.open(url)
@@ -208,12 +244,8 @@ final class PlanCalendarActionHandler {
             defer { isAuthorizingGoogle = false }
             do {
                 let accessToken = try await googleCalendarService.authorize(presenting: presentingViewController)
-                try await googleCalendarService.createEvent(
-                    for: plan,
-                    otherUserDisplayName: otherUserDisplayName,
-                    accessToken: accessToken
-                )
-                AddedToCalendarStore.markAdded(planID: plan.id, provider: .google)
+                try await googleCalendarService.createEvent(for: fields, accessToken: accessToken)
+                AddedToCalendarStore.markAdded(planID: planID, provider: .google)
                 addedProviders.insert(.google)
             } catch {
                 googleErrorMessage = error.localizedDescription
@@ -224,7 +256,7 @@ final class PlanCalendarActionHandler {
     /// Microsoft has no "already connected" shortcut analogous to Google's `addScopes` branch —
     /// ATX Friends has no Microsoft login option, so there's never an existing MSAL session to
     /// extend. Every tap is a first-time interactive MSAL sign-in.
-    private func tapMicrosoft(plan: Plan, otherUserDisplayName: String) {
+    private func tapMicrosoft(planID: String, fields: CalendarEventFields) {
         if isAdded(.microsoft) {
             if let url = URL(string: "https://outlook.office.com/calendar/view/month") {
                 UIApplication.shared.open(url)
@@ -242,12 +274,8 @@ final class PlanCalendarActionHandler {
             defer { isAuthorizingMicrosoft = false }
             do {
                 let accessToken = try await microsoftCalendarService.authorize(presenting: presentingViewController)
-                try await microsoftCalendarService.createEvent(
-                    for: plan,
-                    otherUserDisplayName: otherUserDisplayName,
-                    accessToken: accessToken
-                )
-                AddedToCalendarStore.markAdded(planID: plan.id, provider: .microsoft)
+                try await microsoftCalendarService.createEvent(for: fields, accessToken: accessToken)
+                AddedToCalendarStore.markAdded(planID: planID, provider: .microsoft)
                 addedProviders.insert(.microsoft)
             } catch {
                 microsoftErrorMessage = error.localizedDescription
@@ -255,16 +283,15 @@ final class PlanCalendarActionHandler {
         }
     }
 
-    private static func makeAppleEvent(for plan: Plan, eventStore: EKEventStore, otherUserDisplayName: String) -> EKEvent {
+    private static func makeAppleEvent(for fields: CalendarEventFields, eventStore: EKEventStore) -> EKEvent {
         let event = EKEvent(eventStore: eventStore)
-        event.title = plan.activity.name
-        let start = plan.confirmedDate ?? Date()
-        event.startDate = start
-        event.endDate = start.addingTimeInterval(2 * 60 * 60)
-        if let location = plan.location {
+        event.title = fields.title
+        event.startDate = fields.start
+        event.endDate = fields.end
+        if let location = fields.location {
             event.location = location
         }
-        event.notes = "Hanging out with \(otherUserDisplayName)"
+        event.notes = fields.notes
         return event
     }
 

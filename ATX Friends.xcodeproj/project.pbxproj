@@ -101,6 +101,11 @@
 		6801F0B8305F4D5A00E19C84 /* PlanLocationField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */; };
 		6801F0BA305F6DB300E19C84 /* SharedActivityPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */; };
 		6823A29230597F2E00388E7E /* LocationPermissionNeededView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6823A29130597F2E00388E7E /* LocationPermissionNeededView.swift */; };
+		6892C928306106B800BFC363 /* GroupPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C927306106B800BFC363 /* GroupPlan.swift */; };
+		6892C92A306106CA00BFC363 /* GroupPlansService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C929306106CA00BFC363 /* GroupPlansService.swift */; };
+		6892C92C306106D600BFC363 /* GroupPlansViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */; };
+		6892C92E3061092000BFC363 /* UpcomingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92D3061092000BFC363 /* UpcomingView.swift */; };
+		6892C9303061095F00BFC363 /* GroupPlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */; };
 		68A3C088304D91AE00C9FDEF /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C087304D91AE00C9FDEF /* AppColors.swift */; };
 		68A3C08A3052015200C9FDEF /* LocationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C0893052015200C9FDEF /* LocationPermissionManager.swift */; };
 		68A3C08C3052016B00C9FDEF /* LocationGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C08B3052016B00C9FDEF /* LocationGateView.swift */; };
@@ -223,6 +228,11 @@
 		6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanLocationField.swift; sourceTree = "<group>"; };
 		6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedActivityPicker.swift; sourceTree = "<group>"; };
 		6823A29130597F2E00388E7E /* LocationPermissionNeededView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionNeededView.swift; sourceTree = "<group>"; };
+		6892C927306106B800BFC363 /* GroupPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlan.swift; sourceTree = "<group>"; };
+		6892C929306106CA00BFC363 /* GroupPlansService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlansService.swift; sourceTree = "<group>"; };
+		6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlansViewModel.swift; sourceTree = "<group>"; };
+		6892C92D3061092000BFC363 /* UpcomingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingView.swift; sourceTree = "<group>"; };
+		6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlanDetailView.swift; sourceTree = "<group>"; };
 		68A3C087304D91AE00C9FDEF /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		68A3C0893052015200C9FDEF /* LocationPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionManager.swift; sourceTree = "<group>"; };
 		68A3C08B3052016B00C9FDEF /* LocationGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationGateView.swift; sourceTree = "<group>"; };
@@ -456,6 +466,11 @@
 				6801F0B5305EAEF200E19C84 /* LocationSearchViewModel.swift */,
 				6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */,
 				6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */,
+				6892C927306106B800BFC363 /* GroupPlan.swift */,
+				6892C929306106CA00BFC363 /* GroupPlansService.swift */,
+				6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */,
+				6892C92D3061092000BFC363 /* UpcomingView.swift */,
+				6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -617,13 +632,16 @@
 				68A3DF883040B912006BB37B /* PlanProposalCard.swift in Sources */,
 				18A775432FABFAB80045B6D3 /* ActivityPickerView.swift in Sources */,
 				6801F0B8305F4D5A00E19C84 /* PlanLocationField.swift in Sources */,
+				6892C92C306106D600BFC363 /* GroupPlansViewModel.swift in Sources */,
 				18345AD22FBAA7FC00CF18FF /* PlansViewModel.swift in Sources */,
 				6823A29230597F2E00388E7E /* LocationPermissionNeededView.swift in Sources */,
+				6892C92A306106CA00BFC363 /* GroupPlansService.swift in Sources */,
 				18A7750D2FAB0A490045B6D3 /* FirebaseAuthService.swift in Sources */,
 				18A774FC2FAB07630045B6D3 /* Activity.swift in Sources */,
 				18A7753D2FABFA4C0045B6D3 /* ProfileSetupFlowView.swift in Sources */,
 				18A7750F2FAB0A710045B6D3 /* FirestoreService.swift in Sources */,
 				18A775512FABFF840045B6D3 /* Message.swift in Sources */,
+				6892C928306106B800BFC363 /* GroupPlan.swift in Sources */,
 				18A774FA2FAB075C0045B6D3 /* DaySlotCombo.swift in Sources */,
 				1834BA552FD4137200F3ABF4 /* Event.swift in Sources */,
 				18A775002FAB077E0045B6D3 /* Match.swift in Sources */,
@@ -653,6 +671,7 @@
 				68A3DF863040B8F3006BB37B /* ProposePlanSheet.swift in Sources */,
 				18345AE62FBD34FB00CF18FF /* AvailabilitySettingsView.swift in Sources */,
 				1834BA332FD0F1BE00F3ABF4 /* GroupMember.swift in Sources */,
+				6892C9303061095F00BFC363 /* GroupPlanDetailView.swift in Sources */,
 				1834BA392FD0F23300F3ABF4 /* CreateGroupView.swift in Sources */,
 				1834BA4D2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift in Sources */,
 				1834BA452FD1D7BA00F3ABF4 /* GroupDetailView.swift in Sources */,
@@ -692,6 +711,7 @@
 				18A775252FABF43C0045B6D3 /* ProfileViewModel.swift in Sources */,
 				18A7752F2FABF6F50045B6D3 /* SignUpView.swift in Sources */,
 				1834BA592FD413A800F3ABF4 /* EventsView.swift in Sources */,
+				6892C92E3061092000BFC363 /* UpcomingView.swift in Sources */,
 				18A7755F2FAC019B0045B6D3 /* HomeViewModel.swift in Sources */,
 				18A775612FAC01CD0045B6D3 /* UserProfileView.swift in Sources */,
 				68A3C08C3052016B00C9FDEF /* LocationGateView.swift in Sources */,

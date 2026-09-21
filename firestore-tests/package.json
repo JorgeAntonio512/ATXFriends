@@ -1,0 +1,12 @@
+{
+  "name": "firestore-rules-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore,auth --project avenue3-73bb4 \"node run.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.0.0"
+  }
+}
