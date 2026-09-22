@@ -29,6 +29,7 @@ struct ActivitiesDatabase {
         "Tennis",
         "Volleyball",
         "Soccer",
+        "Football",
         "Golf",
         "Bowling",
         "Boxing",
@@ -44,7 +45,8 @@ struct ActivitiesDatabase {
         "Sailing",
         "Fishing",
         "Horseback Riding",
-        
+        "Rucking",
+
         // Food & Drink (25)
         "Coffee",
         "Brunch",

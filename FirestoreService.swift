@@ -542,7 +542,8 @@ final class FirestoreService {
             "createdAt": Timestamp(date: match.createdAt),
             "updatedAt": Timestamp(date: match.updatedAt),
             "overlappingActivityNames": match.overlappingActivityNames,
-            "overlappingDaySlots": match.overlappingDaySlots
+            "overlappingDaySlots": match.overlappingDaySlots,
+            "overlappingCategoryNames": match.overlappingCategoryNames
         ]
         
         if let user1Decision = match.user1Decision {
@@ -572,7 +573,9 @@ final class FirestoreService {
         
         let user1Decision = data["user1Decision"] as? Bool
         let user2Decision = data["user2Decision"] as? Bool
-        
+        // Absent for matches created before this field existed.
+        let overlappingCategoryNames = data["overlappingCategoryNames"] as? [String] ?? []
+
         return Match(
             id: id,
             user1ID: user1ID,
@@ -583,7 +586,8 @@ final class FirestoreService {
             createdAt: createdAtTimestamp.dateValue(),
             updatedAt: updatedAtTimestamp.dateValue(),
             overlappingActivityNames: overlappingActivityNames,
-            overlappingDaySlots: overlappingDaySlots
+            overlappingDaySlots: overlappingDaySlots,
+            overlappingCategoryNames: overlappingCategoryNames
         )
     }
     

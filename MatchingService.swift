@@ -38,10 +38,12 @@ final class MatchingService {
     // MARK: - Core Matching Algorithm
     
     /// Determines if two users should be matched
-    /// A match occurs when users share at least ONE activity AND at least ONE time slot
+    /// A match occurs when users share at least ONE activity (exact match OR shared
+    /// activity category) AND at least ONE time slot
     func shouldMatch(user1: AppUser, user2: AppUser) -> Bool {
-        return hasOverlappingActivities(user1: user1, user2: user2) &&
-               hasOverlappingTimes(user1: user1, user2: user2)
+        let activitiesCompatible = hasOverlappingActivities(user1: user1, user2: user2) ||
+            !sharedActivityCategories(user1: user1, user2: user2).isEmpty
+        return activitiesCompatible && hasOverlappingTimes(user1: user1, user2: user2)
     }
     
     /// Checks if two users have at least one overlapping activity
@@ -90,12 +92,27 @@ final class MatchingService {
     /// - Returns: Array of overlapping day/slot combinations
     func getOverlappingTimes(user1: AppUser, user2: AppUser) -> [DaySlotCombo] {
         let user1Combos = Set(user1.daySlotCombos)
-        
+
         return user2.daySlotCombos.filter { combo in
             user1Combos.contains(combo)
         }
     }
-    
+
+    /// Categories represented by a user's activities. Custom/free-typed activities that
+    /// aren't in ActivitiesDatabase.allActivities return nil from the lookup and are dropped.
+    private func activityCategories(for user: AppUser) -> Set<ActivityCategory> {
+        Set(user.activities.compactMap { ActivityCategories.category(for: $0.name) })
+    }
+
+    /// Categories shared between two users' activities, independent of exact activity overlap.
+    /// - Parameters:
+    ///   - user1: The first user
+    ///   - user2: The second user
+    /// - Returns: Array of shared categories
+    func sharedActivityCategories(user1: AppUser, user2: AppUser) -> [ActivityCategory] {
+        Array(activityCategories(for: user1).intersection(activityCategories(for: user2)))
+    }
+
     /// Creates a match record between two users with overlap information
     /// - Parameters:
     ///   - user1: The first user
@@ -110,11 +127,17 @@ final class MatchingService {
         // Get overlapping activities
         let overlappingActivities = getOverlappingActivities(user1: user1, user2: user2)
         let activityNames = overlappingActivities.map { $0.name }
-        
+
+        // Shared categories only matter for display when there's no identical activity
+        // already explaining the match — otherwise the exact-activity chips say enough.
+        let categoryNames = activityNames.isEmpty
+            ? sharedActivityCategories(user1: user1, user2: user2).map { $0.displayName }
+            : []
+
         // Get overlapping times
         let overlappingTimes = getOverlappingTimes(user1: user1, user2: user2)
         let timeSlotStrings = overlappingTimes.map { $0.displayName }
-        
+
         // Deterministic ID — same scheme used by claimTodayPlan — ensures concurrent
         // calls from both sides of the pair resolve to one document, not two.
         let u1 = min(user1.id, user2.id)
@@ -124,7 +147,8 @@ final class MatchingService {
             user1ID: u1,
             user2ID: u2,
             overlappingActivityNames: activityNames,
-            overlappingDaySlots: timeSlotStrings
+            overlappingDaySlots: timeSlotStrings,
+            overlappingCategoryNames: categoryNames
         )
     }
     

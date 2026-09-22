@@ -316,23 +316,19 @@ final class MatchesViewModel: ObservableObject {
                     continue
                 }
                 
-                // Check if we should match
-                let hasActivityOverlap = matchingService.hasOverlappingActivities(user1: currentUser, user2: user)
-                let hasTimeOverlap = matchingService.hasOverlappingTimes(user1: currentUser, user2: user)
-                
-                if hasActivityOverlap && hasTimeOverlap {
-                    // Create a match!
-                    if let match = matchingService.createMatch(between: currentUser, and: user) {
-                        do {
-                            try await firestoreService.createMatch(match)
-                            newMatchesCreated += 1
-                            
-                            print("💚 MatchesViewModel: Created match with \(user.displayName)")
-                            print("   Shared activities: \(match.overlappingActivityNames.joined(separator: ", "))")
-                            print("   Shared times: \(match.overlappingDaySlots.joined(separator: ", "))")
-                        } catch {
-                            print("❌ MatchesViewModel: Failed to create match with \(user.displayName): \(error)")
-                        }
+                // createMatch already guards on matchingService.shouldMatch(...) internally,
+                // which covers exact activity overlap OR shared activity category, AND time overlap.
+                if let match = matchingService.createMatch(between: currentUser, and: user) {
+                    do {
+                        try await firestoreService.createMatch(match)
+                        newMatchesCreated += 1
+
+                        print("💚 MatchesViewModel: Created match with \(user.displayName)")
+                        print("   Shared activities: \(match.overlappingActivityNames.joined(separator: ", "))")
+                        print("   Shared categories: \(match.overlappingCategoryNames.joined(separator: ", "))")
+                        print("   Shared times: \(match.overlappingDaySlots.joined(separator: ", "))")
+                    } catch {
+                        print("❌ MatchesViewModel: Failed to create match with \(user.displayName): \(error)")
                     }
                 }
             }
@@ -561,6 +557,14 @@ struct MatchWithUser: Identifiable, Equatable {
     /// Shared time slots
     var sharedTimes: [String] {
         match.overlappingDaySlots
+    }
+
+    /// "You both like X" label for matches with no identical shared activity, where the
+    /// only thing connecting them is an overlapping activity category (see
+    /// MatchingService.createMatch). Nil when there's an exact shared activity to show instead.
+    var categoryMatchLabel: String? {
+        guard let categoryName = match.overlappingCategoryNames.first else { return nil }
+        return "You both like \(categoryName)"
     }
 
     /// "3 mi away" style label using signup-time coordinates, or nil if either

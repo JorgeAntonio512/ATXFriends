@@ -21,7 +21,11 @@ final class Match {
     var updatedAt: Date
     var overlappingActivityNames: [String]
     var overlappingDaySlots: [String]
-    
+    /// Display names of activity categories shared between the two users, populated only
+    /// when the match wasn't already explained by an identical activity (see
+    /// MatchingService.createMatch). Empty for matches created before this field existed.
+    var overlappingCategoryNames: [String]
+
     init(
         id: String = UUID().uuidString,
         user1ID: String,
@@ -32,7 +36,8 @@ final class Match {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         overlappingActivityNames: [String] = [],
-        overlappingDaySlots: [String] = []
+        overlappingDaySlots: [String] = [],
+        overlappingCategoryNames: [String] = []
     ) {
         self.id = id
         self.user1ID = user1ID
@@ -44,8 +49,9 @@ final class Match {
         self.updatedAt = updatedAt
         self.overlappingActivityNames = overlappingActivityNames
         self.overlappingDaySlots = overlappingDaySlots
+        self.overlappingCategoryNames = overlappingCategoryNames
     }
-    
+
     /// Returns the other user's ID given the current user's ID
     func otherUserID(for currentUserID: String) -> String? {
         if user1ID == currentUserID {
@@ -55,7 +61,7 @@ final class Match {
         }
         return nil
     }
-    
+
     /// Returns the decision for a specific user
     func decision(for userID: String) -> Bool? {
         if userID == user1ID {
@@ -113,7 +119,8 @@ struct MatchData: Identifiable, Codable {
     var updatedAt: Date
     var overlappingActivityNames: [String]
     var overlappingDaySlots: [String]
-    
+    var overlappingCategoryNames: [String]
+
     init(
         id: String = UUID().uuidString,
         user1ID: String,
@@ -124,7 +131,8 @@ struct MatchData: Identifiable, Codable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         overlappingActivityNames: [String] = [],
-        overlappingDaySlots: [String] = []
+        overlappingDaySlots: [String] = [],
+        overlappingCategoryNames: [String] = []
     ) {
         self.id = id
         self.user1ID = user1ID
@@ -136,8 +144,9 @@ struct MatchData: Identifiable, Codable {
         self.updatedAt = updatedAt
         self.overlappingActivityNames = overlappingActivityNames
         self.overlappingDaySlots = overlappingDaySlots
+        self.overlappingCategoryNames = overlappingCategoryNames
     }
-    
+
     /// Returns the other user's ID given the current user's ID
     func otherUserID(for currentUserID: String) -> String? {
         if user1ID == currentUserID {
@@ -147,7 +156,7 @@ struct MatchData: Identifiable, Codable {
         }
         return nil
     }
-    
+
     /// Convert from SwiftData model
     init(from model: Match) {
         self.id = model.id
@@ -160,6 +169,7 @@ struct MatchData: Identifiable, Codable {
         self.updatedAt = model.updatedAt
         self.overlappingActivityNames = model.overlappingActivityNames
         self.overlappingDaySlots = model.overlappingDaySlots
+        self.overlappingCategoryNames = model.overlappingCategoryNames
     }
 }
 
@@ -176,7 +186,8 @@ extension Match {
             createdAt: matchData.createdAt,
             updatedAt: matchData.updatedAt,
             overlappingActivityNames: matchData.overlappingActivityNames,
-            overlappingDaySlots: matchData.overlappingDaySlots
+            overlappingDaySlots: matchData.overlappingDaySlots,
+            overlappingCategoryNames: matchData.overlappingCategoryNames
         )
     }
 }

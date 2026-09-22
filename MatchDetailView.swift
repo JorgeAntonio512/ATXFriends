@@ -112,7 +112,22 @@ struct MatchDetailView: View {
                             .cornerRadius(16)
                             .padding(.horizontal, 20)
                         }
-                        
+
+                        // Category-based match reason (only shown when there's no identical
+                        // shared activity to explain the match instead)
+                        if let categoryMatchLabel = matchWithUser.categoryMatchLabel {
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color.appPrimary)
+
+                                Text(categoryMatchLabel)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            }
+                            .padding(.horizontal, 20)
+                        }
+
                         // Shared times
                         if !matchWithUser.sharedTimes.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {

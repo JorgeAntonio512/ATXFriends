@@ -170,13 +170,20 @@ class MatchingServiceTests: XCTestCase {
             isProfileComplete: true
         )
         
-        // User 2: DIFFERENT activities but same times
+        // User 2: DIFFERENT activities, in DIFFERENT categories (Hobbies & Crafts, Unique &
+        // Niche, Learning & Education vs. user1's Outdoor & Nature, Food & Drink,
+        // Entertainment & Social — zero category overlap too, not just zero exact overlap),
+        // but same times
         let user2 = User(
             id: "user2",
             displayName: "Fiona",
 
             photoURLs: ["url1", "url2", "url3"],
-            activities: [activities[3], activities[4], activities[5]], // DIFFERENT: Tacos, Yoga, Live Music
+            activities: [
+                Activity(id: "no-overlap-1", name: "Knitting", isUserAdded: false),
+                Activity(id: "no-overlap-2", name: "Astrology", isUserAdded: false),
+                Activity(id: "no-overlap-3", name: "Meditation", isUserAdded: false)
+            ],
             daySlotCombos: [times[0], times[3], times[2]], // Same: Saturday Wake Up, Friday Night, Sunday Afternoon
             latitude: 30.2700,
             longitude: -97.7400,
@@ -254,6 +261,126 @@ class MatchingServiceTests: XCTestCase {
         XCTAssertEqual(overlappingTimes.count, 0, "Should have NO overlapping times")
     }
     
+    // MARK: - Category-Based Matching
+
+    /// Two users with zero identical activities but a shared activity category should still
+    /// match (as long as times also overlap) — this is the new category-overlap path.
+    func testUsersMatchViaSharedCategoryWithNoIdenticalActivity() async throws {
+        let times = createTestTimes()
+        let matchingService = MatchingService.shared
+
+        // Basketball and Football are both Sports & Fitness, but not identical activities.
+        let user1 = User(
+            id: "cat1",
+            displayName: "Kelly",
+            activities: [Activity(id: "basketball", name: "Basketball", isUserAdded: false)],
+            daySlotCombos: [times[0]],
+            latitude: 30.2672,
+            longitude: -97.7431,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        let user2 = User(
+            id: "cat2",
+            displayName: "Lee",
+            activities: [Activity(id: "football", name: "Football", isUserAdded: false)],
+            daySlotCombos: [times[0]],
+            latitude: 30.2700,
+            longitude: -97.7400,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        XCTAssertFalse(
+            matchingService.hasOverlappingActivities(user1: user1, user2: user2),
+            "Basketball and Football are not identical activities"
+        )
+        XCTAssertEqual(
+            matchingService.sharedActivityCategories(user1: user1, user2: user2),
+            [.sportsAndFitness],
+            "Basketball and Football should share the Sports & Fitness category"
+        )
+        XCTAssertTrue(
+            matchingService.shouldMatch(user1: user1, user2: user2),
+            "Users with a shared activity category and overlapping time should match"
+        )
+
+        let match = try XCTUnwrap(matchingService.createMatch(between: user1, and: user2))
+        XCTAssertTrue(match.overlappingActivityNames.isEmpty, "There is no identical activity to report")
+        XCTAssertEqual(match.overlappingCategoryNames, ["Sports & Fitness"], "Match should record the shared category for display")
+    }
+
+    /// Zero identical activities AND zero shared categories should still not match, even with
+    /// overlapping times.
+    func testUsersDoNotMatchWithoutActivityOrCategoryOverlap() async throws {
+        let times = createTestTimes()
+        let matchingService = MatchingService.shared
+
+        let user1 = User(
+            id: "nocat1",
+            displayName: "Morgan",
+            activities: [Activity(id: "hiking", name: "Hiking", isUserAdded: false)], // Outdoor & Nature
+            daySlotCombos: [times[0]],
+            latitude: 30.2672,
+            longitude: -97.7431,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        let user2 = User(
+            id: "nocat2",
+            displayName: "Casey",
+            activities: [Activity(id: "astrology", name: "Astrology", isUserAdded: false)], // Unique & Niche
+            daySlotCombos: [times[0]],
+            latitude: 30.2700,
+            longitude: -97.7400,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        XCTAssertTrue(matchingService.sharedActivityCategories(user1: user1, user2: user2).isEmpty)
+        XCTAssertFalse(
+            matchingService.shouldMatch(user1: user1, user2: user2),
+            "Users with no identical activity and no shared category should NOT match"
+        )
+    }
+
+    /// A user-typed custom activity (not in ActivitiesDatabase.allActivities) has no category
+    /// lookup entry and should not produce a false-positive category match.
+    func testCustomActivityDoesNotParticipateInCategoryMatching() async throws {
+        let times = createTestTimes()
+        let matchingService = MatchingService.shared
+
+        let user1 = User(
+            id: "custom1",
+            displayName: "Sam",
+            activities: [Activity(id: "custom-activity", name: "Underwater Basket Weaving", isUserAdded: true)],
+            daySlotCombos: [times[0]],
+            latitude: 30.2672,
+            longitude: -97.7431,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        let user2 = User(
+            id: "custom2",
+            displayName: "Riley",
+            activities: [Activity(id: "basketball", name: "Basketball", isUserAdded: false)],
+            daySlotCombos: [times[0]],
+            latitude: 30.2700,
+            longitude: -97.7400,
+            radiusMiles: 10.0,
+            isProfileComplete: true
+        )
+
+        XCTAssertTrue(
+            matchingService.sharedActivityCategories(user1: user1, user2: user2).isEmpty,
+            "A custom activity has no category entry, so it shouldn't overlap with anything"
+        )
+        XCTAssertFalse(matchingService.shouldMatch(user1: user1, user2: user2))
+    }
+
     // MARK: - Additional Test Cases
     
     /// Match creation returns nil when users should not match

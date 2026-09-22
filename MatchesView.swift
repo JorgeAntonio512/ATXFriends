@@ -557,6 +557,17 @@ struct PendingMatchCard: View {
                             }
                         }
 
+                        if let categoryMatchLabel = matchWithUser.categoryMatchLabel {
+                            HStack(spacing: 6) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color.appPrimary)
+                                Text(categoryMatchLabel)
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            }
+                        }
+
                         if !matchWithUser.sharedTimes.isEmpty {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(spacing: 6) {
@@ -707,6 +718,10 @@ struct ConnectedMatchRow: View {
                     
                     if let firstActivity = matchWithUser.sharedActivities.first {
                         Text(firstActivity + (matchWithUser.sharedActivities.count > 1 ? " +\(matchWithUser.sharedActivities.count - 1) more" : ""))
+                            .font(.system(size: 14, weight: .regular, design: .rounded))
+                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    } else if let categoryMatchLabel = matchWithUser.categoryMatchLabel {
+                        Text(categoryMatchLabel)
                             .font(.system(size: 14, weight: .regular, design: .rounded))
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                     }
