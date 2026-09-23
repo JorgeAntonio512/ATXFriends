@@ -79,11 +79,13 @@ final class User {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
     
-    /// Validates whether the profile meets the 3-by-3 requirements
+    /// Validates whether the profile meets requirements: exactly 3 photos,
+    /// 3-10 activities with exactly 3 marked Main, and 3+ time slots (no max).
     func validateProfile() -> Bool {
         photoURLs.count == 3 &&
-        activities.count == 3 &&
-        daySlotCombos.count == 3 &&
+        (3...10).contains(activities.count) &&
+        activities.filter { $0.isPrimary }.count == 3 &&
+        daySlotCombos.count >= 3 &&
         !displayName.isEmpty
     }
     

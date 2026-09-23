@@ -46,7 +46,10 @@ final class MatchingService {
         return activitiesCompatible && hasOverlappingTimes(user1: user1, user2: user2)
     }
     
-    /// Checks if two users have at least one overlapping activity
+    /// Checks if two users have at least one overlapping activity.
+    /// Matches by ID first; falls back to a normalized-name comparison (trimmed,
+    /// whitespace-collapsed, case-insensitive) so pre-existing duplicate entries
+    /// like "Hiking" / "hiking " still count as the same activity.
     /// - Parameters:
     ///   - user1: The first user
     ///   - user2: The second user
@@ -54,8 +57,14 @@ final class MatchingService {
     func hasOverlappingActivities(user1: AppUser, user2: AppUser) -> Bool {
         let user1ActivityIDs = Set(user1.activities.map { $0.id })
         let user2ActivityIDs = Set(user2.activities.map { $0.id })
-        
-        return !user1ActivityIDs.intersection(user2ActivityIDs).isEmpty
+
+        if !user1ActivityIDs.intersection(user2ActivityIDs).isEmpty {
+            return true
+        }
+
+        let user1Names = Set(user1.activities.map { Activity.normalizedForComparison($0.name) })
+        let user2Names = Set(user2.activities.map { Activity.normalizedForComparison($0.name) })
+        return !user1Names.intersection(user2Names).isEmpty
     }
     
     /// Checks if two users have at least one overlapping day/time slot
@@ -72,16 +81,19 @@ final class MatchingService {
     
     // MARK: - Detailed Overlap Information
     
-    /// Gets all overlapping activities between two users
+    /// Gets all overlapping activities between two users. Matches by ID or by
+    /// normalized name (see `hasOverlappingActivities`).
     /// - Parameters:
     ///   - user1: The first user
     ///   - user2: The second user
     /// - Returns: Array of overlapping activities
     func getOverlappingActivities(user1: AppUser, user2: AppUser) -> [Activity] {
         let user1ActivityIDs = Set(user1.activities.map { $0.id })
-        
+        let user1Names = Set(user1.activities.map { Activity.normalizedForComparison($0.name) })
+
         return user2.activities.filter { activity in
-            user1ActivityIDs.contains(activity.id)
+            user1ActivityIDs.contains(activity.id) ||
+            user1Names.contains(Activity.normalizedForComparison(activity.name))
         }
     }
     
@@ -119,11 +131,26 @@ final class MatchingService {
     ///   - user2: The second user
     /// - Returns: A Match object if users should be matched, nil otherwise
     func createMatch(between user1: AppUser, and user2: AppUser) -> Match? {
+        let matched = shouldMatch(user1: user1, user2: user2)
+
+        #if DEBUG
+        let user2ActivityIDs = Set(user2.activities.map { $0.id })
+        let user2Names = Set(user2.activities.map { Activity.normalizedForComparison($0.name) })
+        let sharedFromUser1 = user1.activities.filter { activity in
+            user2ActivityIDs.contains(activity.id) ||
+            user2Names.contains(Activity.normalizedForComparison(activity.name))
+        }
+        let sharedMain = sharedFromUser1.filter { $0.isPrimary }.count
+        let sharedExtra = sharedFromUser1.filter { !$0.isPrimary }.count
+        let sharedSlots = Set(user1.daySlotCombos).intersection(Set(user2.daySlotCombos)).count
+        print("[Match] me=\(user1.id) them=\(user2.id) sharedMain=\(sharedMain) sharedExtra=\(sharedExtra) sharedSlots=\(sharedSlots) result=\(matched ? "matched" : "not")")
+        #endif
+
         // Check if users should be matched
-        guard shouldMatch(user1: user1, user2: user2) else {
+        guard matched else {
             return nil
         }
-        
+
         // Get overlapping activities
         let overlappingActivities = getOverlappingActivities(user1: user1, user2: user2)
         let activityNames = overlappingActivities.map { $0.name }
@@ -166,13 +193,17 @@ final class MatchingService {
             return 0.0
         }
         
-        // Calculate activity overlap percentage
+        // Calculate activity overlap percentage, scaled to the actual number of
+        // activities each user has (not a fixed 3) — the max possible overlap is
+        // bounded by whichever user picked fewer.
         let overlappingActivities = getOverlappingActivities(user1: user1, user2: user2)
-        let activityScore = Double(overlappingActivities.count) / 3.0 // Max 3 activities
-        
-        // Calculate time overlap percentage
+        let maxPossibleActivities = max(1, min(user1.activities.count, user2.activities.count))
+        let activityScore = Double(overlappingActivities.count) / Double(maxPossibleActivities)
+
+        // Calculate time overlap percentage, scaled the same way.
         let overlappingTimes = getOverlappingTimes(user1: user1, user2: user2)
-        let timeScore = Double(overlappingTimes.count) / 3.0 // Max 3 time slots
+        let maxPossibleTimes = max(1, min(user1.daySlotCombos.count, user2.daySlotCombos.count))
+        let timeScore = Double(overlappingTimes.count) / Double(maxPossibleTimes)
         
         // Average the two scores
         let averageScore = (activityScore + timeScore) / 2.0

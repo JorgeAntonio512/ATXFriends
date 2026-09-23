@@ -124,6 +124,7 @@ struct WaitlistView: View {
                     }
                 }
                 .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
                 .scrollDismissesKeyboard(.interactively)
 
                 VStack(spacing: 12) {

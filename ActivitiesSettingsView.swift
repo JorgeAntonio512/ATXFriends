@@ -7,18 +7,18 @@
 
 import SwiftUI
 
-/// Settings view for managing user's 3 selected activities
+/// Settings view for managing user's activities: 3 Main, plus up to 7 Extras (10 total max)
 struct ActivitiesSettingsView: View {
     @Bindable var viewModel: ProfileViewModel
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var searchText = ""
     @State private var showAddActivity = false
     @State private var newActivityName = ""
     @State private var isAddingActivity = false
     @State private var isSaving = false
     @FocusState private var isSearchFocused: Bool
-    
+
     var filteredActivities: [Activity] {
         if searchText.isEmpty {
             return viewModel.allActivities.filter { activity in
@@ -31,27 +31,35 @@ struct ActivitiesSettingsView: View {
             }
         }
     }
-    
+
     var hasExactMatch: Bool {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedSearch.isEmpty else { return false }
-        
+
         return viewModel.allActivities.contains { activity in
             activity.name.localizedCaseInsensitiveCompare(trimmedSearch) == .orderedSame
         }
     }
-    
+
     var canShowCustomActivityButton: Bool {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         return !trimmedSearch.isEmpty && !hasExactMatch
     }
-    
-    var canAddMore: Bool {
-        viewModel.selectedActivities.count < 3
+
+    var mainActivities: [Activity] {
+        viewModel.selectedActivities.filter { $0.isPrimary }
     }
-    
-    var hasExactlyThree: Bool {
-        viewModel.selectedActivities.count == 3
+
+    var extraActivities: [Activity] {
+        viewModel.selectedActivities.filter { !$0.isPrimary }
+    }
+
+    var canAddMore: Bool {
+        viewModel.selectedActivities.count < 10
+    }
+
+    var hasValidSelection: Bool {
+        (3...10).contains(viewModel.selectedActivities.count) && mainActivities.count == 3
     }
     
     var body: some View {
@@ -69,22 +77,22 @@ struct ActivitiesSettingsView: View {
             
             VStack(spacing: 0) {
                 // Navigation warning banner
-                if !hasExactlyThree {
+                if !hasValidSelection {
                     HStack(spacing: 12) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 20))
                             .foregroundColor(.orange)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Select 3 activities to continue")
+                            Text("Select 3 Main activities to continue")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                            
-                            Text("\(viewModel.selectedActivities.count)/3 selected")
+
+                            Text("\(mainActivities.count)/3 Main selected")
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
                                 .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                         }
-                        
+
                         Spacer()
                     }
                     .padding()
@@ -94,45 +102,78 @@ struct ActivitiesSettingsView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 8)
                 }
-                
+
                 // Header
                 VStack(spacing: 12) {
                     Text("Your Activities")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(Color.appNavy)
-                    
-                    Text("Select 3 activities you enjoy")
+
+                    Text("Select 3 Main activities, plus up to 7 Extras")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
                         .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 16)
-                
-                // Selected activities
+
+                // Selected activities, grouped Main / Extra
                 if !viewModel.selectedActivities.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Selected (\(viewModel.selectedActivities.count)/3)")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                            .padding(.horizontal, 32)
-                        
-                        VStack(spacing: 12) {
-                            ForEach(viewModel.selectedActivities) { activity in
-                                ActivityChip(
-                                    activity: activity,
-                                    isSelected: true,
-                                    onTap: {
-                                        withAnimation(.spring(response: 0.3)) {
-                                            viewModel.deselectActivity(activity)
-                                        }
-                                        Task {
-                                            await saveChangesImmediately()
-                                        }
+                    VStack(alignment: .leading, spacing: 16) {
+                        if !mainActivities.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Main (\(mainActivities.count)/3)")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .padding(.horizontal, 32)
+
+                                VStack(spacing: 12) {
+                                    ForEach(mainActivities) { activity in
+                                        ActivityChip(
+                                            activity: activity,
+                                            isSelected: true,
+                                            onToggleMain: { viewModel.toggleMain(for: activity) },
+                                            onTap: {
+                                                withAnimation(.spring(response: 0.3)) {
+                                                    viewModel.deselectActivity(activity)
+                                                }
+                                                Task {
+                                                    await saveChangesImmediately()
+                                                }
+                                            }
+                                        )
                                     }
-                                )
+                                }
+                                .padding(.horizontal, 32)
                             }
                         }
-                        .padding(.horizontal, 32)
+
+                        if !extraActivities.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Extras (\(extraActivities.count)/7)")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .padding(.horizontal, 32)
+
+                                VStack(spacing: 12) {
+                                    ForEach(extraActivities) { activity in
+                                        ActivityChip(
+                                            activity: activity,
+                                            isSelected: true,
+                                            onToggleMain: { viewModel.toggleMain(for: activity) },
+                                            onTap: {
+                                                withAnimation(.spring(response: 0.3)) {
+                                                    viewModel.deselectActivity(activity)
+                                                }
+                                                Task {
+                                                    await saveChangesImmediately()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal, 32)
+                            }
+                        }
                     }
                     .padding(.bottom, 16)
                 }
@@ -171,7 +212,7 @@ struct ActivitiesSettingsView: View {
                                         onTap: {
                                             withAnimation(.spring(response: 0.3)) {
                                                 viewModel.selectActivity(activity)
-                                                if viewModel.selectedActivities.count == 3 {
+                                                if viewModel.selectedActivities.count == 10 {
                                                     isSearchFocused = false
                                                 }
                                             }
@@ -181,22 +222,26 @@ struct ActivitiesSettingsView: View {
                                         }
                                     )
                                 }
-                                
-                                // Add custom activity button - shows search text
+
+                                // Add custom activity button - shows search text, requires a category
                                 if canShowCustomActivityButton {
-                                    Button {
-                                        addCustomActivityDirectly()
+                                    Menu {
+                                        ForEach(ActivityCategory.allCases, id: \.self) { category in
+                                            Button(category.displayName) {
+                                                addCustomActivityDirectly(category: category)
+                                            }
+                                        }
                                     } label: {
                                         HStack(spacing: 12) {
                                             Image(systemName: "plus.circle.fill")
                                                 .font(.system(size: 24))
                                                 .foregroundColor(Color.appPrimary)
-                                            
-                                            Text("Add '\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))' to Activity List")
+
+                                            Text("Add '\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))' — choose a category")
                                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                                 .foregroundColor(Color.appPrimary)
                                                 .lineLimit(2)
-                                            
+
                                             Spacer()
                                         }
                                         .padding()
@@ -210,7 +255,6 @@ struct ActivitiesSettingsView: View {
                                                 )
                                         )
                                     }
-                                    .buttonStyle(.plain)
                                     .padding(.horizontal, 32)
                                     .disabled(isAddingActivity)
                                 } else if !searchText.isEmpty && filteredActivities.isEmpty && !canShowCustomActivityButton {
@@ -254,11 +298,11 @@ struct ActivitiesSettingsView: View {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 60))
                                     .foregroundColor(Color.appPrimary)
-                                
-                                Text("You've selected 3 activities!")
+
+                                Text("You've selected the max of 10 activities!")
                                     .font(.system(size: 18, weight: .semibold, design: .rounded))
                                     .foregroundColor(Color.appNavy)
-                                
+
                                 Text("Remove one to add a different activity")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
                                     .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
@@ -275,11 +319,11 @@ struct ActivitiesSettingsView: View {
         }
         .navigationTitle("Activities")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(!hasExactlyThree)
+        .navigationBarBackButtonHidden(!hasValidSelection)
         .toolbar {
-            // Custom back button that's disabled when count != 3
+            // Custom back button that's disabled until 3 Mains and 3-10 total are selected
             ToolbarItem(placement: .navigationBarLeading) {
-                if !hasExactlyThree {
+                if !hasValidSelection {
                     Button {
                         // Do nothing - disabled
                     } label: {
@@ -294,7 +338,7 @@ struct ActivitiesSettingsView: View {
                 }
             }
         }
-        .interactiveDismissDisabled(!hasExactlyThree)
+        .interactiveDismissDisabled(!hasValidSelection)
         .task {
             await viewModel.loadActivities()
         }
@@ -387,16 +431,16 @@ struct ActivitiesSettingsView: View {
         }
     }
     
-    /// Adds custom activity directly from search text
-    private func addCustomActivityDirectly() {
+    /// Adds custom activity directly from search text, filed under the chosen category
+    private func addCustomActivityDirectly(category: ActivityCategory) {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        
+
         isSearchFocused = false
         isAddingActivity = true
-        
+
         Task {
-            let success = await viewModel.addCustomActivity(name: trimmed)
+            let success = await viewModel.addCustomActivity(name: trimmed, category: category)
             
             await MainActor.run {
                 isAddingActivity = false
@@ -421,20 +465,27 @@ struct ActivitiesSettingsView: View {
     }
 }
 
-/// Activity chip for selected activities
+/// Activity chip for selected activities, with a star to toggle Main/Extra
 struct ActivityChip: View {
     let activity: Activity
     let isSelected: Bool
+    let onToggleMain: () -> Void
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 8) {
+                Button(action: onToggleMain) {
+                    Image(systemName: activity.isPrimary ? "star.fill" : "star")
+                        .font(.system(size: 14))
+                }
+                .buttonStyle(.plain)
+
                 Text(activity.name)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                
+
                 Spacer()
-                
+
                 if isSelected {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
@@ -512,7 +563,8 @@ struct AddCustomActivitySheet: View {
     @Binding var activityName: String
     @Binding var isAdding: Bool
     let onAdd: () -> Void
-    
+
+    @State private var selectedCategory: ActivityCategory?
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -567,7 +619,35 @@ struct AddCustomActivitySheet: View {
                             }
                     }
                     .padding(.horizontal, 32)
-                    
+
+                    // Category picker — required before submitting
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Category")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+
+                        Menu {
+                            ForEach(ActivityCategory.allCases, id: \.self) { category in
+                                Button(category.displayName) {
+                                    selectedCategory = category
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(selectedCategory?.displayName ?? "Choose a category")
+                                    .foregroundColor(selectedCategory == nil ? Color(red: 0.55, green: 0.55, blue: 0.55) : Color(red: 0.35, green: 0.35, blue: 0.35))
+                                Spacer()
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .foregroundColor(Color.appPrimary)
+                            }
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal, 32)
+
                     // Add button
                     Button {
                         handleAdd()
@@ -585,8 +665,7 @@ struct AddCustomActivitySheet: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
                         .background(
-                            activityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?
-                            LinearGradient(colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.3)], startPoint: .leading, endPoint: .trailing) :
+                            canSubmit ?
                             LinearGradient(
                                 colors: [
                                     Color.appPrimary,
@@ -594,18 +673,18 @@ struct AddCustomActivitySheet: View {
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
-                            )
+                            ) :
+                            LinearGradient(colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.3)], startPoint: .leading, endPoint: .trailing)
                         )
                         .cornerRadius(16)
                         .shadow(
-                            color: activityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?
-                            Color.clear : Color.appPrimary.opacity(0.3),
+                            color: canSubmit ? Color.appPrimary.opacity(0.3) : Color.clear,
                             radius: 12, x: 0, y: 6
                         )
                     }
-                    .disabled(activityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isAdding)
+                    .disabled(!canSubmit || isAdding)
                     .padding(.horizontal, 32)
-                    
+
                     Spacer()
                 }
             }
@@ -625,21 +704,26 @@ struct AddCustomActivitySheet: View {
         }
     }
     
+    private var canSubmit: Bool {
+        !activityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedCategory != nil
+    }
+
     private func handleAdd() {
         let trimmed = activityName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        
+        guard let category = selectedCategory, !trimmed.isEmpty else { return }
+
         isTextFieldFocused = false
         isAdding = true
-        
+
         Task {
-            let success = await viewModel.addCustomActivity(name: trimmed)
-            
+            let success = await viewModel.addCustomActivity(name: trimmed, category: category)
+
             await MainActor.run {
                 isAdding = false
-                
+
                 if success {
                     activityName = ""
+                    selectedCategory = nil
                     dismiss()
                     onAdd()
                 }

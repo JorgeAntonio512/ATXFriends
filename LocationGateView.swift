@@ -15,6 +15,9 @@ import CoreLocation
 private let austinGateMaxMiles: Double = 50.0
 
 struct LocationGateView: View {
+    /// "email", "apple", or "google" — identifies which sign-up path reached this
+    /// gate, for [Onboarding] debug logging only.
+    let path: String
     /// Called by "Back" and WaitlistView's "Not now" to cancel the current
     /// sign-up path (email: pop to OnboardingView; SSO: delete pending account).
     let onDismissAll: () -> Void
@@ -23,9 +26,11 @@ struct LocationGateView: View {
     let onGatePass: ((CLLocationCoordinate2D) -> Void)?
 
     init(
+        path: String,
         onDismissAll: @escaping () -> Void,
         onGatePass: ((CLLocationCoordinate2D) -> Void)? = nil
     ) {
+        self.path = path
         self.onDismissAll = onDismissAll
         self.onGatePass = onGatePass
     }
@@ -106,6 +111,7 @@ struct LocationGateView: View {
                     }
                 }
                 .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
 
                 VStack(spacing: 12) {
                     if let locationErrorMessage {
@@ -267,6 +273,7 @@ struct LocationGateView: View {
         locationErrorMessage = nil
 
         if distanceMiles <= austinGateMaxMiles {
+            logOnboarding(path: path, step: "locationGate", gate: .passed)
             if let handler = onGatePass {
                 // SSO path: hand coordinate to caller; caller creates the Firestore doc
                 handler(coord)
@@ -276,6 +283,7 @@ struct LocationGateView: View {
                 showSignUp = true
             }
         } else {
+            logOnboarding(path: path, step: "waitlist", gate: .failed)
             showWaitlist = true
         }
     }
@@ -283,6 +291,6 @@ struct LocationGateView: View {
 
 #Preview {
     NavigationStack {
-        LocationGateView(onDismissAll: {})
+        LocationGateView(path: "email", onDismissAll: {})
     }
 }

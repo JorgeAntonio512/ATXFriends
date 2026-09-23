@@ -23,11 +23,12 @@ struct RootView: View {
                 // Loading state while checking auth
                 LoadingView()
             } else if authViewModel.authState.isAuthenticated {
-                if authViewModel.pendingNewSSOUser != nil {
+                if let pending = authViewModel.pendingNewSSOUser {
                     // New SSO user: Firebase Auth created but no Firestore doc yet.
                     // Show the location gate; gate pass creates the doc with real coordinates.
                     NavigationStack {
                         LocationGateView(
+                            path: pending.provider,
                             onDismissAll: {
                                 Task { await authViewModel.cancelNewSSOSignup() }
                             },
@@ -61,8 +62,15 @@ struct RootView: View {
                         .transition(.opacity)
                 }
             } else {
-                // User is not signed in - show onboarding
+                // User is not signed in - show onboarding.
+                // Inject this single AuthViewModel instance into the environment so
+                // OnboardingView/SignInView/SignUpView all mutate the SAME pendingNewSSOUser
+                // this view is watching — otherwise a new SSO user's pendingNewSSOUser gets
+                // set on a throwaway local instance, and RootView only discovers it
+                // asynchronously via the orphan-recovery check below, leaving a race window
+                // where ProfileSetupFlowView can render before the location gate.
                 OnboardingView()
+                    .environment(authViewModel)
                     .transition(.opacity)
             }
         }
@@ -150,11 +158,17 @@ struct RootView: View {
                 // (app was killed after Apple/Google auth succeeded but before the location
                 // gate completed). Re-derive the pending state and route back to the gate.
                 print("⚠️ RootView: Authenticated with no Firestore doc — routing to location gate")
+                logOnboarding(path: "resume", step: "locationGate", gate: .notRun)
                 authViewModel.pendingNewSSOUser = PendingNewSSOUser(
                     userID: userID,
-                    displayName: authViewModel.currentUserDisplayName
+                    displayName: authViewModel.currentUserDisplayName,
+                    provider: "sso"
                 )
                 return
+            }
+
+            if let user {
+                Task { await LocationRepairService.shared.repairIfNeeded(for: user) }
             }
 
             let newStatus = user?.isProfileComplete ?? false
@@ -163,6 +177,7 @@ struct RootView: View {
             if isProfileComplete != newStatus {
                 isProfileComplete = newStatus
                 print("✅ RootView: Profile complete status changed to: \(isProfileComplete)")
+                logOnboarding(path: "resume", step: newStatus ? "mainTab" : "profileSetup", gate: .passed)
             }
         } catch {
             print("❌ RootView: Error checking profile completion: \(error)")

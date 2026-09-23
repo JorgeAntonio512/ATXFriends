@@ -26,6 +26,10 @@ final class AuthViewModel {
     
     /// Error message to display to the user
     var errorMessage: String?
+
+    /// True when the current errorMessage is the combined "wrong password or unknown
+    /// email" case — the sign-in screen uses this to offer a "Create an account" link.
+    var showCreateAccountPrompt: Bool = false
     
     /// Whether an auth operation is in progress
     var isLoading: Bool = false
@@ -79,6 +83,7 @@ final class AuthViewModel {
         
         // Clear previous errors
         errorMessage = nil
+        showCreateAccountPrompt = false
         isLoading = true
         defer { 
             isLoading = false
@@ -93,7 +98,8 @@ final class AuthViewModel {
         }
         
         print("✅ AuthViewModel.signUp: Validation passed")
-        
+        logOnboarding(path: "email", step: "signUp", gate: .passed)
+
         do {
             // Create user account
             print("🟢 AuthViewModel.signUp: Calling authService.signUp...")
@@ -131,7 +137,9 @@ final class AuthViewModel {
         } catch {
             print("❌ AuthViewModel.signUp: Error occurred - \(error.localizedDescription)")
             print("   Error details: \(error)")
-            errorMessage = handleAuthError(error)
+            let presentation = AuthErrorMapper.presentation(for: error)
+            errorMessage = presentation.message
+            showCreateAccountPrompt = false
             return false
         }
     }
@@ -147,6 +155,7 @@ final class AuthViewModel {
     func signIn(email: String, password: String) async -> Bool {
         // Clear previous errors
         errorMessage = nil
+        showCreateAccountPrompt = false
         isLoading = true
         defer { isLoading = false }
         
@@ -171,7 +180,9 @@ final class AuthViewModel {
             
             return true
         } catch {
-            errorMessage = handleAuthError(error)
+            let presentation = AuthErrorMapper.presentation(for: error)
+            errorMessage = presentation.message
+            showCreateAccountPrompt = presentation.suggestsAccountCreation
             return false
         }
     }
@@ -191,6 +202,7 @@ final class AuthViewModel {
     func handleAppleSignIn(_ authorization: ASAuthorization) async -> Bool {
         // Clear previous errors
         errorMessage = nil
+        showCreateAccountPrompt = false
         isLoading = true
         defer { isLoading = false }
         
@@ -214,26 +226,29 @@ final class AuthViewModel {
 
                 // Defer Firestore doc creation until the location gate passes
                 // (RootView will show LocationGateView while pendingNewSSOUser is set).
-                pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName)
+                pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName, provider: "apple")
+                logOnboarding(path: "apple", step: "locationGate", gate: .notRun)
             } else {
                 // Existing user - check and cancel scheduled deletion if needed
                 await cancelScheduledDeletionIfNeeded(userID: userID)
             }
-            
+
             // Update local state
             currentUserID = userID
             authState = .authenticated
-            
+
             // Notify that auth state changed
             NotificationCenter.default.post(name: .authStateDidChange, object: nil)
-            
+
             return true
         } catch {
-            errorMessage = handleAuthError(error)
+            let presentation = AuthErrorMapper.presentation(for: error)
+            errorMessage = presentation.message
+            showCreateAccountPrompt = false
             return false
         }
     }
-    
+
     // MARK: - Sign in with Google
     
     /// Handles Sign in with Google
@@ -243,6 +258,7 @@ final class AuthViewModel {
     func handleGoogleSignIn(credential: AuthCredential) async -> Bool {
         // Clear previous errors
         errorMessage = nil
+        showCreateAccountPrompt = false
         isLoading = true
         defer { isLoading = false }
         
@@ -256,26 +272,29 @@ final class AuthViewModel {
 
                 // Defer Firestore doc creation until the location gate passes
                 // (RootView will show LocationGateView while pendingNewSSOUser is set).
-                pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName)
+                pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName, provider: "google")
+                logOnboarding(path: "google", step: "locationGate", gate: .notRun)
             } else {
                 // Existing user - check and cancel scheduled deletion if needed
                 await cancelScheduledDeletionIfNeeded(userID: userID)
             }
-            
+
             // Update local state
             currentUserID = userID
             authState = .authenticated
-            
+
             // Notify that auth state changed
             NotificationCenter.default.post(name: .authStateDidChange, object: nil)
-            
+
             return true
         } catch {
-            errorMessage = handleAuthError(error)
+            let presentation = AuthErrorMapper.presentation(for: error)
+            errorMessage = presentation.message
+            showCreateAccountPrompt = false
             return false
         }
     }
-    
+
     // MARK: - Sign Out
     
     /// Signs out the current user
@@ -377,6 +396,7 @@ final class AuthViewModel {
     @MainActor
     func createNewSSOUser(coordinate: CLLocationCoordinate2D) async -> Bool {
         guard let pending = pendingNewSSOUser else { return false }
+        logOnboarding(path: pending.provider, step: "createAccount", gate: .passed)
         do {
             let user = FirebaseUser(
                 id: pending.userID,
@@ -401,6 +421,7 @@ final class AuthViewModel {
     /// Cancels a pending new SSO signup: deletes the Firebase Auth account and resets state.
     @MainActor
     func cancelNewSSOSignup() async {
+        logOnboarding(path: pendingNewSSOUser?.provider ?? "sso", step: "waitlistOrCancel", gate: .failed)
         do {
             try await authService.deleteAccount()
         } catch {
@@ -458,7 +479,7 @@ final class AuthViewModel {
     private func validateSignUp(email: String, password: String, confirmPassword: String) -> Bool {
         // Check email
         guard validateEmail(email) else {
-            errorMessage = "Please enter a valid email address."
+            errorMessage = "That doesn't look like a valid email address."
             return false
         }
         
@@ -481,7 +502,7 @@ final class AuthViewModel {
     private func validateSignIn(email: String, password: String) -> Bool {
         // Check email
         guard validateEmail(email) else {
-            errorMessage = "Please enter a valid email address."
+            errorMessage = "That doesn't look like a valid email address."
             return false
         }
         
@@ -501,31 +522,12 @@ final class AuthViewModel {
         return emailPredicate.evaluate(with: email)
     }
     
-    // MARK: - Error Handling
-    
-    /// Converts Firebase errors to user-friendly messages
-    private func handleAuthError(_ error: Error) -> String {
-        let errorCode = (error as NSError).code
-        
-        switch errorCode {
-        case 17007: // Email already in use
-            return "This email is already registered. Please sign in instead."
-        case 17008, 17009, 17011: // Invalid email or wrong password
-            return "Invalid email or password. Please try again."
-        case 17020: // Network error
-            return "Network connection error. Please check your internet."
-        case 17026: // Weak password
-            return "Password is too weak. Please use a stronger password."
-        default:
-            return "An error occurred. Please try again."
-        }
-    }
-    
     // MARK: - Utility Methods
     
     /// Clears any error messages
     func clearError() {
         errorMessage = nil
+        showCreateAccountPrompt = false
     }
     
     /// The display name of the currently authenticated Firebase Auth user.
@@ -549,6 +551,21 @@ final class AuthViewModel {
     }
 }
 
+// MARK: - Onboarding Debug Logging
+
+/// Status of the Austin location gate at the moment a routing decision is logged.
+enum OnboardingGateStatus: String {
+    case notRun, passed, failed
+}
+
+/// Traces onboarding routing decisions so a bad path (e.g. profile setup reachable
+/// before the location gate) shows up in the console instead of only in a screenshot.
+func logOnboarding(path: String, step: String, gate: OnboardingGateStatus) {
+    #if DEBUG
+    print("[Onboarding] path=\(path) step=\(step) gate=\(gate.rawValue)")
+    #endif
+}
+
 // MARK: - Supporting Types
 
 /// Carries the userID and displayName of a newly authenticated SSO user while they
@@ -556,6 +573,8 @@ final class AuthViewModel {
 struct PendingNewSSOUser {
     let userID: String
     let displayName: String
+    /// "apple" or "google" — used only for [Onboarding] debug logging.
+    let provider: String
 }
 
 /// Represents the current authentication state

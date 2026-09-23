@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Step 3: Search and select exactly 3 activities
+/// Step 3: Search and select 3 Main activities, plus up to 7 Extras (10 total max)
 struct ActivityPickerView: View {
     @Bindable var viewModel: ProfileViewModel
     let onNext: () -> Void
@@ -19,7 +19,15 @@ struct ActivityPickerView: View {
     @State private var showErrorAlert = false
     
     var canContinue: Bool {
-        viewModel.selectedActivities.count == 3
+        viewModel.selectedActivities.count >= 3
+    }
+
+    var mainActivities: [Activity] {
+        viewModel.selectedActivities.filter { $0.isPrimary }
+    }
+
+    var extraActivities: [Activity] {
+        viewModel.selectedActivities.filter { !$0.isPrimary }
     }
     
     var filteredActivities: [Activity] {
@@ -52,12 +60,12 @@ struct ActivityPickerView: View {
                 VStack(spacing: 24) {
                     // Header
                     VStack(spacing: 12) {
-                        Text("Your Top 3\nActivities")
+                        Text("Your Activities")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appNavy)
                             .multilineTextAlignment(.center)
-                        
-                        Text("What do you love to do?\nChoose your 3 favorite activities.")
+
+                        Text("Pick 3 Main activities you love,\nplus up to 7 Extras.")
                             .font(.system(size: 17, weight: .regular, design: .rounded))
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                             .multilineTextAlignment(.center)
@@ -65,23 +73,45 @@ struct ActivityPickerView: View {
                     }
                     .padding(.top, 20)
                     .padding(.horizontal, 40)
-                    
-                    // Selected activities
+
+                    // Selected activities, grouped Main / Extra
                     if !viewModel.selectedActivities.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Selected (\(viewModel.selectedActivities.count)/3)")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                .padding(.horizontal, 4)
-                            
-                            FlowLayout(spacing: 8) {
-                                ForEach(viewModel.selectedActivities, id: \.id) { activity in
-                                    SelectedActivityChip(
-                                        activity: activity,
-                                        onRemove: {
-                                            viewModel.deselectActivity(activity)
+                        VStack(alignment: .leading, spacing: 16) {
+                            if !mainActivities.isEmpty {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Main (\(mainActivities.count)/3)")
+                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .padding(.horizontal, 4)
+
+                                    FlowLayout(spacing: 8) {
+                                        ForEach(mainActivities, id: \.id) { activity in
+                                            SelectedActivityChip(
+                                                activity: activity,
+                                                onRemove: { viewModel.deselectActivity(activity) },
+                                                onToggleMain: { viewModel.toggleMain(for: activity) }
+                                            )
                                         }
-                                    )
+                                    }
+                                }
+                            }
+
+                            if !extraActivities.isEmpty {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Extras (\(extraActivities.count)/7)")
+                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .padding(.horizontal, 4)
+
+                                    FlowLayout(spacing: 8) {
+                                        ForEach(extraActivities, id: \.id) { activity in
+                                            SelectedActivityChip(
+                                                activity: activity,
+                                                onRemove: { viewModel.deselectActivity(activity) },
+                                                onToggleMain: { viewModel.toggleMain(for: activity) }
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -99,9 +129,9 @@ struct ActivityPickerView: View {
                                 .focused($isSearchFocused)
                                 .submitLabel(.done)
                                 .onSubmit {
-                                    if shouldShowAddOption {
-                                        addActivityFromSearch()
-                                    }
+                                    // Creating a new activity requires picking a category from
+                                    // the "Add" menu below — return just dismisses the keyboard.
+                                    isSearchFocused = false
                                 }
                             
                             if !searchText.isEmpty {
@@ -117,28 +147,32 @@ struct ActivityPickerView: View {
                         .background(Color.white.opacity(0.7))
                         .cornerRadius(12)
                         
-                        // Inline "Add new activity" option
+                        // Inline "Add new activity" option — picking a category is required
                         if shouldShowAddOption {
-                            Button {
-                                addActivityFromSearch()
+                            Menu {
+                                ForEach(ActivityCategory.allCases, id: \.self) { category in
+                                    Button(category.displayName) {
+                                        addActivityFromSearch(category: category)
+                                    }
+                                }
                             } label: {
                                 HStack(spacing: 12) {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.system(size: 20))
                                         .foregroundColor(Color.appPrimary)
-                                    
+
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("Add \"\(searchText.trimmingCharacters(in: .whitespaces))\"")
                                             .font(.system(size: 15, weight: .semibold, design: .rounded))
                                             .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                        
-                                        Text("Create this as a new activity")
+
+                                        Text("Choose a category to create it")
                                             .font(.system(size: 13, weight: .regular, design: .rounded))
                                             .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     Image(systemName: "arrow.right.circle")
                                         .font(.system(size: 18))
                                         .foregroundColor(Color.appPrimary)
@@ -147,7 +181,6 @@ struct ActivityPickerView: View {
                                 .background(Color.appPrimary.opacity(0.15))
                                 .cornerRadius(12)
                             }
-                            .buttonStyle(.plain)
                             .padding(.top, 8)
                             .transition(.move(edge: .top).combined(with: .opacity))
                         }
@@ -327,20 +360,20 @@ struct ActivityPickerView: View {
     
     // MARK: - Helper Methods
     
-    /// Adds a new activity from the search text
-    private func addActivityFromSearch() {
+    /// Adds a new activity from the search text, filed under the chosen category
+    private func addActivityFromSearch(category: ActivityCategory) {
         let activityName = searchText.trimmingCharacters(in: .whitespaces)
-        
+
         guard !activityName.isEmpty else { return }
-        
+
         isAddingActivity = true
-        
+
         Task {
-            let success = await viewModel.addCustomActivity(name: activityName)
-            
+            let success = await viewModel.addCustomActivity(name: activityName, category: category)
+
             await MainActor.run {
                 isAddingActivity = false
-                
+
                 if success {
                     searchText = ""
                     isSearchFocused = false
@@ -405,17 +438,24 @@ struct ActivityCard: View {
     }
 }
 
-/// Selected activity chip (removable)
+/// Selected activity chip (removable, with a star to toggle Main/Extra)
 struct SelectedActivityChip: View {
     let activity: Activity
     let onRemove: () -> Void
-    
+    let onToggleMain: () -> Void
+
     var body: some View {
         HStack(spacing: 6) {
+            Button(action: onToggleMain) {
+                Image(systemName: activity.isPrimary ? "star.fill" : "star")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(activity.isPrimary ? 1.0 : 0.7))
+            }
+
             Text(activity.name)
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
-            
+
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 16))

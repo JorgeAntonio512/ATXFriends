@@ -106,6 +106,8 @@
 		6892C92C306106D600BFC363 /* GroupPlansViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */; };
 		6892C92E3061092000BFC363 /* UpcomingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92D3061092000BFC363 /* UpcomingView.swift */; };
 		6892C9303061095F00BFC363 /* GroupPlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */; };
+		68950C69306469FC004AE41D /* AuthErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68950C68306469FC004AE41D /* AuthErrorMessage.swift */; };
+		68950C6B30647357004AE41D /* LocationRepairService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68950C6A30647357004AE41D /* LocationRepairService.swift */; };
 		68A3C088304D91AE00C9FDEF /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C087304D91AE00C9FDEF /* AppColors.swift */; };
 		68A3C08A3052015200C9FDEF /* LocationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C0893052015200C9FDEF /* LocationPermissionManager.swift */; };
 		68A3C08C3052016B00C9FDEF /* LocationGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C08B3052016B00C9FDEF /* LocationGateView.swift */; };
@@ -233,6 +235,8 @@
 		6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlansViewModel.swift; sourceTree = "<group>"; };
 		6892C92D3061092000BFC363 /* UpcomingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingView.swift; sourceTree = "<group>"; };
 		6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlanDetailView.swift; sourceTree = "<group>"; };
+		68950C68306469FC004AE41D /* AuthErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthErrorMessage.swift; sourceTree = "<group>"; };
+		68950C6A30647357004AE41D /* LocationRepairService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRepairService.swift; sourceTree = "<group>"; };
 		68A3C087304D91AE00C9FDEF /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		68A3C0893052015200C9FDEF /* LocationPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionManager.swift; sourceTree = "<group>"; };
 		68A3C08B3052016B00C9FDEF /* LocationGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationGateView.swift; sourceTree = "<group>"; };
@@ -471,6 +475,8 @@
 				6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */,
 				6892C92D3061092000BFC363 /* UpcomingView.swift */,
 				6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */,
+				68950C68306469FC004AE41D /* AuthErrorMessage.swift */,
+				68950C6A30647357004AE41D /* LocationRepairService.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -643,6 +649,7 @@
 				18A775512FABFF840045B6D3 /* Message.swift in Sources */,
 				6892C928306106B800BFC363 /* GroupPlan.swift in Sources */,
 				18A774FA2FAB075C0045B6D3 /* DaySlotCombo.swift in Sources */,
+				68950C6B30647357004AE41D /* LocationRepairService.swift in Sources */,
 				1834BA552FD4137200F3ABF4 /* Event.swift in Sources */,
 				18A775002FAB077E0045B6D3 /* Match.swift in Sources */,
 				1834BA3F2FD0F2DF00F3ABF4 /* FlowLayout.swift in Sources */,
@@ -693,6 +700,7 @@
 				18A775452FABFADE0045B6D3 /* TimeSlotPickerView.swift in Sources */,
 				18A7752D2FABF6D30045B6D3 /* OnboardingView.swift in Sources */,
 				68CFB7F330350FDE00B2078C /* TodayPlan.swift in Sources */,
+				68950C69306469FC004AE41D /* AuthErrorMessage.swift in Sources */,
 				18A775592FAC00010045B6D3 /* MessageThreadView.swift in Sources */,
 				68D686143059ECBF00815BB8 /* EventKitPermissionManager.swift in Sources */,
 				18A775532FABFF9B0045B6D3 /* MessagingService.swift in Sources */,

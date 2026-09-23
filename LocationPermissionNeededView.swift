@@ -86,6 +86,7 @@ struct LocationPermissionNeededView: View {
                     }
                 }
                 .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
 
                 VStack(spacing: 12) {
                     if !isRestricted {

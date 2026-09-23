@@ -6,18 +6,15 @@
 //
 
 import SwiftUI
-import CoreLocation
 
-/// Step 4: Pick exactly 3 day/slot combos from a 7×5 grid
+/// Step 4: Pick at least 3 day/slot combos from a 7×5 grid (no maximum)
 struct TimeSlotPickerView: View {
     @Bindable var viewModel: ProfileViewModel
     let onNext: () -> Void
     let onBack: () -> Void
-    
-    @State private var showLocationPermission = false
-    
+
     var canContinue: Bool {
-        viewModel.selectedDaySlotCombos.count == 3
+        viewModel.selectedDaySlotCombos.count >= 3
     }
     
     var body: some View {
@@ -31,7 +28,7 @@ struct TimeSlotPickerView: View {
                             .foregroundColor(Color.appNavy)
                             .multilineTextAlignment(.center)
                         
-                        Text("Pick 3 times when you're usually\nfree to hang out.")
+                        Text("Pick at least 3 times when you're usually\nfree to hang out. Pick more if you're free a lot!")
                             .font(.system(size: 17, weight: .regular, design: .rounded))
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                             .multilineTextAlignment(.center)
@@ -39,11 +36,11 @@ struct TimeSlotPickerView: View {
                     }
                     .padding(.top, 20)
                     .padding(.horizontal, 40)
-                    
+
                     // Selected count
                     if !viewModel.selectedDaySlotCombos.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Selected (\(viewModel.selectedDaySlotCombos.count)/3)")
+                            Text("\(viewModel.selectedDaySlotCombos.count) selected")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                                 .padding(.horizontal, 4)
@@ -106,8 +103,7 @@ struct TimeSlotPickerView: View {
             VStack(spacing: 12) {
                 // Continue button
                 Button {
-                    // Request location before finishing
-                    requestLocationPermission()
+                    onNext()
                 } label: {
                     Text("Continue")
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -165,13 +161,6 @@ struct TimeSlotPickerView: View {
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
             )
         }
-    }
-    
-    private func requestLocationPermission() {
-        // TODO: Request location permission via CoreLocation
-        // For now, set a default Austin location
-        viewModel.updateLocation(CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431))
-        onNext()
     }
 }
 

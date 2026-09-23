@@ -130,11 +130,13 @@ struct FirebaseUser: Identifiable, Codable {
         return "\(pct)% (\(showUpThumbsUp)/\(showUpTotal))"
     }
 
-    /// Validates that the profile meets the 3x3 requirements
+    /// Validates that the profile meets requirements: exactly 3 photos,
+    /// 3-10 activities with exactly 3 marked Main, and 3+ time slots (no max).
     var isValid: Bool {
         return photoURLs.count == 3 &&
-               activities.count == 3 &&
-               daySlotCombos.count == 3 &&
+               (3...10).contains(activities.count) &&
+               activities.filter { $0.isPrimary }.count == 3 &&
+               daySlotCombos.count >= 3 &&
                !displayName.isEmpty &&
                latitude != 0.0 &&
                longitude != 0.0

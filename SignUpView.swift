@@ -13,7 +13,12 @@ import CoreLocation
 struct SignUpView: View {
     let coordinate: CLLocationCoordinate2D
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel = AuthViewModel()
+    /// Shared with RootView (injected via .environment) — see OnboardingView for why
+    /// a per-view local instance would race the location gate for new SSO users.
+    /// SignUpView is only ever reached after the gate already passed (email path),
+    /// so this doesn't fix a race here — it's for consistency, so errorMessage/
+    /// isLoading aren't split across yet another disconnected instance.
+    @Environment(AuthViewModel.self) private var viewModel
     
     // Form fields
     @State private var email = ""
@@ -230,7 +235,7 @@ struct SignUpView: View {
                                     .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                             }
                             
-                            Text("After creating your account, you'll set up your profile with 3 photos, 3 activities, and 3 time slots.")
+                            Text("After creating your account, you'll set up your profile with 3 photos, 3+ activities, and 3+ time slots.")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
                                 .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                                 .lineSpacing(1)
@@ -252,6 +257,7 @@ struct SignUpView: View {
                 .frame(minHeight: geometry.size.height - geometry.safeAreaInsets.top - geometry.safeAreaInsets.bottom)
             }
             .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
@@ -272,6 +278,15 @@ struct SignUpView: View {
             .onTapGesture {
                 // Dismiss keyboard when tapping outside
                 focusedField = nil
+            }
+            .onChange(of: email) { _, _ in
+                viewModel.clearError()
+            }
+            .onChange(of: password) { _, _ in
+                viewModel.clearError()
+            }
+            .onChange(of: confirmPassword) { _, _ in
+                viewModel.clearError()
             }
             }
         }
@@ -315,5 +330,6 @@ struct SignUpView: View {
 #Preview {
     NavigationStack {
         SignUpView(coordinate: .austin)
+            .environment(AuthViewModel())
     }
 }

@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-/// Settings view for managing user's 3 day/slot combinations
+/// Settings view for managing user's day/slot combinations (at least 3, no maximum)
 struct AvailabilitySettingsView: View {
     @Bindable var viewModel: ProfileViewModel
-    
-    var canAddMore: Bool {
-        viewModel.selectedDaySlotCombos.count < 3
+
+    var hasValidSelection: Bool {
+        viewModel.selectedDaySlotCombos.count >= 3
     }
-    
+
     var body: some View {
         ZStack {
             // Warm gradient background
@@ -27,31 +27,57 @@ struct AvailabilitySettingsView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 24) {
+                    // Navigation warning banner
+                    if !hasValidSelection {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.orange)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Select at least 3 time slots to continue")
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+
+                                Text("\(viewModel.selectedDaySlotCombos.count)/3 selected")
+                                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            }
+
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.orange.opacity(0.15))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                    }
+
                     // Header
                     VStack(spacing: 12) {
                         Text("Your Availability")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appNavy)
-                        
-                        Text("Select 3 times when you're usually free to hang out")
+
+                        Text("Select at least 3 times when you're usually free to hang out")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
                     .padding(.horizontal, 40)
-                    
+
                     // Selected slots
                     if !viewModel.selectedDaySlotCombos.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Selected (\(viewModel.selectedDaySlotCombos.count)/3)")
+                            Text("\(viewModel.selectedDaySlotCombos.count) selected")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                                 .padding(.horizontal, 32)
-                            
+
                             VStack(spacing: 12) {
                                 ForEach(viewModel.selectedDaySlotCombos, id: \.self) { combo in
                                     SelectedSlotChip(
@@ -69,36 +95,17 @@ struct AvailabilitySettingsView: View {
                         }
                         .padding(.bottom, 8)
                     }
-                    
-                    // Grid selector
-                    if canAddMore {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Tap to add a time slot")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                                .padding(.horizontal, 32)
-                            
-                            TimeSlotGrid(viewModel: viewModel, onSelect: {
-                                saveChanges()
-                            })
-                        }
-                    } else {
-                        VStack(spacing: 16) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(Color.appPrimary)
-                            
-                            Text("You've selected 3 time slots!")
-                                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
-                            
-                            Text("Remove one to add a different time slot")
-                                .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, 20)
-                        .padding(.horizontal, 40)
+
+                    // Grid selector — always available, no maximum
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Tap to add a time slot")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .padding(.horizontal, 32)
+
+                        TimeSlotGrid(viewModel: viewModel, onSelect: {
+                            saveChanges()
+                        })
                     }
                 }
                 .padding(.bottom, 40)
@@ -107,8 +114,28 @@ struct AvailabilitySettingsView: View {
         }
         .navigationTitle("Availability")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(!hasValidSelection)
+        .toolbar {
+            // Custom back button that's disabled until at least 3 time slots are selected
+            ToolbarItem(placement: .navigationBarLeading) {
+                if !hasValidSelection {
+                    Button {
+                        // Do nothing - disabled
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 17, weight: .semibold))
+                            Text("Back")
+                        }
+                        .foregroundColor(Color.gray.opacity(0.5))
+                    }
+                    .disabled(true)
+                }
+            }
+        }
+        .interactiveDismissDisabled(!hasValidSelection)
     }
-    
+
     private func saveChanges() {
         Task {
             _ = await viewModel.saveProfile()

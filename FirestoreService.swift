@@ -45,7 +45,19 @@ final class FirestoreService {
         let userData = userToFirestoreData(user)
         try await db.collection(usersCollection).document(user.id).setData(userData, merge: true)
     }
-    
+
+    /// Updates only the location fields on a user document, leaving every other field
+    /// untouched. Used by LocationRepairService to backfill a real coordinate without
+    /// risking a stale overwrite of the rest of the profile.
+    /// - Throws: Firestore errors
+    func updateUserLocation(userID: String, latitude: Double, longitude: Double) async throws {
+        try await db.collection(usersCollection).document(userID).updateData([
+            "latitude": latitude,
+            "longitude": longitude,
+            "location": GeoPoint(latitude: latitude, longitude: longitude)
+        ])
+    }
+
     /// Updates the FCM token for a user
     /// - Parameters:
     ///   - userID: The user's Firebase UID
@@ -169,7 +181,11 @@ final class FirestoreService {
                 let centerLocation = CLLocation(latitude: center.latitude, longitude: center.longitude)
                 let distanceInMeters = centerLocation.distance(from: userLocation)
                 let distanceInMiles = distanceInMeters / 1609.34
-                
+
+                #if DEBUG
+                print("[Distance] me=(\(center.latitude),\(center.longitude)) them=(\(user.latitude),\(user.longitude)) uid=\(userID) result=\(distanceInMiles)")
+                #endif
+
                 // Check if within radius
                 if distanceInMiles <= radiusMiles {
                     nearbyUsers.append(user)
@@ -251,15 +267,24 @@ final class FirestoreService {
     }
     
     /// Adds a new activity to Firestore
-    /// - Parameter activity: The Activity model to add
+    /// - Parameters:
+    ///   - activity: The Activity model to add
+    ///   - category: The category the user picked for a new custom activity. Pass nil
+    ///     when seeding the predefined catalog. When present, the doc is also flagged
+    ///     `needsReview: true` for manual review — additive fields, no rules change.
     /// - Throws: Firestore errors
-    func addActivity(_ activity: Activity) async throws {
-        let activityData: [String: Any] = [
+    func addActivity(_ activity: Activity, category: ActivityCategory? = nil) async throws {
+        var activityData: [String: Any] = [
             "name": activity.name,
             "isUserAdded": activity.isUserAdded,
             "createdAt": Timestamp(date: activity.createdAt)
         ]
-        
+
+        if let category {
+            activityData["category"] = category.rawValue
+            activityData["needsReview"] = true
+        }
+
         try await db.collection(activitiesCollection).document(activity.id).setData(activityData)
     }
     
@@ -407,6 +432,7 @@ final class FirestoreService {
             "photoURLs": user.photoURLs,
             "activityIDs": user.activities.map { $0.id },
             "activityNames": user.activities.map { $0.name },
+            "activityIsPrimary": user.activities.map { $0.isPrimary },
             "daySlotCombos": user.daySlotCombos.map { combo in
                 return "\(combo.dayOfWeek.rawValue)_\(combo.timeSlot.rawValue)"
             },
@@ -443,17 +469,22 @@ final class FirestoreService {
             return nil
         }
         
-        // Reconstruct activities from stored data
+        // Reconstruct activities from stored data. A missing/mismatched
+        // "activityIsPrimary" array (pre-existing profiles) defaults every
+        // activity to isPrimary=true — no migration needed.
         var activities: [Activity] = []
         if let activityIDs = data["activityIDs"] as? [String],
            let activityNames = data["activityNames"] as? [String],
            activityIDs.count == activityNames.count {
+            let isPrimaryFlags = data["activityIsPrimary"] as? [Bool]
+            let hasValidPrimaryFlags = isPrimaryFlags?.count == activityIDs.count
             for (index, id) in activityIDs.enumerated() {
                 let activity = Activity(
                     id: id,
                     name: activityNames[index],
                     isUserAdded: false, // We don't store this info, assume false
-                    createdAt: Date()
+                    createdAt: Date(),
+                    isPrimary: hasValidPrimaryFlags ? isPrimaryFlags![index] : true
                 )
                 activities.append(activity)
             }

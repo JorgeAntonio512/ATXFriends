@@ -35,6 +35,9 @@ struct MatchDetailView: View {
         let userLocation = CLLocation(latitude: matchWithUser.otherUser.latitude, longitude: matchWithUser.otherUser.longitude)
         let currentLocation = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
         let distanceInMiles = currentLocation.distance(from: userLocation) / 1609.34
+        #if DEBUG
+        print("[Distance] me=(\(currentUser.latitude),\(currentUser.longitude)) them=(\(matchWithUser.otherUser.latitude),\(matchWithUser.otherUser.longitude)) uid=\(matchWithUser.otherUser.id) result=\(distanceInMiles)")
+        #endif
         return distanceInMiles < 1 ? String(format: "%.1f mi", distanceInMiles) : String(format: "%.0f mi", distanceInMiles)
     }
     

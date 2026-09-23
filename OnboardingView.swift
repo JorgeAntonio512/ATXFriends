@@ -11,7 +11,10 @@ import AuthenticationServices
 /// Warm welcome screen for Avenue3
 /// Introduces the app and leads to sign up or sign in
 struct OnboardingView: View {
-    @State private var viewModel = AuthViewModel()
+    /// Shared with RootView (injected via .environment) so a new SSO user's
+    /// pendingNewSSOUser is visible to RootView's routing the instant it's set —
+    /// no separate local instance, no race with the location gate.
+    @Environment(AuthViewModel.self) private var viewModel
     @State private var showSignUp = false
     @State private var showSignIn = false
     @State private var animateTitle = false
@@ -298,10 +301,11 @@ struct OnboardingView: View {
                         .frame(minHeight: geometry.size.height)
                     }
                     .scrollIndicators(.hidden)
+                    .scrollBounceBehavior(.basedOnSize)
                 }
             }
             .navigationDestination(isPresented: $showSignUp) {
-                LocationGateView(onDismissAll: { showSignUp = false })
+                LocationGateView(path: "email", onDismissAll: { showSignUp = false })
             }
             .navigationDestination(isPresented: $showSignIn) {
                 SignInView()
@@ -365,4 +369,5 @@ struct FeatureRow: View {
 
 #Preview {
     OnboardingView()
+        .environment(AuthViewModel())
 }

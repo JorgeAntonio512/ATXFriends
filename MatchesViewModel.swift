@@ -172,39 +172,61 @@ final class MatchesViewModel: ObservableObject {
             }
             
             allMatches = matches
-            
+
             print("📥 MatchesViewModel: Loaded \(allFetchedMatches.count) total matches, \(matches.count) after filtering \(blockedUserIDs.count) blocked user(s)")
-            
+
+            // Load user data for all matches before categorizing, so the live-overlap
+            // check below has each match partner's current profile to compare against.
+            await loadMatchedUserProfiles()
+
+            // Hide (don't delete) matches whose users no longer share any activity or
+            // time slot under their *current* profiles. The Match doc and any message
+            // thread are untouched — this is a display filter only, so editing a profile
+            // back to overlapping again brings the match right back.
+            let liveMatches = matches.filter { match in
+                guard let otherUserID = match.otherUserID(for: userID),
+                      let otherUser = matchedUsers[otherUserID],
+                      let current = currentUser else {
+                    // Other user's profile isn't loaded (e.g. fetch failed) — don't hide.
+                    return true
+                }
+                let stillOverlaps = matchingService.shouldMatch(user1: current, user2: otherUser)
+                if !stillOverlaps {
+                    print("👻 MatchesViewModel: Hiding match with \(otherUser.displayName) — no more shared activity/time overlap")
+                }
+                return stillOverlaps
+            }
+
             // Categorize matches
-            pendingMatches = matches.filter { match in
+            pendingMatches = liveMatches.filter { match in
                 match.isPending(for: userID) && !match.isRejected
             }
-            
-            yayMatches = matches.filter { match in
+
+            yayMatches = liveMatches.filter { match in
                 match.decision(for: userID) == true
             }
-            
-            mutualMatches = matches.filter { match in
+
+            mutualMatches = liveMatches.filter { match in
                 match.isMutualMatch
             }
-            
+
             print("⏳ MatchesViewModel: \(pendingMatches.count) pending decisions")
             print("💚 MatchesViewModel: \(yayMatches.count) you said Yay to")
             print("🎉 MatchesViewModel: \(mutualMatches.count) mutual matches")
-            
-            // Load user data for all matches
-            await loadMatchedUsers()
-            
+
+            // Simpatico scores are only relevant for mutual matches, which are now categorized.
+            await refreshSimpaticoScores()
+
         } catch {
             errorMessage = "Failed to load matches: \(error.localizedDescription)"
             print("❌ MatchesViewModel: Error loading matches: \(error)")
         }
     }
     
-    /// Loads user data for all matched users.
-    /// Pass fetchSimpatico: false on show-up-triggered refreshes to avoid unnecessary reads.
+    /// Loads user profiles for all matched users. Called before categorizing matches so
+    /// the live-overlap check in loadMatches() has each match partner's current profile.
     @MainActor
-    private func loadMatchedUsers(fetchSimpatico: Bool = true) async {
+    private func loadMatchedUserProfiles() async {
         guard let currentUserID = authService.currentUserID else { return }
 
         // Get all unique user IDs from matches
@@ -226,8 +248,13 @@ final class MatchesViewModel: ObservableObject {
         }
 
         print("✅ MatchesViewModel: Loaded \(matchedUsers.count) user profiles")
+    }
 
-        guard fetchSimpatico else { return }
+    /// Refreshes Simpatico scores for the current mutualMatches. Must run after matches
+    /// are categorized, since it reads mutualMatches.
+    @MainActor
+    private func refreshSimpaticoScores() async {
+        guard let currentUserID = authService.currentUserID else { return }
 
         for match in mutualMatches {
             guard let otherUserID = match.otherUserID(for: currentUserID) else { continue }
@@ -487,7 +514,7 @@ final class MatchesViewModel: ObservableObject {
     /// Does NOT re-fetch Simpatico scores — questionnaire data doesn't change on show-up events.
     @MainActor
     func refreshMatchedUsers() async {
-        await loadMatchedUsers(fetchSimpatico: false)
+        await loadMatchedUserProfiles()
     }
 
     /// Returns the cached Simpatico compatibility score for the given mutual match, or nil
@@ -517,6 +544,9 @@ final class MatchesViewModel: ObservableObject {
         let location1 = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
         let location2 = CLLocation(latitude: otherUser.latitude, longitude: otherUser.longitude)
         let distanceInMeters = location1.distance(from: location2)
+        #if DEBUG
+        print("[Distance] me=(\(currentUser.latitude),\(currentUser.longitude)) them=(\(otherUser.latitude),\(otherUser.longitude)) uid=\(otherUser.id) result=\(distanceInMeters / 1609.34)")
+        #endif
         return distanceInMeters / 1609.34 // Convert to miles
     }
     
@@ -577,6 +607,10 @@ struct MatchWithUser: Identifiable, Equatable {
 
         let miles = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
             .distance(from: CLLocation(latitude: otherUser.latitude, longitude: otherUser.longitude)) / 1609.34
+
+        #if DEBUG
+        print("[Distance] me=(\(currentUser.latitude),\(currentUser.longitude)) them=(\(otherUser.latitude),\(otherUser.longitude)) uid=\(otherUser.id) result=\(miles)")
+        #endif
 
         return miles < 1 ? String(format: "%.1f mi away", miles) : String(format: "%.0f mi away", miles)
     }

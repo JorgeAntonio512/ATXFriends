@@ -12,7 +12,9 @@ import AuthenticationServices
 /// Connects to AuthViewModel for authentication
 struct SignInView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel = AuthViewModel()
+    /// Shared with RootView (injected via .environment) — see OnboardingView for why
+    /// a per-view local instance would race the location gate for new SSO users.
+    @Environment(AuthViewModel.self) private var viewModel
     @State private var appleSignInHelper = AppleSignInHelper()
     @State private var googleSignInHelper = GoogleSignInHelper()
     
@@ -24,6 +26,7 @@ struct SignInView: View {
     @State private var showForgotPassword = false
     @State private var forgotPasswordEmail = ""
     @State private var showPasswordResetSuccess = false
+    @State private var showCreateAccount = false
     
     @FocusState private var focusedField: Field?
     
@@ -155,15 +158,27 @@ struct SignInView: View {
                             
                             // Error Message
                             if let errorMessage = viewModel.errorMessage {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "exclamationmark.circle.fill")
-                                        .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                        
+                                        Text(errorMessage)
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                        
+                                        Spacer()
+                                    }
                                     
-                                    Text(errorMessage)
-                                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                                        .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
-                                    
-                                    Spacer()
+                                    if viewModel.showCreateAccountPrompt {
+                                        Button {
+                                            showCreateAccount = true
+                                        } label: {
+                                            Text("New here? Create an account")
+                                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                                .foregroundColor(Color.appPrimary)
+                                        }
+                                    }
                                 }
                                 .padding()
                                 .background(Color(red: 0.85, green: 0.45, blue: 0.40).opacity(0.1))
@@ -312,6 +327,7 @@ struct SignInView: View {
                     .frame(minHeight: geometry.size.height - geometry.safeAreaInsets.top - geometry.safeAreaInsets.bottom)
                 }
                 .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
@@ -330,6 +346,9 @@ struct SignInView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $showCreateAccount) {
+                LocationGateView(path: "email", onDismissAll: { showCreateAccount = false })
+            }
             .sheet(isPresented: $showForgotPassword) {
                 ForgotPasswordSheet(
                     viewModel: viewModel,
@@ -347,6 +366,12 @@ struct SignInView: View {
             .onTapGesture {
                 // Dismiss keyboard when tapping outside
                 focusedField = nil
+            }
+            .onChange(of: email) { _, _ in
+                viewModel.clearError()
+            }
+            .onChange(of: password) { _, _ in
+                viewModel.clearError()
             }
         }
     }
@@ -532,6 +557,7 @@ struct SignInView: View {
 #Preview("Sign In") {
     NavigationStack {
         SignInView()
+            .environment(AuthViewModel())
     }
 }
 #Preview("Forgot Password") {

@@ -128,55 +128,88 @@ final class ProfileViewModel {
     
     // MARK: - Activity Management
     
-    /// Selects an activity (max 3)
+    /// Selects an activity (max 10 total). The first 3 selections become Main;
+    /// after that, new picks are Extra. Removing a Main auto-promotes an Extra
+    /// to keep the Main count at exactly 3 whenever total >= 3 (see deselectActivity).
     func selectActivity(_ activity: Activity) {
-        guard selectedActivities.count < 3 else {
-            errorMessage = "You can only select 3 activities."
+        guard selectedActivities.count < 10 else {
+            errorMessage = "You can only select up to 10 activities."
             return
         }
-        
+
         guard !selectedActivities.contains(where: { $0.id == activity.id }) else {
             errorMessage = "This activity is already selected."
             return
         }
-        
-        selectedActivities.append(activity)
+
+        let mainCount = selectedActivities.filter { $0.isPrimary }.count
+        var newActivity = activity
+        newActivity.isPrimary = mainCount < 3
+        selectedActivities.append(newActivity)
         clearError()
     }
-    
-    /// Deselects an activity
+
+    /// Deselects an activity. If this removed one of the 3 Mains and other
+    /// activities remain, auto-promotes the next Extra so there are always
+    /// exactly 3 Mains whenever the total is >= 3.
     func deselectActivity(_ activity: Activity) {
         selectedActivities.removeAll { $0.id == activity.id }
+
+        let mainCount = selectedActivities.filter { $0.isPrimary }.count
+        if mainCount < 3, let promoteIndex = selectedActivities.firstIndex(where: { !$0.isPrimary }) {
+            selectedActivities[promoteIndex].isPrimary = true
+        }
     }
-    
-    /// Adds a new custom activity
+
+    /// Promotes an Extra activity to Main. Since there are always exactly 3 Mains,
+    /// promoting one demotes the last-ordered current Main to Extra — tapping the
+    /// star again on that one swaps it right back.
+    func toggleMain(for activity: Activity) {
+        guard let index = selectedActivities.firstIndex(where: { $0.id == activity.id }) else { return }
+        guard !selectedActivities[index].isPrimary else { return }
+
+        if let lastMainIndex = selectedActivities.lastIndex(where: { $0.isPrimary }) {
+            selectedActivities[lastMainIndex].isPrimary = false
+        }
+        selectedActivities[index].isPrimary = true
+    }
+
+    /// Adds a new custom activity, or reuses an existing one if the (trimmed,
+    /// whitespace-collapsed, case-insensitive) name already matches one.
+    /// - Parameter category: Required category for a genuinely new activity;
+    ///   ignored when the name matches an existing entry.
     @MainActor
-    func addCustomActivity(name: String) async -> Bool {
-        guard !name.isEmpty else {
+    func addCustomActivity(name: String, category: ActivityCategory) async -> Bool {
+        let trimmed = name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+
+        guard !trimmed.isEmpty else {
             errorMessage = "Activity name cannot be empty."
             return false
         }
-        
-        // Check if activity already exists
-        if allActivities.contains(where: { $0.name.lowercased() == name.lowercased() }) {
-            errorMessage = "This activity already exists."
-            return false
+
+        // Reuse an existing activity if it matches once normalized — no duplicate created.
+        let normalizedKey = Activity.normalizedForComparison(trimmed)
+        if let existing = allActivities.first(where: { Activity.normalizedForComparison($0.name) == normalizedKey }) {
+            selectActivity(existing)
+            return true
         }
-        
+
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
-            let activity = Activity(name: name, isUserAdded: true)
-            try await firestoreService.addActivity(activity)
-            
+            let activity = Activity(name: trimmed, isUserAdded: true)
+            try await firestoreService.addActivity(activity, category: category)
+
             // Add to local list
             allActivities.append(activity)
             allActivities.sort { $0.name < $1.name }
-            
+
             // Auto-select the new activity
             selectActivity(activity)
-            
+
             return true
         } catch {
             errorMessage = "Failed to add activity: \(error.localizedDescription)"
@@ -201,13 +234,9 @@ final class ProfileViewModel {
     
     // MARK: - Day/Slot Combo Management
     
-    /// Selects a day/slot combination (max 3)
+    /// Selects a day/slot combination. No maximum — picking more just means
+    /// "I'm free a lot," which is good for matching.
     func selectDaySlotCombo(day: DayOfWeek, slot: TimeSlot) {
-        guard selectedDaySlotCombos.count < 3 else {
-            errorMessage = "You can only select 3 time slots."
-            return
-        }
-        
         let combo = DaySlotCombo(dayOfWeek: day, timeSlot: slot)
         
         guard !selectedDaySlotCombos.contains(where: { $0 == combo }) else {
@@ -342,15 +371,20 @@ final class ProfileViewModel {
             return false
         }
         
-        // Check activities
-        guard selectedActivities.count == 3 else {
-            errorMessage = "Please select exactly 3 activities."
+        // Check activities: 3-10 total, exactly 3 marked Main
+        guard (3...10).contains(selectedActivities.count) else {
+            errorMessage = "Please select 3 to 10 activities."
             return false
         }
-        
-        // Check day/slot combos
-        guard selectedDaySlotCombos.count == 3 else {
-            errorMessage = "Please select exactly 3 time slots."
+
+        guard selectedActivities.filter({ $0.isPrimary }).count == 3 else {
+            errorMessage = "Please choose exactly 3 Main activities."
+            return false
+        }
+
+        // Check day/slot combos: at least 3, no maximum
+        guard selectedDaySlotCombos.count >= 3 else {
+            errorMessage = "Please select at least 3 time slots."
             return false
         }
         
@@ -560,22 +594,23 @@ final class ProfileViewModel {
     var isProfileComplete: Bool {
         return !displayName.isEmpty &&
                (selectedPhotos.count == 3 || photoURLs.count == 3) &&
-               selectedActivities.count == 3 &&
-               selectedDaySlotCombos.count == 3 &&
+               (3...10).contains(selectedActivities.count) &&
+               selectedActivities.filter({ $0.isPrimary }).count == 3 &&
+               selectedDaySlotCombos.count >= 3 &&
                userLocation != nil
     }
-    
+
     /// Returns progress percentage for profile completion
     var profileCompletionPercentage: Double {
         var completed = 0.0
         let total = 5.0
-        
+
         if !displayName.isEmpty { completed += 1 }
         if selectedPhotos.count == 3 || photoURLs.count == 3 { completed += 1 }
-        if selectedActivities.count == 3 { completed += 1 }
-        if selectedDaySlotCombos.count == 3 { completed += 1 }
+        if (3...10).contains(selectedActivities.count) && selectedActivities.filter({ $0.isPrimary }).count == 3 { completed += 1 }
+        if selectedDaySlotCombos.count >= 3 { completed += 1 }
         if userLocation != nil { completed += 1 }
-        
+
         return (completed / total) * 100
     }
 }
