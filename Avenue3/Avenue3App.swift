@@ -101,7 +101,8 @@ struct Avenue3App: App {
                 currentUserID = userID
                 notificationManager.setCurrentUser(userID)
                 UnreadState.shared.startListening(userID: userID)  // ← ADD THIS
-                
+                Task { await notificationManager.migrateLegacyTokenIfNeeded(for: userID) }
+
                 print("✅ User signed in - FCM token will be stored for: \(userID)")
             } else {
                 // User signed out - remove FCM token

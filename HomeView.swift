@@ -23,8 +23,8 @@ struct HomeView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -41,7 +41,7 @@ struct HomeView: View {
                             
                             Text("Search Radius")
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                             
                             Spacer()
                             
@@ -79,7 +79,7 @@ struct HomeView: View {
                                                 endPoint: .trailing
                                             ) :
                                             LinearGradient(
-                                                colors: [Color.white.opacity(0.7), Color.white.opacity(0.7)],
+                                                colors: [Color.appCardBackground.opacity(0.7), Color.appCardBackground.opacity(0.7)],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
@@ -92,7 +92,7 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
-                    .background(Color.white.opacity(0.6))
+                    .background(Color.appCardBackground.opacity(0.6))
                     .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
                     
                     // User cards
@@ -105,7 +105,7 @@ struct HomeView: View {
                             
                             Text("Finding people nearby...")
                                 .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                         .frame(maxHeight: .infinity)
                     } else if viewModel.nearbyUsers.isEmpty {
@@ -272,7 +272,7 @@ struct DiscoveryUserCard: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(user.displayName)
                             .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                         
                         HStack(spacing: 12) {
                             HStack(spacing: 4) {
@@ -282,7 +282,7 @@ struct DiscoveryUserCard: View {
                                 
                                 Text(distance)
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                         }
                     }
@@ -299,7 +299,7 @@ struct DiscoveryUserCard: View {
                                 
                                 Text("Shared Interests")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             FlowLayout(spacing: 6) {
@@ -319,16 +319,16 @@ struct DiscoveryUserCard: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Interests")
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                            
+                                .foregroundColor(Color.appTextBody)
+
                             FlowLayout(spacing: 6) {
                                 ForEach(user.activities, id: \.id) { activity in
                                     Text(activity.name)
                                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(Color.white.opacity(0.6))
+                                        .background(Color.appCardBackground.opacity(0.6))
                                         .cornerRadius(12)
                                 }
                             }
@@ -345,7 +345,7 @@ struct DiscoveryUserCard: View {
                                 
                                 Text("Free at the same time")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             FlowLayout(spacing: 6) {
@@ -370,7 +370,7 @@ struct DiscoveryUserCard: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color.white.opacity(0.9))
+            .background(Color.appCardBackground.opacity(0.9))
             .cornerRadius(20)
             .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
         }
@@ -400,11 +400,11 @@ struct EmptyDiscoveryView: View {
             VStack(spacing: 12) {
                 Text("No One Nearby")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 
                 Text("No one found within \(Int(radius)) miles.\nTry increasing your search radius!")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -418,12 +418,12 @@ struct EmptyDiscoveryView: View {
                     
                     Text("How It Works")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                 }
                 
                 Text("We show people nearby who have completed their profiles. When you find someone interesting, we'll create a match if you share activities and availability!")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .lineSpacing(2)
             }
             .padding()
@@ -445,14 +445,14 @@ struct EmptyDiscoveryView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             EmptyDiscoveryView(radius: 10)
         }
         .navigationTitle("Discover")

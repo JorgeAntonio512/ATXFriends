@@ -63,13 +63,13 @@ struct PlanLocationField: View {
                         locationSearch.queryFragment = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                     }
                 }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(Color.white.opacity(0.85))
+            .background(Color.appCardBackground.opacity(0.85))
             .cornerRadius(12)
             .id(scrollAnchorID)
             .onChange(of: isFocused) { wasFocused, focused in
@@ -122,12 +122,12 @@ struct PlanLocationField: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(result.name)
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .lineLimit(1)
                             if let address = result.address {
                                 Text(address)
                                     .font(.system(size: 12, design: .rounded))
-                                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                    .foregroundColor(Color.appTextTertiary)
                                     .lineLimit(1)
                             }
                         }
@@ -135,7 +135,7 @@ struct PlanLocationField: View {
                         if let distanceMiles = result.distanceMiles {
                             Text(distanceMiles < 1 ? String(format: "%.1f mi", distanceMiles) : String(format: "%.0f mi", distanceMiles))
                                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                .foregroundColor(Color.appTextTertiary)
                         }
                     }
                     .padding(.horizontal, 14)
@@ -148,7 +148,7 @@ struct PlanLocationField: View {
                 }
             }
         }
-        .background(Color.white.opacity(0.9))
+        .background(Color.appCardBackground.opacity(0.9))
         .cornerRadius(12)
     }
 
@@ -159,11 +159,11 @@ struct PlanLocationField: View {
             } else if let icon {
                 Image(systemName: icon)
                     .font(.system(size: 12))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    .foregroundColor(Color.appTextTertiary)
             }
             Text(label)
                 .font(.system(size: 13, design: .rounded))
-                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                .foregroundColor(Color.appTextTertiary)
         }
         .padding(.horizontal, 4)
         .padding(.vertical, 2)

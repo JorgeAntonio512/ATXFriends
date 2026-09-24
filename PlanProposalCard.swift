@@ -54,7 +54,7 @@ struct PlanProposalCard: View {
                 if isLoading {
                     Text(message.text)
                         .font(.system(size: 14, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineLimit(2)
                     ProgressView()
                         .tint(Color.appPrimary)
@@ -68,7 +68,7 @@ struct PlanProposalCard: View {
 
                         Text(plan.activity.name)
                             .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                            .foregroundColor(Color.appTextHeavy)
                     }
 
                     // Date — show confirmedDate if accepted, otherwise first proposed date
@@ -77,11 +77,11 @@ struct PlanProposalCard: View {
                         HStack(spacing: 8) {
                             Image(systemName: "clock.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appTextMuted)
 
                             Text(formattedDate(date))
                                 .font(.system(size: 15, design: .rounded))
-                                .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
+                                .foregroundColor(Color.appTextMedium)
                         }
                     }
 
@@ -93,10 +93,10 @@ struct PlanProposalCard: View {
                             } label: {
                                 Text("Decline")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.72, green: 0.33, blue: 0.28))
+                                    .foregroundColor(Color.appDeclinedRed)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 9)
-                                    .background(Color(red: 0.72, green: 0.33, blue: 0.28).opacity(0.10))
+                                    .background(Color.appDeclinedRed.opacity(0.10))
                                     .cornerRadius(10)
                             }
 
@@ -134,11 +134,11 @@ struct PlanProposalCard: View {
                     // Plan failed to load — show summary text from message
                     Text(message.text)
                         .font(.system(size: 14, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
             .padding(14)
-            .background(Color.white.opacity(0.93))
+            .background(Color.appCardBackground.opacity(0.93))
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.07), radius: 8, x: 0, y: 2)
             .frame(maxWidth: 300)
@@ -159,10 +159,10 @@ struct PlanProposalCard: View {
         case .pending:
             Text("Pending")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.70, green: 0.55, blue: 0.20))
+                .foregroundColor(Color.appPendingGold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(red: 0.97, green: 0.90, blue: 0.60).opacity(0.6))
+                .background(Color.appPendingGoldTint.opacity(0.6))
                 .cornerRadius(8)
         case .confirmed:
             HStack(spacing: 3) {
@@ -171,26 +171,26 @@ struct PlanProposalCard: View {
                 Text("Confirmed")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
             }
-            .foregroundColor(Color(red: 0.30, green: 0.60, blue: 0.35))
+            .foregroundColor(Color.appPositiveGreen)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(Color(red: 0.55, green: 0.80, blue: 0.55).opacity(0.18))
+            .background(Color.appPositiveGreenTint.opacity(0.18))
             .cornerRadius(8)
         case .declined, .cancelled:
             Text(status == .declined ? "Declined" : "Cancelled")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.60, green: 0.35, blue: 0.30))
+                .foregroundColor(Color.appCancelledText)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(red: 0.80, green: 0.40, blue: 0.35).opacity(0.12))
+                .background(Color.appCancelledTint.opacity(0.12))
                 .cornerRadius(8)
         case .counterProposed:
             Text("Counter")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.70))
+                .foregroundColor(Color.appCounterText)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(red: 0.50, green: 0.50, blue: 0.85).opacity(0.12))
+                .background(Color.appCounterTint.opacity(0.12))
                 .cornerRadius(8)
         }
     }

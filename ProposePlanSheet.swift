@@ -38,11 +38,16 @@ struct ProposePlanSheet: View {
     private let todayViewModel: TodayViewModel?
 
     /// From a connected match or an existing thread — writes a Plan + posts a chat message.
-    init(matchID: String, receiverID: String, viewModel: MessagingViewModel) {
+    /// `initialActivity` seeds the Activity field (e.g. a tapped shared-interest chip); nil
+    /// leaves it blank, same as tapping the calendar-plus button directly.
+    init(matchID: String, receiverID: String, viewModel: MessagingViewModel, initialActivity: String? = nil) {
         self.mode = .proposal(matchID: matchID, receiverID: receiverID)
         self.messagingViewModel = viewModel
         self.todayViewModel = nil
         _proposedDate = State(initialValue: Self.nextHourRoundedUp())
+        if let initialActivity {
+            _activityName = State(initialValue: initialActivity)
+        }
     }
 
     /// Today's open broadcast — writes a TodayPlan, no recipient. `prefill` comes from a
@@ -199,8 +204,8 @@ struct ProposePlanSheet: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -213,7 +218,7 @@ struct ProposePlanSheet: View {
                         // ── header blurb ─────────────────────────────────
                         Text(headerText)
                             .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                             .padding(.top, 8)
 
                         // ── prefill banner ───────────────────────────────
@@ -242,7 +247,7 @@ struct ProposePlanSheet: View {
                                 .textFieldStyle(.plain)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
-                                .background(Color.white.opacity(0.85))
+                                .background(Color.appCardBackground.opacity(0.85))
                                 .cornerRadius(12)
                                 .onChange(of: activityName) { _, newValue in
                                     filterActivities(query: newValue)
@@ -310,12 +315,15 @@ struct ProposePlanSheet: View {
                                 }
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
-                                .background(Color.white.opacity(0.85))
+                                .background(Color.appCardBackground.opacity(0.85))
                                 .cornerRadius(12)
                                 .onChange(of: dayChoice) { _, newValue in
                                     proposedDate = Self.defaultPickerTime(for: newValue)
                                 }
                             case .proposal, .groupInvite:
+                                // No hardcoded background here — the graphical style renders its
+                                // own day numbers in the system label color, which only stays
+                                // readable if nothing behind it is forced to a fixed color.
                                 DatePicker(
                                     "",
                                     selection: $proposedDate,
@@ -324,7 +332,6 @@ struct ProposePlanSheet: View {
                                 )
                                 .datePickerStyle(.graphical)
                                 .tint(Color.appPrimary)
-                                .background(Color.white.opacity(0.85))
                                 .cornerRadius(12)
                             }
                         }
@@ -419,7 +426,7 @@ struct ProposePlanSheet: View {
             } else if mutualMatchOptions.isEmpty {
                 Text("You don't have any mutual matches yet.")
                     .font(.system(size: 14, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             } else {
                 VStack(spacing: 0) {
                     ForEach(mutualMatchOptions) { option in
@@ -447,7 +454,7 @@ struct ProposePlanSheet: View {
 
                                 Text(option.displayName)
                                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color.appNavy)
+                                    .foregroundColor(Color.appPrimaryText)
 
                                 Spacer()
 
@@ -465,7 +472,7 @@ struct ProposePlanSheet: View {
                         }
                     }
                 }
-                .background(Color.white.opacity(0.85))
+                .background(Color.appCardBackground.opacity(0.85))
                 .cornerRadius(12)
             }
         }

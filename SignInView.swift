@@ -40,30 +40,30 @@ struct SignInView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 0) {
                         // Dynamic top spacing based on screen height
                         Spacer()
                             .frame(height: max(geometry.size.height * 0.02, 8))
-                        
+
                         // Header
                         VStack(spacing: 8) {
                             Text("Welcome Back")
                                 .font(.system(size: min(28, geometry.size.width * 0.075), weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
-                            
+
                             Text("Sign in to continue")
                                 .font(.system(size: min(16, geometry.size.width * 0.043), weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                         .padding(.bottom, max(geometry.size.height * 0.025, 16))
                         
@@ -73,14 +73,14 @@ struct SignInView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Email")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                                
+                                    .foregroundColor(Color.appTextBody)
+
                                 HStack(spacing: 12) {
                                     Image(systemName: "envelope.fill")
                                         .font(.system(size: 18))
                                         .foregroundColor(Color.appPrimary)
                                         .frame(width: 24)
-                                    
+
                                     TextField("you@example.com", text: $email)
                                         .font(.system(size: 16, weight: .regular, design: .rounded))
                                         .foregroundStyle(.primary)
@@ -96,7 +96,7 @@ struct SignInView: View {
                                         }
                                 }
                                 .padding()
-                                .background(Color.white)
+                                .background(Color.appCardBackground)
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
@@ -106,19 +106,19 @@ struct SignInView: View {
                                                 lineWidth: focusedField == .email ? 2 : 1)
                                 )
                             }
-                            
+
                             // Password Field
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Password")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                                
+                                    .foregroundColor(Color.appTextBody)
+
                                 HStack(spacing: 12) {
                                     Image(systemName: "lock.fill")
                                         .font(.system(size: 18))
                                         .foregroundColor(Color.appPrimary)
                                         .frame(width: 24)
-                                    
+
                                     SecureField("Enter your password", text: $password)
                                         .font(.system(size: 16, weight: .regular, design: .rounded))
                                         .foregroundStyle(.primary)
@@ -131,7 +131,7 @@ struct SignInView: View {
                                         }
                                 }
                                 .padding()
-                                .background(Color.white)
+                                .background(Color.appCardBackground)
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
@@ -161,15 +161,15 @@ struct SignInView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack(spacing: 8) {
                                         Image(systemName: "exclamationmark.circle.fill")
-                                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
-                                        
+                                            .foregroundColor(Color.appDanger)
+
                                         Text(errorMessage)
                                             .font(.system(size: 14, weight: .medium, design: .rounded))
-                                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
-                                        
+                                            .foregroundColor(Color.appDanger)
+
                                         Spacer()
                                     }
-                                    
+
                                     if viewModel.showCreateAccountPrompt {
                                         Button {
                                             showCreateAccount = true
@@ -181,7 +181,7 @@ struct SignInView: View {
                                     }
                                 }
                                 .padding()
-                                .background(Color(red: 0.85, green: 0.45, blue: 0.40).opacity(0.1))
+                                .background(Color.appDanger.opacity(0.1))
                                 .cornerRadius(12)
                             }
                             
@@ -225,7 +225,7 @@ struct SignInView: View {
                                 
                                 Text("or")
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appTextMuted)
                                 
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.3))
@@ -254,25 +254,25 @@ struct SignInView: View {
                                 HStack(spacing: 12) {
                                     Image(systemName: "apple.logo")
                                         .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.black)
-                                    
+                                        .foregroundColor(Color.socialButtonText)
+
                                     Text("Sign in with Apple")
                                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(Color.socialButtonText)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 52)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.white)
+                                        .fill(Color.socialButtonBackground)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.black, lineWidth: 1)
+                                                .stroke(Color.socialButtonBorder, lineWidth: 1)
                                         )
                                 )
                             }
                             .buttonStyle(.plain)
-                            
+
                             // Google Sign In Button
                             Button {
                                 googleSignInHelper.signIn { result in
@@ -296,26 +296,26 @@ struct SignInView: View {
                                         .foregroundStyle(
                                             LinearGradient(
                                                 colors: [
-                                                    Color(red: 0.26, green: 0.52, blue: 0.96), // Google Blue
-                                                    Color(red: 0.92, green: 0.25, blue: 0.21)  // Google Red
+                                                    Color.googleLogoBlue,
+                                                    Color.googleLogoRed
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
                                             )
                                         )
-                                    
+
                                     Text("Continue with Google")
                                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(Color.socialButtonText)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 52)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.white)
+                                        .fill(Color.socialButtonBackground)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.black, lineWidth: 1)
+                                                .stroke(Color.socialButtonBorder, lineWidth: 1)
                                         )
                                 )
                             }
@@ -410,7 +410,7 @@ struct SignInView: View {
             NavigationStack {
                 GeometryReader { geometry in
                     ZStack {
-                        Color.white
+                        Color.appBackground
                             .ignoresSafeArea()
                         
                         ScrollView {
@@ -434,28 +434,28 @@ struct SignInView: View {
                                 VStack(spacing: 8) {
                                     Text("Reset Password")
                                         .font(.system(size: min(24, geometry.size.width * 0.064), weight: .bold, design: .rounded))
-                                        .foregroundColor(Color.appNavy)
+                                        .foregroundColor(Color.appPrimaryText)
                                     
                                     Text("Enter your email and we'll send you instructions to reset your password.")
                                         .font(.system(size: min(15, geometry.size.width * 0.04), weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                         .multilineTextAlignment(.center)
                                         .lineSpacing(2)
                                 }
                                 .padding(.horizontal, 32)
-                                
+
                                 // Email Field
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Email")
                                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                                    
+                                        .foregroundColor(Color.appTextBody)
+
                                     HStack(spacing: 12) {
                                         Image(systemName: "envelope.fill")
                                             .font(.system(size: 18))
                                             .foregroundColor(Color.appPrimary)
                                             .frame(width: 24)
-                                        
+
                                         TextField("you@example.com", text: $email)
                                             .font(.system(size: 16, weight: .regular, design: .rounded))
                                             .foregroundStyle(.primary)
@@ -470,7 +470,7 @@ struct SignInView: View {
                                             }
                                     }
                                     .padding()
-                                    .background(Color.white)
+                                    .background(Color.appCardBackground)
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)

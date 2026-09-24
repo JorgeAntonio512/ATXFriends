@@ -30,8 +30,8 @@ struct OnboardingView: View {
                     // Warm gradient background
                     LinearGradient(
                         colors: [
-                            Color.white, // Warm cream
-                            Color.white  // Soft beige
+                            Color.appBackground, // Warm cream
+                            Color.appBackground  // Soft beige
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -78,8 +78,8 @@ struct OnboardingView: View {
                                     .foregroundStyle(
                                         LinearGradient(
                                             colors: [
-                                                Color.appNavy, // Deep forest green
-                                                Color.appPrimary  // Sage green
+                                                Color.appPrimaryText,
+                                                Color.appPrimary
                                             ],
                                             startPoint: .leading,
                                             endPoint: .trailing
@@ -94,14 +94,14 @@ struct OnboardingView: View {
                             VStack(spacing: 8) {
                                 Text("Find Your People")
                                     .font(.system(size: min(24, geometry.size.width * 0.064), weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                     .multilineTextAlignment(.center)
                                     .offset(y: animateSubtitle ? 0 : 20)
                                     .opacity(animateSubtitle ? 1 : 0)
                                 
                                 Text("Build meaningful friendships\nin Austin, TX")
                                     .font(.system(size: min(16, geometry.size.width * 0.043), weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .lineSpacing(2)
@@ -156,25 +156,25 @@ struct OnboardingView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "apple.logo")
                                     .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.black)
-                                
+                                    .foregroundColor(Color.socialButtonText)
+
                                 Text("Sign in with Apple")
                                     .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(Color.socialButtonText)
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
+                                    .fill(Color.socialButtonBackground)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.black, lineWidth: 1)
+                                            .stroke(Color.socialButtonBorder, lineWidth: 1)
                                     )
                             )
                         }
                         .buttonStyle(.plain)
-                        
+
                         // Google Sign In Button
                         Button {
                             googleSignInHelper.signIn { result in
@@ -195,31 +195,31 @@ struct OnboardingView: View {
                                     .foregroundStyle(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 0.26, green: 0.52, blue: 0.96), // Google Blue
-                                                Color(red: 0.92, green: 0.25, blue: 0.21)  // Google Red
+                                                Color.googleLogoBlue,
+                                                Color.googleLogoRed
                                             ],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
-                                
+
                                 Text("Continue with Google")
                                     .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(Color.socialButtonText)
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
+                                    .fill(Color.socialButtonBackground)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.black, lineWidth: 1)
+                                            .stroke(Color.socialButtonBorder, lineWidth: 1)
                                     )
                             )
                         }
                         .buttonStyle(.plain)
-                        
+
                         // Divider with "or"
                         HStack(spacing: 12) {
                             Rectangle()
@@ -228,7 +228,7 @@ struct OnboardingView: View {
                             
                             Text("or")
                                 .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appTextMuted)
                             
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
@@ -276,15 +276,15 @@ struct OnboardingView: View {
                             } label: {
                                 Text("Sign In")
                                     .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(Color.appPrimaryText)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
                                     .background(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color.white)
+                                            .fill(Color.appCardBackground)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 16)
-                                                    .stroke(Color.black, lineWidth: 1)
+                                                    .stroke(Color.appBorder, lineWidth: 1)
                                             )
                                     )
                             }
@@ -356,7 +356,7 @@ struct FeatureRow: View {
             
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                .foregroundColor(Color.appTextBody)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineLimit(nil)

@@ -30,8 +30,8 @@ struct UpcomingView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -45,7 +45,7 @@ struct UpcomingView: View {
                             .scaleEffect(1.2)
                         Text("Loading plans…")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                 } else if !hasAnyContent {
                     emptyState
@@ -120,10 +120,10 @@ struct UpcomingView: View {
                 VStack(spacing: 6) {
                     Text(day.formatted(.dateTime.weekday(.abbreviated)))
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                        .foregroundColor(Color.appTextTertiary)
                     Text(day.formatted(.dateTime.day()))
                         .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
                     dotView(for: dotState(for: day))
                 }
                 .frame(maxWidth: .infinity)
@@ -152,7 +152,7 @@ struct UpcomingView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text(day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                     .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
 
                 ForEach(viewModel.plans(on: day)) { plan in
                     GroupPlanCard(plan: plan, viewModel: viewModel)
@@ -166,6 +166,7 @@ struct UpcomingView: View {
             let timeSlotLabel = slot.timeSlot.rawValue.lowercased()
             GhostSlotCardView(
                 titleLine: "\(dayLabel) \(timeSlotLabel) is open",
+                style: .dashed,
                 activityName: slot.activityName,
                 buttonIcon: "paperplane.fill",
                 buttonLabel: "Invite",
@@ -188,11 +189,11 @@ struct UpcomingView: View {
             VStack(spacing: 10) {
                 Text("Nothing planned yet")
                     .font(.system(size: 22, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
 
                 Text("Tap + to invite some friends.")
                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    .foregroundColor(Color.appTextTertiary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -212,7 +213,7 @@ struct GroupPlanCard: View {
             HStack(alignment: .top) {
                 Text(plan.activity.name)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 Spacer()
                 Text(plan.date.formatted(date: .abbreviated, time: .shortened))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -230,7 +231,7 @@ struct GroupPlanCard: View {
                     .foregroundColor(Color.appPrimary)
                 Text("Hosted by \(viewModel.hostName(for: plan))")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                    .foregroundColor(Color.appTextBody)
             }
 
             // Row 3: place
@@ -241,7 +242,7 @@ struct GroupPlanCard: View {
                         .foregroundColor(Color.appPrimary)
                     Text(location)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                         .lineLimit(1)
                 }
             }
@@ -250,7 +251,7 @@ struct GroupPlanCard: View {
             HStack {
                 Text("\(plan.goingCount) going")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    .foregroundColor(Color.appTextTertiary)
                 Spacer()
                 Text(viewModel.myStatusText(for: plan))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -258,7 +259,7 @@ struct GroupPlanCard: View {
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.85))
+        .background(Color.appCardBackground.opacity(0.85))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
     }

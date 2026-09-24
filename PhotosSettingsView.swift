@@ -28,8 +28,8 @@ struct PhotosSettingsView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -42,11 +42,11 @@ struct PhotosSettingsView: View {
                     VStack(spacing: 12) {
                         Text("Your Photos")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                         
                         Text("Tap any photo to replace it")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
@@ -60,7 +60,7 @@ struct PhotosSettingsView: View {
                                     // Initial loading state for all slots
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color.white)
+                                            .fill(Color.appCardBackground)
                                             .frame(width: 100, height: 100)
                                         
                                         ProgressView()
@@ -119,7 +119,7 @@ struct PhotosSettingsView: View {
                             
                             Text("Photo Tips")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
@@ -128,7 +128,7 @@ struct PhotosSettingsView: View {
                             Text("• Show your personality!")
                         }
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineSpacing(2)
                     }
                     .padding()

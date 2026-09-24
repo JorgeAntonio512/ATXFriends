@@ -41,8 +41,8 @@ struct GroupPlanDetailView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -167,7 +167,7 @@ struct GroupPlanDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Activity")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     Text(plan.activity.name)
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(Color.appNavy)
@@ -182,7 +182,7 @@ struct GroupPlanDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("When")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     Text(plan.date.formatted(date: .long, time: .shortened))
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(Color.appNavy)
@@ -209,7 +209,7 @@ struct GroupPlanDetailView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Location")
                                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                             Text(location)
                                 .font(.system(size: 16, weight: .medium, design: .rounded))
                                 .foregroundColor(Color.appNavy)
@@ -217,7 +217,7 @@ struct GroupPlanDetailView: View {
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                            .foregroundColor(Color.appTextSubtle)
                     }
                 }
                 .buttonStyle(.plain)
@@ -230,7 +230,7 @@ struct GroupPlanDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Host")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     Text(viewModel.hostName(for: plan))
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(Color.appNavy)
@@ -239,7 +239,7 @@ struct GroupPlanDetailView: View {
             }
         }
         .padding(20)
-        .background(Color.white.opacity(0.9))
+        .background(Color.appCardBackground.opacity(0.9))
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
         .padding(.horizontal, 20)
@@ -274,7 +274,7 @@ struct GroupPlanDetailView: View {
                     }
                 }
             }
-            .background(Color.white.opacity(0.85))
+            .background(Color.appCardBackground.opacity(0.85))
             .cornerRadius(12)
             .padding(.horizontal, 20)
         }
@@ -290,9 +290,9 @@ struct GroupPlanDetailView: View {
 
     private func statusColor(for response: GroupPlanResponse?) -> Color {
         switch response {
-        case .going: return Color(red: 0.30, green: 0.60, blue: 0.35)
-        case .cantMake: return Color(red: 0.72, green: 0.33, blue: 0.28)
-        case .invited, .none: return Color(red: 0.60, green: 0.60, blue: 0.60)
+        case .going: return Color.appPositiveGreen
+        case .cantMake: return Color.appDeclinedRed
+        case .invited, .none: return Color.appTextMuted
         }
     }
 
@@ -309,14 +309,14 @@ struct GroupPlanDetailView: View {
             } label: {
                 Text("Can't make it")
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(myResponse == .cantMake ? .white : Color(red: 0.72, green: 0.33, blue: 0.28))
+                    .foregroundColor(myResponse == .cantMake ? .white : Color.appDeclinedRed)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(myResponse == .cantMake ? Color(red: 0.72, green: 0.33, blue: 0.28) : Color.white.opacity(0.8))
+                    .background(myResponse == .cantMake ? Color.appDeclinedRed : Color.appCardBackground.opacity(0.8))
                     .cornerRadius(14)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color(red: 0.72, green: 0.33, blue: 0.28), lineWidth: 2)
+                            .stroke(Color.appDeclinedRed, lineWidth: 2)
                     )
             }
 
@@ -381,14 +381,14 @@ struct GroupPlanDetailView: View {
         } label: {
             Text("Cancel Plan")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                .foregroundColor(Color.appDanger)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
-                .background(Color.white.opacity(0.8))
+                .background(Color.appCardBackground.opacity(0.8))
                 .cornerRadius(14)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color(red: 0.85, green: 0.45, blue: 0.40), lineWidth: 2)
+                        .stroke(Color.appDanger, lineWidth: 2)
                 )
         }
     }

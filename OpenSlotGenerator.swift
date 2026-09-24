@@ -6,7 +6,7 @@
 import Foundation
 
 /// A suggested-but-unposted plan, built purely from the user's own profile (timeslots +
-/// activities) and their existing plans. Backs the dashed "ghost card" slots on Today and
+/// activities) and their existing plans. Backs the "ghost card" slots on Today and
 /// Upcoming — never written to Firestore, never shown as if it were a real plan.
 struct OpenSlot: Identifiable, Equatable {
     let id: String
@@ -48,6 +48,23 @@ enum OpenSlotGenerator {
         let slot: OpenSlot
         let source: Source
         var id: String { slot.id }
+    }
+
+    // MARK: - Tiered activity ordering
+
+    /// Reorders a user's own activities so ones matching `tier` come first, followed by the
+    /// rest — Today calls this with `.spontaneous` and Upcoming with `.planned`, so the two
+    /// tabs' rotations (see `buildSlots`) draw from disjoint pools whenever there are enough
+    /// distinct activities to do so, and only fall back to sharing a name when the preferred
+    /// pool is too small to fill 3 slots on its own. Activities with no category (user-typed
+    /// custom ones) default into the `.spontaneous` pool.
+    static func activities(from activities: [Activity], preferring tier: ActivitySuggestionTier) -> [Activity] {
+        func categoryTier(of activity: Activity) -> ActivitySuggestionTier {
+            ActivityCategories.category(for: activity.name)?.suggestionTier ?? .spontaneous
+        }
+        let preferred = activities.filter { categoryTier(of: $0) == tier }
+        let rest = activities.filter { categoryTier(of: $0) != tier }
+        return preferred + rest
     }
 
     /// - Parameters:

@@ -46,7 +46,7 @@ struct LocationPermissionNeededView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.appBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ScrollView {
@@ -71,12 +71,12 @@ struct LocationPermissionNeededView: View {
                         VStack(spacing: 12) {
                             Text("We need your location")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
 
                             Text(bodyText)
                                 .font(.system(size: 17, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
@@ -122,7 +122,7 @@ struct LocationPermissionNeededView: View {
                 .padding(.vertical, 20)
                 .background(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.95), Color.white.opacity(0.95)],
+                        colors: [Color.appCardBackground.opacity(0.95), Color.appCardBackground.opacity(0.95)],
                         startPoint: .top,
                         endPoint: .bottom
                     )

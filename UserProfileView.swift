@@ -69,7 +69,7 @@ struct UserProfileView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
@@ -88,8 +88,8 @@ struct UserProfileView: View {
     private var backgroundGradient: some View {
         LinearGradient(
             colors: [
-                Color.white,
-                Color.white
+                Color.appBackground,
+                Color.appBackground
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -133,7 +133,7 @@ struct UserProfileView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .frame(height: 400)
-                    .background(Color.black.opacity(0.05))
+                    .background(Color.appBorder.opacity(0.05))
                     .cornerRadius(24)
             case .failure:
                 photoErrorPlaceholder
@@ -182,7 +182,7 @@ struct UserProfileView: View {
                     .foregroundColor(Color.appPrimary.opacity(0.4))
                 Text("Photo unavailable")
                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
         }
         .frame(height: 400)
@@ -264,7 +264,7 @@ struct UserProfileView: View {
         VStack(spacing: 8) {
             Text(user.displayName)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(Color.appNavy)
+                .foregroundColor(Color.appPrimaryText)
 
             HStack(spacing: 12) {
                 HStack(spacing: 4) {
@@ -273,7 +273,7 @@ struct UserProfileView: View {
                         .foregroundColor(Color.appPrimary)
                     Text("\(distance) miles away")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
         }
@@ -286,10 +286,10 @@ struct UserProfileView: View {
                 .foregroundColor(Color.appPrimary)
             Text("You'd match!")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundColor(Color.appNavy)
+                .foregroundColor(Color.appPrimaryText)
             Text("You share interests & availability")
                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                .foregroundColor(Color.appSecondaryText)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -306,7 +306,7 @@ struct UserProfileView: View {
                     .foregroundColor(Color.appPrimary)
                 Text("Interests")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 if !sharedActivities.isEmpty {
                     Spacer()
                     Text("\(sharedActivities.count) shared")
@@ -323,7 +323,7 @@ struct UserProfileView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.7))
+        .background(Color.appCardBackground.opacity(0.7))
         .cornerRadius(20)
         .padding(.horizontal, 20)
     }
@@ -335,14 +335,14 @@ struct UserProfileView: View {
             .foregroundColor(
                 isShared
                     ? Color.appPrimary
-                    : Color(red: 0.50, green: 0.50, blue: 0.50)
+                    : Color.appSecondaryText
             )
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(
                 isShared
                     ? Color.appPrimary.opacity(0.15)
-                    : Color.white.opacity(0.7)
+                    : Color.appCardBackground.opacity(0.7)
             )
             .cornerRadius(16)
             .overlay(
@@ -364,7 +364,7 @@ struct UserProfileView: View {
                     .foregroundColor(Color.appPrimary)
                 Text("Availability")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 if !sharedTimes.isEmpty {
                     Spacer()
                     Text("\(sharedTimes.count) shared")
@@ -381,7 +381,7 @@ struct UserProfileView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.7))
+        .background(Color.appCardBackground.opacity(0.7))
         .cornerRadius(20)
         .padding(.horizontal, 20)
     }
@@ -397,14 +397,14 @@ struct UserProfileView: View {
         .foregroundColor(
             isShared
                 ? Color.appPrimary
-                : Color(red: 0.50, green: 0.50, blue: 0.50)
+                : Color.appSecondaryText
         )
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
             isShared
                 ? Color.appPrimary.opacity(0.15)
-                : Color.white.opacity(0.7)
+                : Color.appCardBackground.opacity(0.7)
         )
         .cornerRadius(16)
         .overlay(
@@ -426,7 +426,7 @@ struct UserProfileView: View {
                     .foregroundColor(Color.appPrimary)
                 Text(wouldMatch ? "About Matching" : "Why No Match?")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
             }
 
             Text(
@@ -435,7 +435,7 @@ struct UserProfileView: View {
                     : "To match, you need to share at least one interest AND one time slot. Keep browsing — you'll find your people!"
             )
             .font(.system(size: 15, weight: .regular, design: .rounded))
-            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+            .foregroundColor(Color.appSecondaryText)
             .multilineTextAlignment(.center)
             .lineSpacing(4)
         }

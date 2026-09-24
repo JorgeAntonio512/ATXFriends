@@ -152,6 +152,12 @@ struct FirebaseUser: Identifiable, Codable {
                latitude != 0.0 &&
                longitude != 0.0
     }
+
+    /// Whether this user has opted in to sharing their location with matches —
+    /// true for "once" or "onOpen", false for "off" or an unrecognized value.
+    var isSharingLocation: Bool {
+        (LocationSharingMode(rawValue: locationSharingMode) ?? .off) != .off
+    }
 }
 
 // MARK: - Conversion Extension

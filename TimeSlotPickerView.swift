@@ -25,12 +25,12 @@ struct TimeSlotPickerView: View {
                     VStack(spacing: 12) {
                         Text("When Are You\nAvailable?")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                             .multilineTextAlignment(.center)
                         
                         Text("Pick at least 3 times when you're usually\nfree to hang out. Pick more if you're free a lot!")
                             .font(.system(size: 17, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -42,7 +42,7 @@ struct TimeSlotPickerView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("\(viewModel.selectedDaySlotCombos.count) selected")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
                             
                             FlowLayout(spacing: 8) {
@@ -66,7 +66,7 @@ struct TimeSlotPickerView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(day.rawValue)
                                     .font(.system(size: 16, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color.appNavy)
+                                    .foregroundColor(Color.appPrimaryText)
                                     .padding(.leading, 4)
                                 
                                 ScrollView(.horizontal, showsIndicators: false) {
@@ -152,8 +152,8 @@ struct TimeSlotPickerView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.95),
-                        Color.white.opacity(0.95)
+                        Color.appCardBackground.opacity(0.95),
+                        Color.appCardBackground.opacity(0.95)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -180,16 +180,16 @@ struct TimeSlotButton: View {
                     .foregroundColor(
                         isSelected ?
                         .white :
-                        Color(red: 0.40, green: 0.40, blue: 0.40)
+                        Color.appTextBody
                     )
-                
+
                 // Line 2: time range
                 Text(slot.timeRange)
                     .font(.system(size: 10, weight: .regular, design: .rounded))
                     .foregroundColor(
                         isSelected ?
                         .white.opacity(0.8) :
-                        Color(red: 0.60, green: 0.60, blue: 0.60)
+                        Color.appTextMuted
                     )
             }
             .frame(width: 90, height: 70)
@@ -204,7 +204,7 @@ struct TimeSlotButton: View {
                     endPoint: .bottomTrailing
                 ) :
                 LinearGradient(
-                    colors: [Color.white.opacity(0.7), Color.white.opacity(0.7)],
+                    colors: [Color.appCardBackground.opacity(0.7), Color.appCardBackground.opacity(0.7)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

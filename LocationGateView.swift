@@ -48,7 +48,7 @@ struct LocationGateView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.appBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ScrollView {
@@ -73,12 +73,12 @@ struct LocationGateView: View {
                         VStack(spacing: 12) {
                             Text("One quick check")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
 
                             Text("ATX Friends is Austin-only for now — we need to confirm you're nearby before creating your account.")
                                 .font(.system(size: 17, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
@@ -92,12 +92,12 @@ struct LocationGateView: View {
 
                                 Text("Your Privacy")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
 
                             Text("We only check your location once, at signup. We don't track you after that.")
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                .foregroundColor(Color.appTextTertiary)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(3)
                         }
@@ -117,7 +117,7 @@ struct LocationGateView: View {
                     if let locationErrorMessage {
                         Text(locationErrorMessage)
                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                            .foregroundColor(Color.appDanger)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                     }
@@ -162,7 +162,7 @@ struct LocationGateView: View {
                 .padding(.vertical, 20)
                 .background(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.95), Color.white.opacity(0.95)],
+                        colors: [Color.appCardBackground.opacity(0.95), Color.appCardBackground.opacity(0.95)],
                         startPoint: .top,
                         endPoint: .bottom
                     )

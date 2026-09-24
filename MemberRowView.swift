@@ -42,7 +42,7 @@ struct MemberRowView: View {
             // Display name
             Text(displayName)
                 .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                .foregroundColor(Color.appTextBody)
             
             Spacer()
             
@@ -53,14 +53,14 @@ struct MemberRowView: View {
                 } label: {
                     Text("Remove")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.75, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appDenyRed)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.white.opacity(0.8))
+                        .background(Color.appCardBackground.opacity(0.8))
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(red: 0.75, green: 0.35, blue: 0.35), lineWidth: 1)
+                                .stroke(Color.appDenyRed, lineWidth: 1)
                         )
                 }
             }
@@ -114,8 +114,8 @@ struct MemberRowView: View {
     .background(
         LinearGradient(
             colors: [
-                Color.white,
-                Color.white
+                Color.appBackground,
+                Color.appBackground
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

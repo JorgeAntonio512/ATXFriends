@@ -41,10 +41,6 @@ struct GroupTabIcon: View {
     }
 }
 
-// MARK: - Group View (Placeholder)
-
-// The GroupView has been moved to its own file: GroupView.swift
-
 // MARK: - Simpatico Placeholder View
 
 private struct SimpaticoPlaceholderView: View {
@@ -52,8 +48,8 @@ private struct SimpaticoPlaceholderView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -74,11 +70,11 @@ private struct SimpaticoPlaceholderView: View {
                 VStack(spacing: 12) {
                     Text("Simpatico")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
 
                     Text("Coming soon")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
         }
@@ -99,12 +95,20 @@ enum Tab: Int, CaseIterable {
 /// Main tab view for authenticated users
 /// Six tabs: Matches, Today, Upcoming, Simpatico, Messages, Settings
 struct MainTabView: View {
+    @EnvironmentObject private var notificationManager: NotificationManager
     @State private var selectedTab: Tab = .matches
     @StateObject private var unreadState = UnreadState.shared
     @State private var tabBarOpacity: Double = 1.0
     @State private var lastScrollY: Double = 0
     @State private var threadToOpen: MessageThread?
-    
+
+    /// A tapped push notification's destination, handed down to MessagesListView
+    /// to resolve against its already-loaded thread list. Consumed from
+    /// notificationManager.pendingThreadRoute both on appear (cold launch —
+    /// the route may already be set before this view exists) and on change
+    /// (a tap while already running).
+    @State private var pendingThreadRoute: PendingThreadRoute?
+
     static let tabBarHeight: CGFloat = 50  // content area, not including safe area
 
     var body: some View {
@@ -134,7 +138,10 @@ struct MainTabView: View {
                             Color.clear.frame(height: tabBarHeight)
                         }
                 case .messages:
-                    MessagesListView()
+                    MessagesListView(
+                        pendingRoute: $pendingThreadRoute,
+                        onRouteFallbackToMatches: { selectedTab = .matches }
+                    )
                         .safeAreaInset(edge: .bottom) {
                             Color.clear.frame(height: tabBarHeight)
                         }
@@ -160,6 +167,12 @@ struct MainTabView: View {
             if let userID = FirebaseAuthService.shared.currentUserID {
                 UnreadState.shared.startListening(userID: userID)
             }
+            // Cold launch: the tap may have set this before this view existed.
+            consumeNotificationRouteIfNeeded()
+        }
+        .onChange(of: notificationManager.pendingThreadRoute) { _, _ in
+            // Warm/backgrounded launch: the tap arrives while already running.
+            consumeNotificationRouteIfNeeded()
         }
         .onReceive(NotificationCenter.default.publisher(for: .navigateToMatchThread)) { notification in
             guard
@@ -217,6 +230,16 @@ struct MainTabView: View {
             
             lastScrollY = value
         }
+    }
+
+    /// Pulls a tapped-push destination out of the notification manager (if any),
+    /// switches to the Messages tab, and hands the route down to MessagesListView
+    /// to resolve against its own loaded thread list.
+    private func consumeNotificationRouteIfNeeded() {
+        guard let route = notificationManager.pendingThreadRoute else { return }
+        notificationManager.pendingThreadRoute = nil
+        selectedTab = .messages
+        pendingThreadRoute = route
     }
 }
 
@@ -427,24 +450,24 @@ struct MatchesTabView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 if viewModel.isLoading || viewModel.isCreatingMatches {
                     // Loading state
                     VStack(spacing: 20) {
                         ProgressView()
                             .tint(Color.appPrimary)
                             .scaleEffect(1.2)
-                        
+
                         Text(viewModel.isCreatingMatches ? "Finding matches..." : "Loading matches...")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                 } else if viewModel.pendingMatches.isEmpty {
                     // Empty state
@@ -551,11 +574,11 @@ struct NotificationPermissionPromptView: View {
                 VStack(spacing: 12) {
                     Text("Stay Connected!")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
                     
                     Text("You have a new match! 🎉\n\nEnable notifications so you never miss a message or plan from your new friends.")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                 }
@@ -597,7 +620,7 @@ struct NotificationPermissionPromptView: View {
                     } label: {
                         Text("Not Now")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                     }
@@ -607,7 +630,7 @@ struct NotificationPermissionPromptView: View {
             .padding(32)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white)
+                    .fill(Color.appCardBackground)
             )
             .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
             .padding(.horizontal, 40)
@@ -729,16 +752,16 @@ struct MatchCard: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(user.displayName)
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                            
+                                .foregroundColor(Color.appTextStrong)
+
                             HStack(spacing: 4) {
                                 Image(systemName: "location.fill")
                                     .font(.system(size: 12))
                                     .foregroundColor(Color.appPrimary)
-                                
+
                                 Text(distance)
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                         }
                         
@@ -753,7 +776,7 @@ struct MatchCard: View {
                                 
                                 Text("Shared Interests")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             FlowLayout(spacing: 6) {
@@ -778,7 +801,7 @@ struct MatchCard: View {
                                 
                                 Text("Free at the same time")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             FlowLayout(spacing: 6) {
@@ -809,14 +832,14 @@ struct MatchCard: View {
                         Text("Nay")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
                     }
-                    .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                    .foregroundColor(Color.appDanger)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color.white.opacity(0.8))
+                    .background(Color.appCardBackground.opacity(0.8))
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
-                
+
                 // Yay button
                 Button(action: onYay) {
                     HStack(spacing: 8) {
@@ -847,7 +870,7 @@ struct MatchCard: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
+                .fill(Color.appCardBackground)
                 .opacity(0.9)
         )
         .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
@@ -872,11 +895,11 @@ struct NoMatchesYetView: View {
             VStack(spacing: 12) {
                 Text("No Matches Yet")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 
                 Text("We're looking for people nearby who share your interests and availability.\n\n")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -1179,17 +1202,17 @@ struct MatchInfoRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                
+                    .foregroundColor(Color.appTextStrong)
+
                 Text(description)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
-            
+
             Spacer()
         }
         .padding()
-        .background(Color.white.opacity(0.5))
+        .background(Color.appCardBackground.opacity(0.5))
         .cornerRadius(12)
     }
 }

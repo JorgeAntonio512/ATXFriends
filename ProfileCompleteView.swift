@@ -23,8 +23,8 @@ struct ProfileCompletionView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -84,7 +84,7 @@ struct ProfileCompletionView: View {
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
-                                        Color.appNavy,
+                                        Color.appPrimaryText,
                                         Color.appPrimary
                                     ],
                                     startPoint: .leading,
@@ -97,7 +97,7 @@ struct ProfileCompletionView: View {
                         
                         Text("Your profile is ready.\nLet's find your people in Austin!")
                             .font(.system(size: 18, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .lineSpacing(6)
                             .opacity(animateContent ? 1 : 0)
@@ -143,11 +143,11 @@ struct ProfileCompletionView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Activities")
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                    
+                                        .foregroundColor(Color.appTextStrong)
+
                                     Text("Your interests")
                                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                                 
                                 Spacer()
@@ -167,9 +167,9 @@ struct ProfileCompletionView: View {
                             }
                         }
                         .padding(16)
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
-                        
+
                         // Time slots
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(spacing: 12) {
@@ -195,11 +195,11 @@ struct ProfileCompletionView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Availability")
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                    
+                                        .foregroundColor(Color.appTextStrong)
+
                                     Text("When you're free")
                                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                                 
                                 Spacer()
@@ -224,13 +224,13 @@ struct ProfileCompletionView: View {
                             }
                         }
                         .padding(16)
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                     }
                     .padding(.horizontal, 32)
                     .opacity(animateContent ? 1 : 0)
                     .offset(y: animateContent ? 0 : 30)
-                    
+
                     // Encouragement message
                     VStack(spacing: 12) {
                         HStack(spacing: 8) {
@@ -240,12 +240,12 @@ struct ProfileCompletionView: View {
                             
                             Text("What's Next?")
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                         }
-                        
+
                         Text("We'll find people who share your interests and availability. Start browsing to discover potential friends nearby!")
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -347,17 +347,17 @@ struct ProfileSummaryCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                
+                    .foregroundColor(Color.appTextStrong)
+
                 Text(value)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
-            
+
             Spacer()
         }
         .padding(16)
-        .background(Color.white.opacity(0.6))
+        .background(Color.appCardBackground.opacity(0.6))
         .cornerRadius(16)
     }
 }

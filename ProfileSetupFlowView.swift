@@ -55,8 +55,8 @@ struct ProfileSetupFlowView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -174,7 +174,7 @@ struct ProfileSetupProgressBar: View {
                 ZStack(alignment: .leading) {
                     // Background
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.3))
+                        .fill(Color.appCardBackground.opacity(0.3))
                         .frame(height: 8)
                     
                     // Progress fill
@@ -199,7 +199,7 @@ struct ProfileSetupProgressBar: View {
             HStack {
                 Text("Step \(currentStep) of \(totalSteps)")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                 
                 Spacer()
             }
@@ -242,12 +242,12 @@ struct NameInputView: View {
                         VStack(spacing: 12) {
                             Text("What's your name?")
                                 .font(.system(size: min(32, geometry.size.width * 0.085), weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
                             
                             Text("This is how other people will see you on ATX Friends")
                                 .font(.system(size: min(17, geometry.size.width * 0.045), weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
@@ -286,14 +286,14 @@ struct NameInputView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Display Name")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                                 .padding(.leading, 4)
-                            
+
                             TextField("Enter your name", text: $viewModel.displayName)
                                 .font(.system(size: 18, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                                 .padding(16)
-                                .background(Color.white.opacity(0.9))
+                                .background(Color.appCardBackground.opacity(0.9))
                                 .cornerRadius(12)
                                 .focused($isTextFieldFocused)
                                 .textInputAutocapitalization(.words)
@@ -324,7 +324,7 @@ struct NameInputView: View {
                                 Spacer()
                                 Text("\(viewModel.displayName.count)/30")
                                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appTextMuted)
                             }
                             .padding(.trailing, 4)
                         }
@@ -334,27 +334,27 @@ struct NameInputView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Short Bio")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                                 .padding(.leading, 4)
-                            
+
                             ZStack(alignment: .topLeading) {
                                 // Background
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.9))
-                                
+                                    .fill(Color.appCardBackground.opacity(0.9))
+
                                 // Placeholder
                                 if viewModel.bio.isEmpty {
                                     Text("A little about you... (optional)")
                                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                        .foregroundColor(Color.appTextMuted)
                                         .padding(.horizontal, 20)
                                         .padding(.vertical, 20)
                                 }
-                                
+
                                 // TextEditor
                                 TextEditor(text: $viewModel.bio)
                                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 12)
                                     .scrollContentBackground(.hidden)
@@ -375,7 +375,7 @@ struct NameInputView: View {
                                 Spacer()
                                 Text("\(bioCharacterCount)/150")
                                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appTextMuted)
                             }
                             .padding(.trailing, 4)
                         }
@@ -389,7 +389,7 @@ struct NameInputView: View {
                                 
                                 Text("Tips")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
@@ -398,7 +398,7 @@ struct NameInputView: View {
                                 Text("• You can change this later in Settings")
                             }
                             .font(.system(size: 14, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .lineSpacing(2)
                         }
                         .padding()
@@ -473,8 +473,8 @@ struct NameInputView: View {
                 .background(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.95),
-                            Color.white.opacity(0.95)
+                            Color.appCardBackground.opacity(0.95),
+                            Color.appCardBackground.opacity(0.95)
                         ],
                         startPoint: .top,
                         endPoint: .bottom

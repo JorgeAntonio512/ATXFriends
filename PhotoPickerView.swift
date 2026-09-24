@@ -32,11 +32,11 @@ struct PhotoPickerView: View {
                     VStack(spacing: 12) {
                         Text("Add Your Photos")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                         
                         Text("Choose 3 photos that show the real you.\nNo filters needed!")
                             .font(.system(size: 17, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -83,7 +83,7 @@ struct PhotoPickerView: View {
                             
                             Text("Photo Tips")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
@@ -155,8 +155,8 @@ struct PhotoPickerView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.95),
-                        Color.white.opacity(0.95)
+                        Color.appCardBackground.opacity(0.95),
+                        Color.appCardBackground.opacity(0.95)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -196,10 +196,10 @@ struct PhotoPickerView: View {
                         
                         Text("Loading photos...")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                     }
                     .padding(24)
-                    .background(Color.white)
+                    .background(Color.appCardBackground)
                     .cornerRadius(16)
                     .shadow(radius: 20)
                 }
@@ -288,7 +288,7 @@ struct PhotoSlot: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
                         .frame(height: 180)
-                        .background(Color.white)
+                        .background(Color.appCardBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
@@ -304,7 +304,7 @@ struct PhotoSlot: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 28))
-                        .foregroundStyle(.white, Color(red: 0.85, green: 0.45, blue: 0.40))
+                        .foregroundStyle(.white, Color.appDanger)
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                 }
                 .padding(8)
@@ -319,11 +319,11 @@ struct PhotoSlot: View {
                         
                         Text("Photo \(slotNumber)")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 180)
-                    .background(Color.white.opacity(0.5))
+                    .background(Color.appCardBackground.opacity(0.5))
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
@@ -351,7 +351,7 @@ struct TipRow: View {
             
             Text(text)
                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                .foregroundColor(Color.appSecondaryText)
         }
     }
 }

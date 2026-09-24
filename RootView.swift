@@ -200,8 +200,8 @@ struct LoadingView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -236,7 +236,7 @@ struct LoadingView: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                Color.appNavy,
+                                Color.appPrimaryText,
                                 Color.appPrimary
                             ],
                             startPoint: .leading,

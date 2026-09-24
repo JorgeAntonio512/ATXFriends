@@ -563,11 +563,13 @@ struct MatchWithUser: Identifiable, Equatable {
     let match: Match
     let otherUser: User
     let currentUser: FirebaseUser?
+    let isOtherUserSharingLocation: Bool
 
-    init(match: Match, otherUser: User, currentUser: FirebaseUser? = nil) {
+    init(match: Match, otherUser: User, currentUser: FirebaseUser? = nil, isOtherUserSharingLocation: Bool = false) {
         self.match = match
         self.otherUser = otherUser
         self.currentUser = currentUser
+        self.isOtherUserSharingLocation = isOtherUserSharingLocation
     }
 
     var id: String {
@@ -597,8 +599,8 @@ struct MatchWithUser: Identifiable, Equatable {
         return "You both like \(categoryName)"
     }
 
-    /// "3 mi away" style label using signup-time coordinates, or nil if either
-    /// party has no location on file (the app's (0, 0) "unset" sentinel).
+    /// Bucketed distance label (e.g. "~5 mi away"), or nil if either party has
+    /// no location on file, or the other user isn't sharing their location.
     var distanceText: String? {
         guard let currentUser,
               currentUser.latitude != 0 || currentUser.longitude != 0,
@@ -608,11 +610,7 @@ struct MatchWithUser: Identifiable, Equatable {
         let miles = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
             .distance(from: CLLocation(latitude: otherUser.latitude, longitude: otherUser.longitude)) / 1609.34
 
-        #if DEBUG
-        print("[Distance] me=(\(currentUser.latitude),\(currentUser.longitude)) them=(\(otherUser.latitude),\(otherUser.longitude)) uid=\(otherUser.id) result=\(miles)")
-        #endif
-
-        return miles < 1 ? String(format: "%.1f mi away", miles) : String(format: "%.0f mi away", miles)
+        return DistanceDisplay.label(miles: miles, isSharing: isOtherUserSharingLocation)
     }
 
     static func == (lhs: MatchWithUser, rhs: MatchWithUser) -> Bool {

@@ -46,7 +46,7 @@ struct PendingRequestRowView: View {
                     // Display name
                     Text(displayName)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     // Join message
                     if let message = joinMessage, !message.isEmpty {
@@ -73,14 +73,14 @@ struct PendingRequestRowView: View {
                 } label: {
                     Text("Deny")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.75, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appDenyRed)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.white.opacity(0.8))
+                        .background(Color.appCardBackground.opacity(0.8))
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color(red: 0.75, green: 0.35, blue: 0.35), lineWidth: 1.5)
+                                .stroke(Color.appDenyRed, lineWidth: 1.5)
                         )
                 }
                 
@@ -99,7 +99,7 @@ struct PendingRequestRowView: View {
             }
         }
         .padding(12)
-        .background(Color.white.opacity(0.6))
+        .background(Color.appCardBackground.opacity(0.6))
         .cornerRadius(12)
     }
     
@@ -149,8 +149,8 @@ struct PendingRequestRowView: View {
     .background(
         LinearGradient(
             colors: [
-                Color.white,
-                Color.white
+                Color.appBackground,
+                Color.appBackground
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

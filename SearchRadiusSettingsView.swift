@@ -29,8 +29,8 @@ struct SearchRadiusSettingsView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -62,11 +62,11 @@ struct SearchRadiusSettingsView: View {
                         
                         Text("Search Radius")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                         
                         Text("How far away should we look for matches?")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
@@ -89,7 +89,7 @@ struct SearchRadiusSettingsView: View {
                         
                         Text(radiusMiles == 1 ? "mile" : "miles")
                             .font(.system(size: 20, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                     
                     // Slider
@@ -101,13 +101,13 @@ struct SearchRadiusSettingsView: View {
                         HStack {
                             Text("5 miles")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
-                            
+                                .foregroundColor(Color.appTextMuted)
+
                             Spacer()
-                            
+
                             Text("25 miles")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appTextMuted)
                         }
                         .padding(.horizontal, 32)
                     }
@@ -120,7 +120,7 @@ struct SearchRadiusSettingsView: View {
                             
                             Text("Distance Guide")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -143,7 +143,7 @@ struct SearchRadiusSettingsView: View {
                             
                             Text("How This Works")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
@@ -153,7 +153,7 @@ struct SearchRadiusSettingsView: View {
                             Text("• You can change this anytime")
                         }
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineSpacing(2)
                     }
                     .padding()
@@ -226,11 +226,11 @@ struct DistanceGuideRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(distance)
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                
+                    .foregroundColor(Color.appTextStrong)
+
                 Text(description)
                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
         }
     }

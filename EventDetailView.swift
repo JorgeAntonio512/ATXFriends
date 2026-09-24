@@ -26,14 +26,14 @@ struct EventDetailView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // Hero image
@@ -73,14 +73,14 @@ struct EventDetailView: View {
                         // Event name
                         Text(event.name)
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                             .padding(.horizontal)
                         
                         // Weekend selection
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Select Your Weekends")
                                 .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .padding(.horizontal)
                             
                             ForEach(event.weekends) { weekend in
@@ -132,20 +132,20 @@ struct EventDetailView: View {
                                 HStack {
                                     Text("Attendees")
                                         .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color.appNavy)
+                                        .foregroundColor(Color.appPrimaryText)
                                     
                                     Spacer()
                                     
                                     Text("\(viewModel.attendees.count)")
                                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                                 .padding(.horizontal)
                                 
                                 if viewModel.attendees.isEmpty {
                                     Text("No other attendees yet")
                                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                        .foregroundColor(Color.appTextMuted)
                                         .padding(.horizontal)
                                 } else {
                                     ForEach(viewModel.attendees, id: \.id) { attendee in
@@ -290,11 +290,11 @@ struct WeekendSelectionCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(weekend.label)
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
                     
                     Text(weekend.dateRangeString)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 
                 Spacer()
@@ -304,7 +304,7 @@ struct WeekendSelectionCard: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ?
                           Color.appPrimary.opacity(0.1) :
-                          Color.white
+                          Color.appCardBackground
                     )
             )
             .overlay(
@@ -371,18 +371,18 @@ struct AttendeeCard: View {
             // Name
             Text(attendee.displayName)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(Color.appNavy)
+                .foregroundColor(Color.appPrimaryText)
             
             // Activities
             if !attendee.activities.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Activities")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                    
+                        .foregroundColor(Color.appSecondaryText)
+
                     Text(attendee.activities.map { $0.name }.joined(separator: ", "))
                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                 }
             }
             
@@ -391,11 +391,11 @@ struct AttendeeCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Availability")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                    
+                        .foregroundColor(Color.appSecondaryText)
+
                     Text(attendee.daySlotCombos.map { $0.displayName }.joined(separator: ", "))
                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                 }
             }
             
@@ -426,7 +426,7 @@ struct AttendeeCard: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(Color.appCardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }

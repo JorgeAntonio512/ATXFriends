@@ -62,8 +62,10 @@ final class TodayViewModel {
 
     /// Up to 3 ghost-card suggestions, next 24 hours only. Own usual timeslots first, then
     /// the fixed fallback clock times fill any remaining spots — so Today always has cards
-    /// even when none of the user's usual slots land in the next day. Purely derived from
-    /// data already loaded — no Firestore access happens here.
+    /// even when none of the user's usual slots land in the next day. Activities are ordered
+    /// to prefer the `.spontaneous` tier (see ActivityCategories) so Today's suggestions stay
+    /// disjoint from Upcoming's `.planned`-preferring ones whenever there's enough variety.
+    /// Purely derived from data already loaded — no Firestore access happens here.
     var rankedOpenSlots: [OpenSlotGenerator.RankedOpenSlot] {
         guard let myProfile else { return [] }
         let myExistingStarts = openPlans
@@ -71,7 +73,7 @@ final class TodayViewModel {
             .map { $0.scheduledTime }
         return OpenSlotGenerator.generateForToday(
             daySlotCombos: myProfile.daySlotCombos,
-            activities: myProfile.activities,
+            activities: OpenSlotGenerator.activities(from: myProfile.activities, preferring: .spontaneous),
             from: Date(),
             existingPlanStarts: myExistingStarts,
             maxCount: 3

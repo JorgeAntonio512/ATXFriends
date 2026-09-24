@@ -26,7 +26,7 @@ struct WaitlistView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.appBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ScrollView {
@@ -51,12 +51,12 @@ struct WaitlistView: View {
                         VStack(spacing: 12) {
                             Text("ATX Friends is Austin-only for now")
                                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
 
                             Text("We're starting in Austin, TX. Leave your email and we'll notify you when we expand to your area.")
                                 .font(.system(size: 17, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
                         }
@@ -70,11 +70,11 @@ struct WaitlistView: View {
 
                                 Text("You're on the list!")
                                     .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color.appNavy)
+                                    .foregroundColor(Color.appPrimaryText)
 
                                 Text("We'll email you when ATX Friends launches in your area.")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
                                     .lineSpacing(3)
                             }
@@ -83,7 +83,7 @@ struct WaitlistView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Email")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
 
                                 HStack(spacing: 12) {
                                     Image(systemName: "envelope.fill")
@@ -100,7 +100,7 @@ struct WaitlistView: View {
                                         .focused($isEmailFocused)
                                 }
                                 .padding()
-                                .background(Color.white)
+                                .background(Color.appCardBackground)
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
@@ -169,7 +169,7 @@ struct WaitlistView: View {
                 .padding(.vertical, 20)
                 .background(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.95), Color.white.opacity(0.95)],
+                        colors: [Color.appCardBackground.opacity(0.95), Color.appCardBackground.opacity(0.95)],
                         startPoint: .top,
                         endPoint: .bottom
                     )

@@ -30,8 +30,8 @@ struct NotificationSettingsView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -54,7 +54,7 @@ struct NotificationSettingsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Notification Status")
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                        .foregroundColor(Color.appTextStrong)
                                     
                                     Text(notificationStatusText)
                                         .font(.system(size: 15, weight: .medium, design: .rounded))
@@ -64,19 +64,19 @@ struct NotificationSettingsView: View {
                                 Spacer()
                             }
                             .padding(20)
-                            .background(Color.white.opacity(0.7))
+                            .background(Color.appCardBackground.opacity(0.7))
                             .cornerRadius(16)
-                            
+
                             // Permission-specific actions
                             if notificationManager.notificationPermissionStatus == .denied {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Notifications are disabled")
                                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                    
+                                        .foregroundColor(Color.appTextStrong)
+
                                     Text("To receive match updates, messages, and plan notifications, please enable notifications in Settings.")
                                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                     
                                     Button {
                                         openAppSettings()
@@ -104,19 +104,19 @@ struct NotificationSettingsView: View {
                                     .buttonStyle(.plain)
                                 }
                                 .padding(20)
-                                .background(Color.white.opacity(0.7))
+                                .background(Color.appCardBackground.opacity(0.7))
                                 .cornerRadius(16)
                             }
-                            
+
                             if notificationManager.notificationPermissionStatus == .notDetermined {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Enable Notifications")
                                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                    
+                                        .foregroundColor(Color.appTextStrong)
+
                                     Text("Get notified when you have new matches, messages, and plan confirmations.")
                                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                     
                                     Button {
                                         Task {
@@ -146,17 +146,17 @@ struct NotificationSettingsView: View {
                                     .buttonStyle(.plain)
                                 }
                                 .padding(20)
-                                .background(Color.white.opacity(0.7))
+                                .background(Color.appCardBackground.opacity(0.7))
                                 .cornerRadius(16)
                             }
                         }
                         .padding(.horizontal, 20)
-                        
+
                         // Notification Types
                         VStack(alignment: .leading, spacing: 12) {
                             Text("NOTIFICATION TYPES")
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .padding(.horizontal, 24)
                             
                             VStack(spacing: 0) {
@@ -228,44 +228,44 @@ struct NotificationSettingsView: View {
                                 )
                             }
                             .padding(20)
-                            .background(Color.white.opacity(0.7))
+                            .background(Color.appCardBackground.opacity(0.7))
                             .cornerRadius(16)
-                            
+
                             Text("These notifications help you stay connected with your matches and never miss important updates.")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appTextMuted)
                                 .padding(.horizontal, 24)
                         }
                         .padding(.horizontal, 20)
-                        
+
                         #if DEBUG
                         // Debug Info
                         VStack(alignment: .leading, spacing: 12) {
                             Text("DEBUG INFO")
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .padding(.horizontal, 24)
-                            
+
                             VStack(alignment: .leading, spacing: 12) {
                                 if let token = notificationManager.fcmToken {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("FCM Token")
                                             .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                                        
+                                            .foregroundColor(Color.appTextBody)
+
                                         Text(token)
                                             .font(.system(size: 10, design: .monospaced))
-                                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                            .foregroundColor(Color.appSecondaryText)
                                             .textSelection(.enabled)
                                     }
                                 } else {
                                     Text("No FCM token yet")
                                         .font(.system(size: 12, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                             }
                             .padding(20)
-                            .background(Color.white.opacity(0.7))
+                            .background(Color.appCardBackground.opacity(0.7))
                             .cornerRadius(16)
                         }
                         .padding(.horizontal, 20)
@@ -326,7 +326,7 @@ struct NotificationSettingsView: View {
         case .authorized, .provisional, .ephemeral:
             return Color.appPrimary
         case .denied:
-            return Color(red: 0.85, green: 0.45, blue: 0.40)
+            return Color.appDanger
         case .notDetermined:
             return Color.orange
         @unknown default:
@@ -448,11 +448,11 @@ struct InteractiveNotificationToggleRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(canToggle ? Color(red: 0.35, green: 0.35, blue: 0.35) : Color.gray.opacity(0.7))
-                
+                    .foregroundColor(canToggle ? Color.appTextStrong : Color.gray.opacity(0.7))
+
                 Text(description)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
             
             Spacer()

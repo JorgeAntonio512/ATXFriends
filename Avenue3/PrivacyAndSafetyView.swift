@@ -18,8 +18,8 @@ struct PrivacyAndSafetyView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -37,12 +37,12 @@ struct PrivacyAndSafetyView: View {
                             
                             Text("Privacy & Safety")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                         }
                         
                         Text("Manage your privacy settings, blocked users, and account data.")
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
@@ -58,7 +58,7 @@ struct PrivacyAndSafetyView: View {
                                 icon: "hand.raised.circle.fill",
                                 title: "Block a User",
                                 subtitle: "Block someone from your matches",
-                                iconColor: Color(red: 0.85, green: 0.55, blue: 0.40)
+                                iconColor: Color.appIconWarm
                             )
                         }
                         
@@ -73,7 +73,7 @@ struct PrivacyAndSafetyView: View {
                                 icon: "person.2.slash.fill",
                                 title: "Blocked Users",
                                 subtitle: "Manage your blocked list",
-                                iconColor: Color(red: 0.50, green: 0.50, blue: 0.50)
+                                iconColor: Color.appSecondaryText
                             )
                         }
                         
@@ -88,7 +88,7 @@ struct PrivacyAndSafetyView: View {
                                 icon: "exclamationmark.shield.fill",
                                 title: "Report a User",
                                 subtitle: "Report inappropriate behavior",
-                                iconColor: Color(red: 0.85, green: 0.45, blue: 0.40)
+                                iconColor: Color.appDanger
                             )
                         }
                         
@@ -103,7 +103,7 @@ struct PrivacyAndSafetyView: View {
                                 icon: "trash.circle.fill",
                                 title: "Delete Account",
                                 subtitle: "Permanently delete your data",
-                                iconColor: Color(red: 0.90, green: 0.35, blue: 0.35)
+                                iconColor: Color.appDangerStrong
                             )
                         }
                         
@@ -118,7 +118,7 @@ struct PrivacyAndSafetyView: View {
                                 icon: "square.and.arrow.up.circle.fill",
                                 title: "Export My Data",
                                 subtitle: "Download a copy of your data",
-                                iconColor: Color(red: 0.45, green: 0.60, blue: 0.70)
+                                iconColor: Color.appIconInfo
                             )
                         }
                         
@@ -139,7 +139,7 @@ struct PrivacyAndSafetyView: View {
                         .buttonStyle(.plain)
                     }
                     .padding()
-                    .background(Color.white.opacity(0.6))
+                    .background(Color.appCardBackground.opacity(0.6))
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
                 }
@@ -176,18 +176,18 @@ struct PrivacyRowLabel: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 
                 Text(subtitle)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                .foregroundColor(Color.appTextSubtle)
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
@@ -211,8 +211,8 @@ struct BlockUserView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -225,22 +225,22 @@ struct BlockUserView: View {
                         .scaleEffect(1.2)
                     Text("Loading matches...")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             } else if viewModel.searchableContacts.isEmpty && viewModel.pendingMatches.isEmpty {
                 // Empty state
                 VStack(spacing: 20) {
                     Image(systemName: "person.2.slash")
                         .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     
                     Text("No Matches to Block")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("You don't have any current matches. Users you block will appear here.")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 }
@@ -252,11 +252,11 @@ struct BlockUserView: View {
                         VStack(spacing: 8) {
                             Image(systemName: "hand.raised.circle.fill")
                                 .font(.system(size: 40))
-                                .foregroundColor(Color(red: 0.85, green: 0.55, blue: 0.40))
+                                .foregroundColor(Color.appIconWarm)
                             
                             Text("Select a user to block")
                                 .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.top, 16)
@@ -268,7 +268,7 @@ struct BlockUserView: View {
                                 // Section header
                                 Text("Matches")
                                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                     .padding(.horizontal, 20)
                                 
                                 // User list
@@ -289,7 +289,7 @@ struct BlockUserView: View {
                                     }
                                 }
                                 .padding()
-                                .background(Color.white.opacity(0.6))
+                                .background(Color.appCardBackground.opacity(0.6))
                                 .cornerRadius(16)
                                 .padding(.horizontal, 20)
                             }
@@ -301,7 +301,7 @@ struct BlockUserView: View {
                                 // Section header
                                 Text("Current Connections")
                                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                     .padding(.horizontal, 20)
                                 
                                 // User list
@@ -322,7 +322,7 @@ struct BlockUserView: View {
                                     }
                                 }
                                 .padding()
-                                .background(Color.white.opacity(0.6))
+                                .background(Color.appCardBackground.opacity(0.6))
                                 .cornerRadius(16)
                                 .padding(.horizontal, 20)
                             }
@@ -338,18 +338,18 @@ struct BlockUserView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.45, green: 0.70, blue: 0.45))
+                        .foregroundColor(Color.appIconSafe)
                     
                     Text("User Blocked")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("\(blockedUserName) has been blocked")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 .padding(32)
-                .background(Color.white.opacity(0.95))
+                .background(Color.appCardBackground.opacity(0.95))
                 .cornerRadius(20)
                 .shadow(radius: 20)
             }
@@ -422,7 +422,7 @@ struct BlockUserRow: View {
                     switch phase {
                     case .empty:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 ProgressView()
                             }
@@ -432,7 +432,7 @@ struct BlockUserRow: View {
                             .aspectRatio(contentMode: .fill)
                     case .failure:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 Image(systemName: "person.fill")
                                     .foregroundColor(.white)
@@ -440,7 +440,7 @@ struct BlockUserRow: View {
                             }
                     @unknown default:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                     }
                 }
                 .frame(width: 52, height: 52)
@@ -448,7 +448,7 @@ struct BlockUserRow: View {
             } else {
                 // Placeholder when no photo
                 Circle()
-                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                    .fill(Color.appBorder)
                     .frame(width: 52, height: 52)
                     .overlay {
                         Image(systemName: "person.fill")
@@ -460,14 +460,14 @@ struct BlockUserRow: View {
             // User name
             Text(user.displayName)
                 .font(.system(size: 17, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appTextStrong)
             
             Spacer()
             
             // Block icon
             Image(systemName: "hand.raised.circle.fill")
                 .font(.system(size: 20))
-                .foregroundColor(Color(red: 0.85, green: 0.55, blue: 0.40))
+                .foregroundColor(Color.appIconWarm)
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
@@ -490,8 +490,8 @@ struct BlockedUsersView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -505,22 +505,22 @@ struct BlockedUsersView: View {
                         .scaleEffect(1.2)
                     Text("Loading blocked users...")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             } else if viewModel.blockedUsers.isEmpty {
                 // Empty state
                 VStack(spacing: 20) {
                     Image(systemName: "person.2.slash")
                         .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     
                     Text("No Blocked Users")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("You haven't blocked anyone yet. Users you block won't be able to see your profile or contact you.")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 }
@@ -532,15 +532,15 @@ struct BlockedUsersView: View {
                         VStack(spacing: 8) {
                             Image(systemName: "person.2.slash.fill")
                                 .font(.system(size: 40))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                             
                             Text("Blocked Users")
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                             
                             Text("These users can't see your profile or contact you")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }
@@ -565,7 +565,7 @@ struct BlockedUsersView: View {
                             }
                         }
                         .padding()
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
@@ -579,18 +579,18 @@ struct BlockedUsersView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.45, green: 0.70, blue: 0.45))
+                        .foregroundColor(Color.appIconSafe)
                     
                     Text("User Unblocked")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("\(unblockedUserName) has been unblocked")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 .padding(32)
-                .background(Color.white.opacity(0.95))
+                .background(Color.appCardBackground.opacity(0.95))
                 .cornerRadius(20)
                 .shadow(radius: 20)
             }
@@ -661,7 +661,7 @@ struct BlockedUserRow: View {
                     switch phase {
                     case .empty:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 ProgressView()
                             }
@@ -671,7 +671,7 @@ struct BlockedUserRow: View {
                             .aspectRatio(contentMode: .fill)
                     case .failure:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 Image(systemName: "person.fill")
                                     .foregroundColor(.white)
@@ -679,7 +679,7 @@ struct BlockedUserRow: View {
                             }
                     @unknown default:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                     }
                 }
                 .frame(width: 52, height: 52)
@@ -687,7 +687,7 @@ struct BlockedUserRow: View {
             } else {
                 // Placeholder when no photo
                 Circle()
-                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                    .fill(Color.appBorder)
                     .frame(width: 52, height: 52)
                     .overlay {
                         Image(systemName: "person.fill")
@@ -699,7 +699,7 @@ struct BlockedUserRow: View {
             // User name
             Text(user.displayName)
                 .font(.system(size: 17, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appTextStrong)
             
             Spacer()
             
@@ -736,8 +736,8 @@ struct ReportUserView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -749,20 +749,20 @@ struct ReportUserView: View {
                 VStack(spacing: 20) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.45, green: 0.70, blue: 0.45))
+                        .foregroundColor(Color.appIconSafe)
                     
                     Text("Report Submitted")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("We take all reports seriously and will review this promptly.")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
                 }
                 .padding(32)
-                .background(Color.white.opacity(0.95))
+                .background(Color.appCardBackground.opacity(0.95))
                 .cornerRadius(20)
                 .shadow(radius: 20)
                 .padding(.horizontal, 40)
@@ -803,22 +803,22 @@ struct ReportUserView: View {
                     .scaleEffect(1.2)
                 Text("Loading matches...")
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
         } else if viewModel.searchableContacts.isEmpty && viewModel.pendingMatches.isEmpty {
             // Empty state
             VStack(spacing: 20) {
                 Image(systemName: "person.2.badge.gearshape")
                     .font(.system(size: 60))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                 
                 Text("No Matches to Report")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 
                 Text("You don't have any current matches. Only users you've matched with can be reported.")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -830,11 +830,11 @@ struct ReportUserView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "exclamationmark.shield.fill")
                             .font(.system(size: 40))
-                            .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                            .foregroundColor(Color.appDanger)
                         
                         Text("Select a user to report")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 16)
@@ -846,7 +846,7 @@ struct ReportUserView: View {
                             // Section header
                             Text("Matches")
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                                 .padding(.horizontal, 20)
                             
                             // User list
@@ -869,7 +869,7 @@ struct ReportUserView: View {
                                 }
                             }
                             .padding()
-                            .background(Color.white.opacity(0.6))
+                            .background(Color.appCardBackground.opacity(0.6))
                             .cornerRadius(16)
                             .padding(.horizontal, 20)
                         }
@@ -881,7 +881,7 @@ struct ReportUserView: View {
                             // Section header
                             Text("Current Connections")
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                                 .padding(.horizontal, 20)
                             
                             // User list
@@ -904,7 +904,7 @@ struct ReportUserView: View {
                                 }
                             }
                             .padding()
-                            .background(Color.white.opacity(0.6))
+                            .background(Color.appCardBackground.opacity(0.6))
                             .cornerRadius(16)
                             .padding(.horizontal, 20)
                         }
@@ -930,7 +930,7 @@ struct ReportUserView: View {
                             switch phase {
                             case .empty:
                                 Circle()
-                                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                                    .fill(Color.appBorder)
                                     .overlay {
                                         ProgressView()
                                     }
@@ -942,7 +942,7 @@ struct ReportUserView: View {
                                     .clipShape(Circle())
                             case .failure:
                                 Circle()
-                                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                                    .fill(Color.appBorder)
                                     .frame(width: 80, height: 80)
                                     .overlay {
                                         Image(systemName: "person.fill")
@@ -951,14 +951,14 @@ struct ReportUserView: View {
                                     }
                             @unknown default:
                                 Circle()
-                                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                                    .fill(Color.appBorder)
                                     .frame(width: 80, height: 80)
                             }
                         }
                         .frame(width: 80, height: 80)
                     } else {
                         Circle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .frame(width: 80, height: 80)
                             .overlay {
                                 Image(systemName: "person.fill")
@@ -969,11 +969,11 @@ struct ReportUserView: View {
                     
                     Text("Reporting \(selectedUser?.displayName ?? "User")")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                     
                     Text("Select a reason for your report")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 .padding(.top, 16)
                 
@@ -997,7 +997,7 @@ struct ReportUserView: View {
                     }
                 }
                 .padding()
-                .background(Color.white.opacity(0.6))
+                .background(Color.appCardBackground.opacity(0.6))
                 .cornerRadius(16)
                 .padding(.horizontal, 20)
                 
@@ -1005,20 +1005,20 @@ struct ReportUserView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Additional Comments (Optional)")
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                         .padding(.horizontal, 20)
                     
                     TextEditor(text: $additionalComments)
                         .frame(minHeight: 120)
                         .padding(12)
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(red: 0.85, green: 0.85, blue: 0.85), lineWidth: 1)
+                                .stroke(Color.appBorder, lineWidth: 1)
                         )
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appTextStrong)
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal, 20)
                 }
@@ -1045,8 +1045,8 @@ struct ReportUserView: View {
                     .padding(.vertical, 16)
                     .background(
                         selectedReason != nil ?
-                        Color(red: 0.85, green: 0.45, blue: 0.40) :
-                            Color(red: 0.70, green: 0.70, blue: 0.70)
+                        Color.appDanger :
+                            Color.appTextSubtle
                     )
                     .cornerRadius(12)
                 }
@@ -1102,7 +1102,7 @@ struct ReportUserRow: View {
                     switch phase {
                     case .empty:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 ProgressView()
                             }
@@ -1112,7 +1112,7 @@ struct ReportUserRow: View {
                             .aspectRatio(contentMode: .fill)
                     case .failure:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                             .overlay {
                                 Image(systemName: "person.fill")
                                     .foregroundColor(.white)
@@ -1120,7 +1120,7 @@ struct ReportUserRow: View {
                             }
                     @unknown default:
                         Rectangle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                            .fill(Color.appBorder)
                     }
                 }
                 .frame(width: 52, height: 52)
@@ -1128,7 +1128,7 @@ struct ReportUserRow: View {
             } else {
                 // Placeholder when no photo
                 Circle()
-                    .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                    .fill(Color.appBorder)
                     .frame(width: 52, height: 52)
                     .overlay {
                         Image(systemName: "person.fill")
@@ -1140,14 +1140,14 @@ struct ReportUserRow: View {
             // User name
             Text(user.displayName)
                 .font(.system(size: 17, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appTextStrong)
             
             Spacer()
             
             // Report icon
             Image(systemName: "exclamationmark.shield.fill")
                 .font(.system(size: 20))
-                .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                .foregroundColor(Color.appDanger)
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
@@ -1167,15 +1167,15 @@ struct ReportReasonRow: View {
                 Circle()
                     .strokeBorder(
                         isSelected ?
-                        Color(red: 0.85, green: 0.45, blue: 0.40) :
-                            Color(red: 0.70, green: 0.70, blue: 0.70),
+                        Color.appDanger :
+                            Color.appTextSubtle,
                         lineWidth: 2
                     )
                     .frame(width: 24, height: 24)
                 
                 if isSelected {
                     Circle()
-                        .fill(Color(red: 0.85, green: 0.45, blue: 0.40))
+                        .fill(Color.appDanger)
                         .frame(width: 14, height: 14)
                 }
             }
@@ -1183,7 +1183,7 @@ struct ReportReasonRow: View {
             // Reason text
             Text(reason.rawValue)
                 .font(.system(size: 17, weight: isSelected ? .semibold : .regular, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appTextStrong)
             
             Spacer()
         }
@@ -1211,8 +1211,8 @@ struct DeleteAccountView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -1225,15 +1225,15 @@ struct DeleteAccountView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 60))
-                            .foregroundColor(Color(red: 0.90, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appDangerStrong)
                         
                         Text("Delete Account")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                         
                         Text("This action will schedule your account for permanent deletion")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.90, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appDangerStrong)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
                     }
@@ -1244,22 +1244,22 @@ struct DeleteAccountView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "calendar.badge.clock")
                                 .font(.system(size: 24))
-                                .foregroundColor(Color(red: 0.45, green: 0.60, blue: 0.70))
+                                .foregroundColor(Color.appIconInfo)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("30-Day Grace Period")
                                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                 
                                 Text("Your account will be scheduled for deletion in 30 days. You can cancel this by signing back in before the deletion date.")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .lineSpacing(4)
                             }
                         }
                     }
                     .padding()
-                    .background(Color.white.opacity(0.6))
+                    .background(Color.appCardBackground.opacity(0.6))
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
                     
@@ -1267,7 +1267,7 @@ struct DeleteAccountView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("What will be deleted:")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
@@ -1314,7 +1314,7 @@ struct DeleteAccountView: View {
                             )
                         }
                         .padding()
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
@@ -1323,26 +1323,26 @@ struct DeleteAccountView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Type DELETE to confirm")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                             .padding(.horizontal, 20)
                         
                         VStack(alignment: .leading, spacing: 12) {
                             Text("To confirm deletion, please type DELETE in the field below:")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                             
                             TextField("Type DELETE", text: $confirmationText)
                                 .font(.system(size: 17, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                                 .padding()
-                                .background(Color.white.opacity(0.8))
+                                .background(Color.appCardBackground.opacity(0.8))
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(
                                             isConfirmationValid ?
-                                            Color(red: 0.90, green: 0.35, blue: 0.35) :
-                                                Color(red: 0.85, green: 0.85, blue: 0.85),
+                                            Color.appDangerStrong :
+                                                Color.appBorder,
                                             lineWidth: isConfirmationValid ? 2 : 1
                                         )
                                 )
@@ -1350,7 +1350,7 @@ struct DeleteAccountView: View {
                                 .textInputAutocapitalization(.characters)
                         }
                         .padding()
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
@@ -1377,8 +1377,8 @@ struct DeleteAccountView: View {
                         .padding(.vertical, 16)
                         .background(
                             isConfirmationValid ?
-                            Color(red: 0.90, green: 0.35, blue: 0.35) :
-                                Color(red: 0.70, green: 0.70, blue: 0.70)
+                            Color.appDangerStrong :
+                                Color.appTextSubtle
                         )
                         .cornerRadius(12)
                     }
@@ -1388,7 +1388,7 @@ struct DeleteAccountView: View {
                     // Cancel Note
                     Text("Changed your mind? You can cancel by signing back in within 30 days.")
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
@@ -1469,17 +1469,17 @@ struct DeletedDataRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundColor(Color(red: 0.90, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appDangerStrong)
                 .frame(width: 32)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 
                 Text(description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
             
             Spacer()
@@ -1504,8 +1504,8 @@ struct ExportDataView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -1518,15 +1518,15 @@ struct ExportDataView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "square.and.arrow.up.circle.fill")
                             .font(.system(size: 60))
-                            .foregroundColor(Color(red: 0.45, green: 0.60, blue: 0.70))
+                            .foregroundColor(Color.appIconInfo)
                         
                         Text("Export My Data")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                         
                         Text("Download a complete copy of your ATX Friends data")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
                     }
@@ -1536,7 +1536,7 @@ struct ExportDataView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("What's included in your export:")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
@@ -1601,7 +1601,7 @@ struct ExportDataView: View {
                             )
                         }
                         .padding()
-                        .background(Color.white.opacity(0.6))
+                        .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
@@ -1611,22 +1611,22 @@ struct ExportDataView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "info.circle.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(Color(red: 0.45, green: 0.60, blue: 0.70))
+                                .foregroundColor(Color.appIconInfo)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Your Data, Your Way")
                                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                                 
                                 Text("Export your data to save it to Files, email it, or share it via AirDrop. The export is in plain text format for easy reading.")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .lineSpacing(4)
                             }
                         }
                     }
                     .padding()
-                    .background(Color.white.opacity(0.6))
+                    .background(Color.appCardBackground.opacity(0.6))
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
                     
@@ -1650,7 +1650,7 @@ struct ExportDataView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Color(red: 0.45, green: 0.60, blue: 0.70))
+                        .background(Color.appIconInfo)
                         .cornerRadius(12)
                     }
                     .disabled(isExporting)
@@ -1705,17 +1705,17 @@ struct ExportDataRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundColor(Color(red: 0.45, green: 0.60, blue: 0.70))
+                .foregroundColor(Color.appIconInfo)
                 .frame(width: 32)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(Color.appTextStrong)
                 
                 Text(description)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
             
             Spacer()

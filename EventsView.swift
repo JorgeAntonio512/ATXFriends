@@ -17,14 +17,14 @@ struct EventsView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 if viewModel.isLoading {
                     ProgressView()
                         .scaleEffect(1.5)
@@ -38,7 +38,7 @@ struct EventsView: View {
                         
                         Text("No events available")
                             .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .foregroundColor(Color.appTextBody)
                     }
                 } else {
                     ScrollView {
@@ -112,7 +112,7 @@ struct EventCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(event.name)
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
                     
                     // Weekend dates
                     VStack(alignment: .leading, spacing: 6) {
@@ -124,7 +124,7 @@ struct EventCard: View {
                                 
                                 Text("\(weekend.label): \(weekend.dateRangeString)")
                                     .font(.system(size: 15, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                         }
                     }
@@ -145,7 +145,7 @@ struct EventCard: View {
                 }
                 .padding()
             }
-            .background(Color.white)
+            .background(Color.appCardBackground)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         }

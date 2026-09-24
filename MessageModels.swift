@@ -191,6 +191,12 @@ extension MessageThread {
         return lastMessage.text
     }
     
+    /// Most recent activity in this thread — the last message, or the last update to the
+    /// upcoming plan, whichever is newer. Drives the Messages list sort order.
+    var lastActivityDate: Date {
+        max(lastMessage?.sentAt ?? .distantPast, upcomingPlan?.updatedAt ?? .distantPast)
+    }
+
     /// Returns a formatted time string for the last message
     var timeText: String {
         guard let lastMessage = lastMessage else {

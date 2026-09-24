@@ -32,12 +32,12 @@ struct ShareMyLocationContent: View {
 
             Text("Your matches see about how far away you are — never your exact location.")
                 .font(.system(size: 13, weight: .regular, design: .rounded))
-                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                .foregroundColor(Color.appTextTertiary)
 
             if let locationUpdatedAt = viewModel.locationUpdatedAt {
                 Text("Last updated: \(lastUpdatedLabel(locationUpdatedAt))")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                    .foregroundColor(Color.appTextMuted)
             }
 
             if selectedMode == .once {

@@ -23,17 +23,9 @@
 		1834BA2F2FD0F1B300F3ABF4 /* GeoHashUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */; };
 		1834BA312FD0F1BA00F3ABF4 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA302FD0F1BA00F3ABF4 /* Group.swift */; };
 		1834BA332FD0F1BE00F3ABF4 /* GroupMember.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */; };
-		1834BA352FD0F1EF00F3ABF4 /* GroupsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA342FD0F1EF00F3ABF4 /* GroupsViewModel.swift */; };
-		1834BA372FD0F20F00F3ABF4 /* GroupCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA362FD0F20F00F3ABF4 /* GroupCardView.swift */; };
-		1834BA392FD0F23300F3ABF4 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA382FD0F23300F3ABF4 /* CreateGroupView.swift */; };
-		1834BA3B2FD0F24E00F3ABF4 /* GroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA3A2FD0F24E00F3ABF4 /* GroupView.swift */; };
 		1834BA3F2FD0F2DF00F3ABF4 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */; };
-		1834BA452FD1D7BA00F3ABF4 /* GroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA442FD1D7B900F3ABF4 /* GroupDetailView.swift */; };
-		1834BA472FD1D86F00F3ABF4 /* JoinRequestSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA462FD1D86F00F3ABF4 /* JoinRequestSheet.swift */; };
 		1834BA492FD1D9E300F3ABF4 /* MemberRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */; };
 		1834BA4B2FD1D9F500F3ABF4 /* PendingRequestRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */; };
-		1834BA4D2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA4C2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift */; };
-		1834BA4F2FD1DE4000F3ABF4 /* InviteMemberSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA4E2FD1DE4000F3ABF4 /* InviteMemberSheet.swift */; };
 		1834BA552FD4137200F3ABF4 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA542FD4137200F3ABF4 /* Event.swift */; };
 		1834BA572FD4139500F3ABF4 /* EventsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */; };
 		1834BA592FD413A800F3ABF4 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA582FD413A800F3ABF4 /* EventsView.swift */; };
@@ -118,6 +110,8 @@
 		68A925D23064C40C005C1547 /* ShareLocationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */; };
 		68A925D43064CDCA005C1547 /* OpenSlotGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */; };
 		68A925D63064D3DA005C1547 /* GhostSlotCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */; };
+		68A9270830651DD6005C1547 /* DistanceDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A9270730651DD6005C1547 /* DistanceDisplay.swift */; };
+		68A9270A30655AEE005C1547 /* AvatarRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A9270930655AEE005C1547 /* AvatarRing.swift */; };
 		68CCEDE7304058A900640AB1 /* SimpaticoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE4304058A900640AB1 /* SimpaticoService.swift */; };
 		68CCEDE8304058A900640AB1 /* SimpaticoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE3304058A900640AB1 /* SimpaticoModels.swift */; };
 		68CCEDE9304058A900640AB1 /* SimpaticoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE5304058A900640AB1 /* SimpaticoView.swift */; };
@@ -157,17 +151,9 @@
 		1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoHashUtility.swift; sourceTree = "<group>"; };
 		1834BA302FD0F1BA00F3ABF4 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMember.swift; sourceTree = "<group>"; };
-		1834BA342FD0F1EF00F3ABF4 /* GroupsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsViewModel.swift; sourceTree = "<group>"; };
-		1834BA362FD0F20F00F3ABF4 /* GroupCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupCardView.swift; sourceTree = "<group>"; };
-		1834BA382FD0F23300F3ABF4 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
-		1834BA3A2FD0F24E00F3ABF4 /* GroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupView.swift; sourceTree = "<group>"; };
 		1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
-		1834BA442FD1D7B900F3ABF4 /* GroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupDetailView.swift; sourceTree = "<group>"; };
-		1834BA462FD1D86F00F3ABF4 /* JoinRequestSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinRequestSheet.swift; sourceTree = "<group>"; };
 		1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberRowView.swift; sourceTree = "<group>"; };
 		1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestRowView.swift; sourceTree = "<group>"; };
-		1834BA4C2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferOrganizerSheet.swift; sourceTree = "<group>"; };
-		1834BA4E2FD1DE4000F3ABF4 /* InviteMemberSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteMemberSheet.swift; sourceTree = "<group>"; };
 		1834BA542FD4137200F3ABF4 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsViewModel.swift; sourceTree = "<group>"; };
 		1834BA582FD413A800F3ABF4 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
@@ -251,6 +237,8 @@
 		68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLocationSettingsView.swift; sourceTree = "<group>"; };
 		68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSlotGenerator.swift; sourceTree = "<group>"; };
 		68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostSlotCardView.swift; sourceTree = "<group>"; };
+		68A9270730651DD6005C1547 /* DistanceDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceDisplay.swift; sourceTree = "<group>"; };
+		68A9270930655AEE005C1547 /* AvatarRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarRing.swift; sourceTree = "<group>"; };
 		68CCEDE3304058A900640AB1 /* SimpaticoModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoModels.swift; sourceTree = "<group>"; };
 		68CCEDE4304058A900640AB1 /* SimpaticoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoService.swift; sourceTree = "<group>"; };
 		68CCEDE5304058A900640AB1 /* SimpaticoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoView.swift; sourceTree = "<group>"; };
@@ -434,17 +422,9 @@
 				1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */,
 				1834BA302FD0F1BA00F3ABF4 /* Group.swift */,
 				1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */,
-				1834BA342FD0F1EF00F3ABF4 /* GroupsViewModel.swift */,
-				1834BA362FD0F20F00F3ABF4 /* GroupCardView.swift */,
-				1834BA382FD0F23300F3ABF4 /* CreateGroupView.swift */,
-				1834BA3A2FD0F24E00F3ABF4 /* GroupView.swift */,
 				1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */,
-				1834BA442FD1D7B900F3ABF4 /* GroupDetailView.swift */,
-				1834BA462FD1D86F00F3ABF4 /* JoinRequestSheet.swift */,
 				1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */,
 				1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */,
-				1834BA4C2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift */,
-				1834BA4E2FD1DE4000F3ABF4 /* InviteMemberSheet.swift */,
 				1834BA542FD4137200F3ABF4 /* Event.swift */,
 				1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */,
 				1834BA582FD413A800F3ABF4 /* EventsView.swift */,
@@ -489,6 +469,8 @@
 				68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */,
 				68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */,
 				68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */,
+				68A9270730651DD6005C1547 /* DistanceDisplay.swift */,
+				68A9270930655AEE005C1547 /* AvatarRing.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -668,7 +650,6 @@
 				68EBC990305BD5F7001DAD15 /* PlanCalendarActionHandler.swift in Sources */,
 				18A775682FAC06360045B6D3 /* LaunchScreenView.swift in Sources */,
 				18A775272FABF4640045B6D3 /* MatchesViewModel.swift in Sources */,
-				1834BA372FD0F20F00F3ABF4 /* GroupCardView.swift in Sources */,
 				18A775022FAB07860045B6D3 /* ModelConfiguration.swift in Sources */,
 				1834BA752FD4E44100F3ABF4 /* MessageInputBar.swift in Sources */,
 				6801F0BA305F6DB300E19C84 /* SharedActivityPicker.swift in Sources */,
@@ -680,9 +661,9 @@
 				68CCEDE9304058A900640AB1 /* SimpaticoView.swift in Sources */,
 				68CCEDEA304058A900640AB1 /* SimpaticoViewModel.swift in Sources */,
 				1834BA612FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift in Sources */,
-				1834BA3B2FD0F24E00F3ABF4 /* GroupView.swift in Sources */,
 				1834BA5B2FD413E200F3ABF4 /* EventDetailView.swift in Sources */,
 				18345AD02FBAA7DE00CF18FF /* PlansService.swift in Sources */,
+				68A9270830651DD6005C1547 /* DistanceDisplay.swift in Sources */,
 				68A925D43064CDCA005C1547 /* OpenSlotGenerator.swift in Sources */,
 				18A775472FABFAF60045B6D3 /* ProfileCompleteView.swift in Sources */,
 				18A775152FAB0C000045B6D3 /* MatchingService.swift in Sources */,
@@ -692,13 +673,9 @@
 				18345AE62FBD34FB00CF18FF /* AvailabilitySettingsView.swift in Sources */,
 				1834BA332FD0F1BE00F3ABF4 /* GroupMember.swift in Sources */,
 				6892C9303061095F00BFC363 /* GroupPlanDetailView.swift in Sources */,
-				1834BA392FD0F23300F3ABF4 /* CreateGroupView.swift in Sources */,
-				1834BA4D2FD1DCAB00F3ABF4 /* TransferOrganizerSheet.swift in Sources */,
-				1834BA452FD1D7BA00F3ABF4 /* GroupDetailView.swift in Sources */,
 				1834BA632FD4978900F3ABF4 /* MessagesView.swift in Sources */,
 				1834BA5F2FD4973200F3ABF4 /* MessageModels.swift in Sources */,
 				18345ABB2FB7971400CF18FF /* AppleSignInHelper.swift in Sources */,
-				1834BA352FD0F1EF00F3ABF4 /* GroupsViewModel.swift in Sources */,
 				6801F0B6305EAEF200E19C84 /* LocationSearchViewModel.swift in Sources */,
 				1834BA312FD0F1BA00F3ABF4 /* Group.swift in Sources */,
 				18345AD62FBAA8CA00CF18FF /* PlanDetailView.swift in Sources */,
@@ -706,9 +683,9 @@
 				68CFB7F73035138200B2078C /* TodayPlanService.swift in Sources */,
 				18A775392FABF8D80045B6D3 /* MainTabView.swift in Sources */,
 				18A7754B2FABFE250045B6D3 /* MatchesView.swift in Sources */,
+				68A9270A30655AEE005C1547 /* AvatarRing.swift in Sources */,
 				18A775372FABF8A30045B6D3 /* RootView.swift in Sources */,
 				68A925D63064D3DA005C1547 /* GhostSlotCardView.swift in Sources */,
-				1834BA4F2FD1DE4000F3ABF4 /* InviteMemberSheet.swift in Sources */,
 				18E738E32FAD4AE30002E8B7 /* PlansView.swift in Sources */,
 				18A774F82FAB07550045B6D3 /* TimeSlot.swift in Sources */,
 				18A775452FABFADE0045B6D3 /* TimeSlotPickerView.swift in Sources */,
@@ -724,7 +701,6 @@
 				1834BA732FD4E44100F3ABF4 /* MessageBubble.swift in Sources */,
 				18A775232FABF4130045B6D3 /* AuthViewModel.swift in Sources */,
 				18A775552FABFFB20045B6D3 /* MessagingViewModel.swift in Sources */,
-				1834BA472FD1D86F00F3ABF4 /* JoinRequestSheet.swift in Sources */,
 				18F096B52FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift in Sources */,
 				68A3C08A3052015200C9FDEF /* LocationPermissionManager.swift in Sources */,
 				18A775312FABF71C0045B6D3 /* SignInView.swift in Sources */,

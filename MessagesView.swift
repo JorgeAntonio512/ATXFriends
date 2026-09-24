@@ -19,8 +19,8 @@ struct MessagesView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -41,7 +41,7 @@ struct MessagesView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Individuals")
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color.appNavy)
+                                        .foregroundColor(Color.appPrimaryText)
                                         .padding(.horizontal, 20)
                                     
                                     ForEach(viewModel.regularThreads) { thread in
@@ -58,7 +58,7 @@ struct MessagesView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Events")
                                     .font(.system(size: 22, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color.appNavy)
+                                    .foregroundColor(Color.appPrimaryText)
                                     .padding(.horizontal, 20)
                                 
                                 if !viewModel.eventThreads.isEmpty {
@@ -78,17 +78,17 @@ struct MessagesView: View {
                                         
                                         Text("Coming Soon")
                                             .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                            .foregroundColor(Color.appNavy)
+                                            .foregroundColor(Color.appPrimaryText)
                                         
                                         Text("Event-based connections will appear here")
                                             .font(.system(size: 14, weight: .regular, design: .rounded))
-                                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                            .foregroundColor(Color.appTextTertiary)
                                             .multilineTextAlignment(.center)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 32)
                                     .padding(.horizontal, 20)
-                                    .background(Color.white.opacity(0.5))
+                                    .background(Color.appCardBackground.opacity(0.5))
                                     .cornerRadius(16)
                                     .padding(.horizontal, 20)
                                 }
@@ -136,11 +136,11 @@ struct MessagesView: View {
             VStack(spacing: 8) {
                 Text("No Messages Yet")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 
                 Text("Start matching with people to begin chatting!")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -186,38 +186,38 @@ struct ThreadRow: View {
                 HStack {
                     Text(thread.otherUser.displayName)
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                    
+                        .foregroundColor(Color.appTextStrong)
+
                     Spacer()
-                    
+
                     if let lastMessage = thread.lastMessage {
                         Text(lastMessage.sentAt.formatted(date: .omitted, time: .shortened))
                             .font(.system(size: 13, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                     }
                 }
-                
+
                 HStack {
                     if let lastMessage = thread.lastMessage {
                         Text(lastMessage.text)
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                            .foregroundColor(Color.appTextTertiary)
                             .lineLimit(2)
                     } else {
                         Text("Say hello!")
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                            .foregroundColor(Color.appTextTertiary)
                             .italic()
                     }
-                    
+
                     Spacer()
-                    
+
                     if thread.unreadCount > 0 {
                         ZStack {
                             Circle()
                                 .fill(Color.appPrimary)
                                 .frame(width: 24, height: 24)
-                            
+
                             Text("\(thread.unreadCount)")
                                 .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
@@ -227,7 +227,7 @@ struct ThreadRow: View {
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.7))
+        .background(Color.appCardBackground.opacity(0.7))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
         .padding(.horizontal, 20)
@@ -277,8 +277,8 @@ struct EventThreadRow: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(thread.otherUser.displayName)
                             .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                        
+                            .foregroundColor(Color.appTextStrong)
+
                         // Event name badge
                         HStack(spacing: 4) {
                             Image(systemName: "calendar")
@@ -298,31 +298,31 @@ struct EventThreadRow: View {
                     if let lastMessage = thread.lastMessage {
                         Text(lastMessage.sentAt.formatted(date: .omitted, time: .shortened))
                             .font(.system(size: 13, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                     }
                 }
-                
+
                 HStack {
                     if let lastMessage = thread.lastMessage {
                         Text(lastMessage.text)
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                            .foregroundColor(Color.appTextTertiary)
                             .lineLimit(2)
                     } else {
                         Text("Say hello!")
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                            .foregroundColor(Color.appTextTertiary)
                             .italic()
                     }
-                    
+
                     Spacer()
-                    
+
                     if thread.unreadCount > 0 {
                         ZStack {
                             Circle()
                                 .fill(Color.appPrimary)
                                 .frame(width: 24, height: 24)
-                            
+
                             Text("\(thread.unreadCount)")
                                 .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
@@ -332,7 +332,7 @@ struct EventThreadRow: View {
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.7))
+        .background(Color.appCardBackground.opacity(0.7))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
         .padding(.horizontal, 20)

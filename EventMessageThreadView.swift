@@ -42,14 +42,14 @@ struct EventMessageThreadView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 VStack(spacing: 0) {
                     // Event context header
                     HStack(spacing: 8) {
@@ -75,10 +75,10 @@ struct EventMessageThreadView: View {
                                 // Date header
                                 Text("Today")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 6)
-                                    .background(Color.white.opacity(0.6))
+                                    .background(Color.appCardBackground.opacity(0.6))
                                     .cornerRadius(12)
                                     .padding(.top, 20)
                                 
@@ -100,11 +100,11 @@ struct EventMessageThreadView: View {
                                         VStack(spacing: 8) {
                                             Text("Start the conversation!")
                                                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                                                .foregroundColor(Color.appNavy)
+                                                .foregroundColor(Color.appPrimaryText)
                                             
                                             Text("You're both going to \(eventName).\nSay hello!")
                                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                .foregroundColor(Color.appSecondaryText)
                                                 .multilineTextAlignment(.center)
                                                 .lineSpacing(4)
                                         }
@@ -159,6 +159,7 @@ struct EventMessageThreadView: View {
                                 }
                             }
                         )
+                        .padding(.horizontal, 16)
                         .padding(.bottom, 50) // Add bottom padding for custom tab bar height
                     }
                 }

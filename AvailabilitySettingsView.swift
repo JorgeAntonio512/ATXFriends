@@ -20,8 +20,8 @@ struct AvailabilitySettingsView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -40,11 +40,11 @@ struct AvailabilitySettingsView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Select at least 3 time slots to continue")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
 
                                 Text("\(viewModel.selectedDaySlotCombos.count)/3 selected")
                                     .font(.system(size: 13, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
 
                             Spacer()
@@ -60,11 +60,11 @@ struct AvailabilitySettingsView: View {
                     VStack(spacing: 12) {
                         Text("Your Availability")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
 
                         Text("Select at least 3 times when you're usually free to hang out")
                             .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
@@ -75,7 +75,7 @@ struct AvailabilitySettingsView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("\(viewModel.selectedDaySlotCombos.count) selected")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                                 .padding(.horizontal, 32)
 
                             VStack(spacing: 12) {
@@ -100,7 +100,7 @@ struct AvailabilitySettingsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Tap to add a time slot")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .foregroundColor(Color.appTextBody)
                             .padding(.horizontal, 32)
 
                         TimeSlotGrid(viewModel: viewModel, onSelect: {
@@ -204,13 +204,13 @@ struct TimeSlotGrid: View {
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .foregroundColor(Color.appTextBody)
                         Text(slot.timeRange)
                             .font(.system(size: 9, weight: .regular, design: .rounded))
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -224,7 +224,7 @@ struct TimeSlotGrid: View {
                     // Day label
                     Text(day.rawValue.prefix(3))
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                         .frame(width: 80, alignment: .leading)
                     
                     // Time slot buttons
@@ -255,7 +255,7 @@ struct TimeSlotGrid: View {
                                             endPoint: .bottomTrailing
                                         ) :
                                         LinearGradient(
-                                            colors: [Color.white.opacity(0.6), Color.white.opacity(0.6)],
+                                            colors: [Color.appCardBackground.opacity(0.6), Color.appCardBackground.opacity(0.6)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )

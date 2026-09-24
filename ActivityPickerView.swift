@@ -62,12 +62,12 @@ struct ActivityPickerView: View {
                     VStack(spacing: 12) {
                         Text("Your Activities")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                             .multilineTextAlignment(.center)
 
                         Text("Pick 3 Main activities you love,\nplus up to 7 Extras.")
                             .font(.system(size: 17, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                     }
@@ -81,7 +81,7 @@ struct ActivityPickerView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Main (\(mainActivities.count)/3)")
                                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                         .padding(.horizontal, 4)
 
                                     FlowLayout(spacing: 8) {
@@ -100,7 +100,7 @@ struct ActivityPickerView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Extras (\(extraActivities.count)/7)")
                                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                         .padding(.horizontal, 4)
 
                                     FlowLayout(spacing: 8) {
@@ -139,12 +139,12 @@ struct ActivityPickerView: View {
                                     searchText = ""
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                             }
                         }
                         .padding()
-                        .background(Color.white.opacity(0.7))
+                        .background(Color.appCardBackground.opacity(0.7))
                         .cornerRadius(12)
                         
                         // Inline "Add new activity" option — picking a category is required
@@ -164,11 +164,11 @@ struct ActivityPickerView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("Add \"\(searchText.trimmingCharacters(in: .whitespaces))\"")
                                             .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                            .foregroundColor(Color.appTextStrong)
 
                                         Text("Choose a category to create it")
                                             .font(.system(size: 13, weight: .regular, design: .rounded))
-                                            .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                            .foregroundColor(Color.appTextTertiary)
                                     }
 
                                     Spacer()
@@ -198,7 +198,7 @@ struct ActivityPickerView: View {
                             
                             Text("Loading activities...")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 60)
@@ -211,11 +211,11 @@ struct ActivityPickerView: View {
                             
                             Text("Start typing to find activities...")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                            
+                                .foregroundColor(Color.appTextStrong)
+
                             Text("Search for activities like hiking, cooking, gaming, etc.")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                .foregroundColor(Color.appTextTertiary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 40)
                         }
@@ -229,11 +229,11 @@ struct ActivityPickerView: View {
                             
                             Text("No activities found")
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                            
+                                .foregroundColor(Color.appTextStrong)
+
                             Text("Try a different search term")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                .foregroundColor(Color.appTextTertiary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 60)
@@ -322,8 +322,8 @@ struct ActivityPickerView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.95),
-                        Color.white.opacity(0.95)
+                        Color.appCardBackground.opacity(0.95),
+                        Color.appCardBackground.opacity(0.95)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -397,7 +397,7 @@ struct ActivityCard: View {
                     .foregroundColor(
                         isSelected ?
                         .white :
-                        Color(red: 0.35, green: 0.35, blue: 0.35)
+                        Color.appTextStrong
                     )
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
@@ -417,7 +417,7 @@ struct ActivityCard: View {
                     endPoint: .bottomTrailing
                 ) :
                 LinearGradient(
-                    colors: [Color.white.opacity(0.7), Color.white.opacity(0.7)],
+                    colors: [Color.appCardBackground.opacity(0.7), Color.appCardBackground.opacity(0.7)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

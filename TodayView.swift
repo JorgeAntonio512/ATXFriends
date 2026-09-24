@@ -15,8 +15,8 @@ struct TodayView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -40,7 +40,7 @@ struct TodayView: View {
                                 .scaleEffect(1.2)
                             Text("Loading plans…")
                                 .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                         Spacer()
                     } else {
@@ -220,7 +220,7 @@ struct TodayView: View {
                 .background(
                     isSelected
                         ? Color.appPrimary
-                        : Color.white.opacity(0.65)
+                        : Color.appCardBackground.opacity(0.65)
                 )
                 .cornerRadius(20)
         }
@@ -238,7 +238,7 @@ struct TodayView: View {
                 ?? "Nobody's posted yet. Be the first one."
         )
         .font(.system(size: 14, weight: .medium, design: .rounded))
-        .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+        .foregroundColor(Color.appTextTertiary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 4)
         .padding(.bottom, 4)
@@ -253,68 +253,76 @@ struct TodayView: View {
         return viewModel.allOpenSlotsAreFallback ? "Free in the next day?" : "Your open slots"
     }
 
+    /// Wrapped in a periodic TimelineView so the "In 3 hrs · 7pm" labels (and dropping a slot
+    /// once its lead time passes) stay correct while the screen sits open — no heavy timer,
+    /// just a 60-second tick that re-reads the already-cheap, Date()-driven view model state.
     private var openSlotsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(openSlotsSectionHeader)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .foregroundColor(Color.appNavy)
-                .padding(.top, 4)
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            VStack(alignment: .leading, spacing: 12) {
+                Text(openSlotsSectionHeader)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(Color.appPrimaryText)
+                    .padding(.top, 4)
 
-            ForEach(viewModel.rankedOpenSlots) { ranked in
-                GhostSlotCardView(
-                    titleLine: Self.titleLine(for: ranked.slot.start),
-                    activityName: ranked.slot.activityName,
-                    buttonIcon: "plus",
-                    buttonLabel: "Post it",
-                    accessibilityLabel: "Post a plan: \(ranked.slot.activityName), \(Self.accessibleTimeDescription(for: ranked.slot.start)).",
-                    onTap: { selectedGhostSlot = ranked.slot }
-                )
-            }
+                ForEach(viewModel.rankedOpenSlots) { ranked in
+                    GhostSlotCardView(
+                        titleLine: Self.timeUntilLine(for: ranked.slot.start, now: context.date),
+                        style: .solid,
+                        activityName: ranked.slot.activityName,
+                        buttonIcon: "plus",
+                        buttonLabel: "Post it",
+                        accessibilityLabel: "Post a plan: \(ranked.slot.activityName), \(Self.accessibleTimeDescription(for: ranked.slot.start)).",
+                        onTap: { selectedGhostSlot = ranked.slot }
+                    )
+                }
 
-            if let next = viewModel.nextUsualSlot {
-                Button {
-                    NotificationCenter.default.post(name: .navigateToUpcoming, object: nil)
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("Your next usual slot: \(next.dayOfWeek.rawValue) \(next.timeSlot.rawValue.lowercased())")
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .semibold))
+                if let next = viewModel.nextUsualSlot {
+                    Button {
+                        NotificationCenter.default.post(name: .navigateToUpcoming, object: nil)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Your next usual slot: \(next.dayOfWeek.rawValue) \(next.timeSlot.rawValue.lowercased())")
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundColor(Color.appTextTertiary)
                     }
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
+                }
+
+                Button {
+                    showCreatePlan = true
+                } label: {
+                    Text("Or start from scratch")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color.appPrimary)
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 2)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 4)
             }
-
-            Button {
-                showCreatePlan = true
-            } label: {
-                Text("Or start from scratch")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color.appPrimary)
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.top, 4)
         }
     }
 
-    /// "Tonight at 7" / "Today at 8am" / "Tomorrow at noon"
-    static func titleLine(for date: Date) -> String {
+    /// "In 3 hrs · 7pm" / "In 45 min · 5:30pm" / "Now · 7pm" — leads with time-until so a
+    /// spontaneous slot reads as "happening soon" rather than a fixed clock time.
+    static func timeUntilLine(for date: Date, now: Date) -> String {
         let cal = Calendar.current
         let hour = cal.component(.hour, from: date)
         let minute = cal.component(.minute, from: date)
-        let isToday = cal.isDateInToday(date)
-        let isEveningHour = hour >= 17 || hour < 5
+        let compact = compactTime(hour: hour, minute: minute)
 
-        if isToday && isEveningHour {
-            return "Tonight at \(compactHourNoSuffix(hour: hour, minute: minute))"
+        let secondsUntil = date.timeIntervalSince(now)
+        guard secondsUntil > 0 else { return "Now · \(compact)" }
+
+        let minutesUntil = Int((secondsUntil / 60).rounded())
+        if minutesUntil < 60 {
+            return "In \(minutesUntil) min · \(compact)"
         }
-        let dayWord = isToday ? "Today" : "Tomorrow"
-        if hour == 12 && minute == 0 { return "\(dayWord) at noon" }
-        if hour == 0 && minute == 0 { return "\(dayWord) at midnight" }
-        return "\(dayWord) at \(compactTime(hour: hour, minute: minute))"
+        let hoursUntil = Int((secondsUntil / 3600).rounded())
+        return "In \(hoursUntil) hr\(hoursUntil == 1 ? "" : "s") · \(compact)"
     }
 
     /// "tonight at 7 PM" / "today at 8 AM" / "tomorrow at 8 AM" — for VoiceOver.
@@ -329,13 +337,6 @@ struct TodayView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = minute == 0 ? "h a" : "h:mm a"
         return "\(dayWord) at \(formatter.string(from: date))"
-    }
-
-    private static func compactHourNoSuffix(hour: Int, minute: Int) -> String {
-        var displayHour = hour % 12
-        if displayHour == 0 { displayHour = 12 }
-        if minute == 0 { return "\(displayHour)" }
-        return String(format: "%d:%02d", displayHour, minute)
     }
 
     private static func compactTime(hour: Int, minute: Int) -> String {
@@ -379,7 +380,7 @@ struct TodayPlanCard: View {
             HStack(alignment: .top) {
                 Text(plan.activity.name)
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 Spacer()
                 Text(Self.timeBadgeLabel(for: plan.scheduledTime))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -397,9 +398,9 @@ struct TodayPlanCard: View {
                     .foregroundColor(Color.appPrimary)
                 Text(posterInfo?.displayName ?? "…")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                    .foregroundColor(Color.appTextBody)
                 Text("·")
-                    .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                    .foregroundColor(Color.appTextSubtle)
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 11))
                     .foregroundColor(Color.appPrimary)
@@ -416,7 +417,7 @@ struct TodayPlanCard: View {
                         .foregroundColor(Color.appPrimary)
                     Text(location)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appTextBody)
                         .lineLimit(1)
                 }
             }
@@ -425,7 +426,7 @@ struct TodayPlanCard: View {
             if let note = plan.note, !note.isEmpty {
                 Text(note)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    .foregroundColor(Color.appTextTertiary)
                     .italic()
                     .lineLimit(2)
             }
@@ -436,7 +437,7 @@ struct TodayPlanCard: View {
                 if isOwnPlan {
                     Text("Your post")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.65, green: 0.65, blue: 0.65))
+                        .foregroundColor(Color.appTextFaint)
                 } else {
                     Button {
                         guard !isClaiming else { return }
@@ -488,7 +489,7 @@ struct TodayPlanCard: View {
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.85))
+        .background(Color.appCardBackground.opacity(0.85))
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
     }

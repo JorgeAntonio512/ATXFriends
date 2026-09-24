@@ -18,8 +18,8 @@ struct LaunchScreenView: View {
             // Warm gradient background - cream to beige only
             LinearGradient(
                 colors: [
-                    Color.white, // Warm cream
-                    Color.white  // Soft beige
+                    Color.appBackground, // Warm cream
+                    Color.appBackground  // Soft beige
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -42,8 +42,8 @@ struct LaunchScreenView: View {
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    Color.appNavy, // Deep forest green
-                                    Color.appPrimary  // Sage green
+                                    Color.appPrimaryText,
+                                    Color.appPrimary
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -54,7 +54,7 @@ struct LaunchScreenView: View {
                     
                     Text("Find Your People")
                         .font(.system(size: 18, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .opacity(animateTagline ? 1 : 0)
                         .offset(y: animateTagline ? 0 : 20)
                 }
@@ -128,7 +128,7 @@ struct ThreePathsLogo: View {
                     to: center,
                     controlPoint: CGPoint(x: size.width - radius * 0.4, y: center.y + 20),
                     animate: animate,
-                    color: Color.appNavy
+                    color: Color.appPrimaryText
                 )
             }
             .padding(12)
@@ -200,9 +200,9 @@ struct ThreePathsLogo: View {
 
 #Preview("Three Paths Logo") {
     ZStack {
-        Color.white
+        Color.appBackground
             .ignoresSafeArea()
-        
+
         ThreePathsLogo(animate: true)
             .frame(width: 120, height: 120)
     }

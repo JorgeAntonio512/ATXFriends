@@ -20,14 +20,24 @@ struct MatchesView: View {
     private var pendingMatchesWithUsers: [MatchWithUser] {
         viewModel.pendingMatches.compactMap { match -> MatchWithUser? in
             guard let firebaseUser = viewModel.getUser(for: match) else { return nil }
-            return MatchWithUser(match: match, otherUser: firebaseUser.toUser(), currentUser: viewModel.currentUser)
+            return MatchWithUser(
+                match: match,
+                otherUser: firebaseUser.toUser(),
+                currentUser: viewModel.currentUser,
+                isOtherUserSharingLocation: firebaseUser.isSharingLocation
+            )
         }
     }
 
     private var mutualMatchesWithUsers: [MatchWithUser] {
         viewModel.mutualMatches.compactMap { match -> MatchWithUser? in
             guard let firebaseUser = viewModel.getUser(for: match) else { return nil }
-            return MatchWithUser(match: match, otherUser: firebaseUser.toUser(), currentUser: viewModel.currentUser)
+            return MatchWithUser(
+                match: match,
+                otherUser: firebaseUser.toUser(),
+                currentUser: viewModel.currentUser,
+                isOtherUserSharingLocation: firebaseUser.isSharingLocation
+            )
         }
     }
     

@@ -67,8 +67,8 @@ struct ActivitiesSettingsView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -86,11 +86,11 @@ struct ActivitiesSettingsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Select 3 Main activities to continue")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                .foregroundColor(Color.appTextStrong)
 
                             Text("\(mainActivities.count)/3 Main selected")
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
 
                         Spacer()
@@ -107,11 +107,11 @@ struct ActivitiesSettingsView: View {
                 VStack(spacing: 12) {
                     Text("Your Activities")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
 
                     Text("Select 3 Main activities, plus up to 7 Extras")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 16)
@@ -123,7 +123,7 @@ struct ActivitiesSettingsView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Main (\(mainActivities.count)/3)")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                                     .padding(.horizontal, 32)
 
                                 VStack(spacing: 12) {
@@ -151,7 +151,7 @@ struct ActivitiesSettingsView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Extras (\(extraActivities.count)/7)")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                                     .padding(.horizontal, 32)
 
                                 VStack(spacing: 12) {
@@ -191,7 +191,7 @@ struct ActivitiesSettingsView: View {
                         .autocorrectionDisabled()
                 }
                 .padding()
-                .background(Color.white.opacity(0.9))
+                .background(Color.appCardBackground.opacity(0.9))
                 .cornerRadius(12)
                 .padding(.horizontal, 32)
                 .padding(.bottom, 16)
@@ -202,7 +202,7 @@ struct ActivitiesSettingsView: View {
                         if canAddMore {
                             Text("Available Activities")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                                 .padding(.horizontal, 32)
                             
                             LazyVStack(spacing: 12) {
@@ -266,7 +266,7 @@ struct ActivitiesSettingsView: View {
                                         
                                         Text("Activity already exists")
                                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                            .foregroundColor(Color.appTextBody)
                                     }
                                     .padding(.vertical, 20)
                                 } else if searchText.isEmpty {
@@ -286,7 +286,7 @@ struct ActivitiesSettingsView: View {
                                             Spacer()
                                         }
                                         .padding()
-                                        .background(Color.white.opacity(0.6))
+                                        .background(Color.appCardBackground.opacity(0.6))
                                         .cornerRadius(12)
                                     }
                                     .buttonStyle(.plain)
@@ -301,11 +301,11 @@ struct ActivitiesSettingsView: View {
 
                                 Text("You've selected the max of 10 activities!")
                                     .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color.appNavy)
+                                    .foregroundColor(Color.appPrimaryText)
 
                                 Text("Remove one to add a different activity")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
                             }
                             .padding(.top, 40)
@@ -367,18 +367,18 @@ struct ActivitiesSettingsView: View {
                         
                         Text("Saving...")
                             .font(.system(size: 15, weight: .medium, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Color.white)
+                    .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .shadow(radius: 8)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .padding(.top, 80)
             }
-            
+
             if isAddingActivity {
                 ZStack {
                     Color.black.opacity(0.3)
@@ -390,11 +390,11 @@ struct ActivitiesSettingsView: View {
                         
                         Text("Adding activity...")
                             .font(.system(size: 15, weight: .medium, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Color.white)
+                    .background(Color.appCardBackground)
                     .cornerRadius(12)
                     .shadow(radius: 8)
                 }
@@ -506,7 +506,7 @@ struct ActivityChip: View {
                     endPoint: .trailing
                 ) :
                 LinearGradient(
-                    colors: [Color.white.opacity(0.6), Color.white.opacity(0.6)],
+                    colors: [Color.appCardBackground.opacity(0.6), Color.appCardBackground.opacity(0.6)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -539,16 +539,16 @@ struct ActivityRow: View {
                 
                 Text(activity.name)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                
+                    .foregroundColor(Color.appTextStrong)
+
                 Spacer()
-                
+
                 Image(systemName: "plus.circle")
                     .font(.system(size: 24))
                     .foregroundColor(Color.appPrimary)
             }
             .padding()
-            .background(Color.white.opacity(0.6))
+            .background(Color.appCardBackground.opacity(0.6))
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
@@ -570,9 +570,9 @@ struct AddCustomActivitySheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white
+                Color.appBackground
                     .ignoresSafeArea()
-                
+
                 VStack(spacing: 24) {
                     // Icon
                     ZStack {
@@ -590,11 +590,11 @@ struct AddCustomActivitySheet: View {
                     VStack(spacing: 8) {
                         Text("Add Custom Activity")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.appNavy)
+                            .foregroundColor(Color.appPrimaryText)
                         
                         Text("Can't find what you're looking for? Add your own!")
                             .font(.system(size: 15, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.horizontal, 32)
@@ -603,14 +603,14 @@ struct AddCustomActivitySheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Activity Name")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
-                        
+                            .foregroundColor(Color.appTextBody)
+
                         TextField("e.g. Rock Climbing", text: $activityName)
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .foregroundStyle(.primary)
                             .tint(.primary)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                             .focused($isTextFieldFocused)
                             .submitLabel(.done)
@@ -624,7 +624,7 @@ struct AddCustomActivitySheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Category")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .foregroundColor(Color.appTextBody)
 
                         Menu {
                             ForEach(ActivityCategory.allCases, id: \.self) { category in
@@ -635,14 +635,14 @@ struct AddCustomActivitySheet: View {
                         } label: {
                             HStack {
                                 Text(selectedCategory?.displayName ?? "Choose a category")
-                                    .foregroundColor(selectedCategory == nil ? Color(red: 0.55, green: 0.55, blue: 0.55) : Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(selectedCategory == nil ? Color.appTextTertiary : Color.appTextStrong)
                                 Spacer()
                                 Image(systemName: "chevron.up.chevron.down")
                                     .foregroundColor(Color.appPrimary)
                             }
                             .font(.system(size: 16, weight: .regular, design: .rounded))
                             .padding()
-                            .background(Color.white)
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                         }
                     }

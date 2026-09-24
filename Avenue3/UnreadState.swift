@@ -11,7 +11,8 @@ import FirebaseAuth
 import Combine
 
 /// Shared observable that tracks in-app unread state across Messages and Plans.
-/// Drives red dots on tab bar items, conversation rows, and plan cards.
+/// Drives red dots on tab bar items, conversation rows, and plan cards — and is
+/// the single source of truth for the app badge count (see recomputeBadge).
 @MainActor
 final class UnreadState: ObservableObject {
 
@@ -38,6 +39,13 @@ final class UnreadState: ObservableObject {
     private let db = Firestore.firestore()
     private var messagesListener: ListenerRegistration?
     private var plansListener: ListenerRegistration?
+    private var currentUserID: String?
+
+    /// Latest unread-message document count from listenForUnreadMessages.
+    /// Combined with unreadPlanIDs.count in recomputeBadge — the single
+    /// formula for "the badge number," recomputed from scratch on every
+    /// listener fire rather than incremented/decremented, so it can't drift.
+    private var unreadMessageDocCount: Int = 0
 
     private init() {}
 
@@ -46,6 +54,7 @@ final class UnreadState: ObservableObject {
     /// Call when user signs in
     func startListening(userID: String) {
         stopListening()
+        currentUserID = userID
         listenForUnreadMessages(userID: userID)
         listenForUnreadPlans(userID: userID)
     }
@@ -56,6 +65,8 @@ final class UnreadState: ObservableObject {
         plansListener?.remove()
         messagesListener = nil
         plansListener = nil
+        currentUserID = nil
+        unreadMessageDocCount = 0
         unreadMatchIDs = []
         unreadPlanIDs = []
         hasUnreadMessages = false
@@ -79,8 +90,8 @@ final class UnreadState: ObservableObject {
                 Task { @MainActor in
                     self.unreadMatchIDs = matchIDs
                     self.hasUnreadMessages = !matchIDs.isEmpty
-                    // ← ADD THIS: sync badge with total unread message count
-                    NotificationManager.shared.setBadge(count: snapshot.documents.count)
+                    self.unreadMessageDocCount = snapshot.documents.count
+                    await self.recomputeBadge(userID: userID)
                 }
             }
     }
@@ -97,38 +108,47 @@ final class UnreadState: ObservableObject {
                 var planIDs: Set<String> = []
                 for doc in snapshot.documents {
                     let data = doc.data()
-                    let status = data["status"] as? String ?? ""
+                    // Compare against the enum, not the Cloud Function's old string
+                    // literal — PlanStatus.counterProposed's rawValue is "counter",
+                    // not "counterProposed". See Plan.swift.
+                    let status = (data["status"] as? String).flatMap(PlanStatus.init(rawValue:))
                     let isViewed = data["isViewed"] as? Bool ?? false
-                    // Needs attention if pending/counter-proposed and not yet viewed
-                    if (status == "pending" || status == "counterProposed") && !isViewed {
+                    if (status == .pending || status == .counterProposed) && !isViewed {
                         planIDs.insert(doc.documentID)
                     }
                 }
                 Task { @MainActor in
                     self.unreadPlanIDs = planIDs
                     self.hasUnreadPlans = !planIDs.isEmpty
+                    await self.recomputeBadge(userID: userID)
                 }
             }
     }
 
+    // MARK: - Badge
+
+    /// The one formula for the app badge: unread messages + plans needing
+    /// attention. Sets the on-device badge immediately and mirrors the same
+    /// total into `users/{uid}.unreadCount`, so the number the server attaches
+    /// to a push's APNs payload (while this device is offline) is corrected
+    /// the moment the app is foregrounded and these listeners fire again.
+    private func recomputeBadge(userID: String) async {
+        guard userID == currentUserID else { return }
+        let total = unreadMessageDocCount + unreadPlanIDs.count
+        NotificationManager.shared.setBadge(count: total)
+        try? await FirestoreService.shared.setUnreadCount(userID: userID, count: total)
+    }
+
     // MARK: - Mark Read Actions
 
-    /// Call when user opens a conversation. Marks all messages read and decrements badge.
+    /// Call when user opens a conversation. Marks messages read; the messages
+    /// listener above re-fires with the smaller unread set and recomputes the
+    /// badge from scratch, so no manual decrement is needed here.
     func markConversationRead(matchID: String, userID: String) {
         Task {
             do {
-                // Get unread count BEFORE marking read so we know how much to decrement
-                let count = try await MessagingService.shared.getUnreadCount(matchID: matchID, for: userID)
-                guard count > 0 else { return }
-
                 try await MessagingService.shared.markAllAsRead(matchID: matchID, for: userID)
-
-                // Decrement badge by exact unread count
-                try await FirestoreService.shared.decrementUnreadCount(userID: userID, by: count)
-                let newBadge = try await FirestoreService.shared.getUnreadCount(userID: userID)
-                NotificationManager.shared.setBadge(count: max(0, newBadge))
-
-                print("✅ Marked conversation \(matchID) read, decremented badge by \(count)")
+                print("✅ Marked conversation \(matchID) read")
             } catch {
                 print("❌ Error marking conversation read: \(error)")
             }
@@ -137,18 +157,14 @@ final class UnreadState: ObservableObject {
 
     /// Call when user views a plan detail AND takes action (confirm/decline/counter).
     /// Also call for outgoing plans when the proposer views a counter-proposal.
+    /// Marks the plan viewed; the plans listener above re-fires with the smaller
+    /// unread set and recomputes the badge from scratch.
     func markPlanViewed(planID: String, userID: String) {
         Task {
             do {
-                // Only decrement if this plan was actually unread
                 guard unreadPlanIDs.contains(planID) else { return }
-
                 try await FirestoreService.shared.markPlanViewed(planID: planID)
-                try await FirestoreService.shared.decrementUnreadCount(userID: userID, by: 1)
-                let newBadge = try await FirestoreService.shared.getUnreadCount(userID: userID)
-                NotificationManager.shared.setBadge(count: max(0, newBadge))
-
-                print("✅ Marked plan \(planID) viewed, decremented badge by 1")
+                print("✅ Marked plan \(planID) viewed")
             } catch {
                 print("❌ Error marking plan viewed: \(error)")
             }

@@ -80,61 +80,69 @@ final class FirestoreService {
         try await db.collection(usersCollection).document(userID).updateData(data)
     }
 
-    /// Updates the FCM token for a user
+    /// Adds this device's FCM token to the user's token list (multi-device safe —
+    /// arrayUnion is a no-op if the token is already present).
     /// - Parameters:
     ///   - userID: The user's Firebase UID
     ///   - token: The FCM token to store
     /// - Throws: Firestore errors
-    func updateFCMToken(userID: String, token: String) async throws {
+    func addFCMToken(userID: String, token: String) async throws {
         try await db.collection(usersCollection).document(userID).updateData([
-            "fcmToken": token,
+            "fcmTokens": FieldValue.arrayUnion([token]),
             "fcmTokenUpdatedAt": Timestamp(date: Date())
         ])
     }
-    
-    /// Removes the FCM token for a user
+
+    /// Removes exactly this device's FCM token from the user's token list on
+    /// sign-out. Unlike overwriting a single field, this can never affect
+    /// another device's (or another account's) token in the same array.
+    /// - Parameters:
+    ///   - userID: The user's Firebase UID
+    ///   - token: This device's FCM token
+    /// - Throws: Firestore errors
+    func removeFCMToken(userID: String, token: String) async throws {
+        try await db.collection(usersCollection).document(userID).updateData([
+            "fcmTokens": FieldValue.arrayRemove([token])
+        ])
+    }
+
+    /// One-time migration: folds the legacy single `fcmToken` field into the
+    /// `fcmTokens` array, then deletes the legacy field. Safe to call every
+    /// launch — it's a no-op once the legacy field is gone.
     /// - Parameter userID: The user's Firebase UID
     /// - Throws: Firestore errors
-    func removeFCMToken(userID: String) async throws {
+    func migrateLegacyFCMTokenIfNeeded(userID: String) async throws {
+        let doc = try await db.collection(usersCollection).document(userID).getDocument()
+        guard let legacyToken = doc.data()?["fcmToken"] as? String, !legacyToken.isEmpty else { return }
         try await db.collection(usersCollection).document(userID).updateData([
+            "fcmTokens": FieldValue.arrayUnion([legacyToken]),
             "fcmToken": FieldValue.delete(),
             "fcmTokenUpdatedAt": FieldValue.delete()
         ])
     }
 
-    /// Resets the unread notification count for a user
-    /// - Parameter userID: The user's Firebase UID
+    /// Sets the unread notification count for a user to an exact value. The
+    /// client (UnreadState) is the single source of truth for this number —
+    /// unread messages plus plans needing attention, recomputed from scratch
+    /// on every listener fire — and mirrors it here so the server has the
+    /// right badge number to attach to a push while the app is closed.
+    /// - Parameters:
+    ///   - userID: The user's Firebase UID
+    ///   - count: The exact badge count to store
     /// - Throws: Firestore errors
-    func resetUnreadCount(userID: String) async throws {
+    func setUnreadCount(userID: String, count: Int) async throws {
         try await db.collection(usersCollection).document(userID).updateData([
-            "unreadCount": 0
+            "unreadCount": count
         ])
     }
-    
-    // ─── ADD THESE THREE FUNCTIONS to FirestoreService.swift ─────────────────────
-    // Place them after the existing resetUnreadCount function (around line 82)
 
-        /// Decrements the unread notification count for a user by a specific amount
-        func decrementUnreadCount(userID: String, by amount: Int) async throws {
-            guard amount > 0 else { return }
-            try await db.collection(usersCollection).document(userID).updateData([
-                "unreadCount": FieldValue.increment(Int64(-amount))
-            ])
-        }
+    /// Marks a plan as viewed in Firestore
+    func markPlanViewed(planID: String) async throws {
+        try await db.collection("plans").document(planID).updateData([
+            "isViewed": true
+        ])
+    }
 
-        /// Gets the current unread count for a user
-        func getUnreadCount(userID: String) async throws -> Int {
-            let doc = try await db.collection(usersCollection).document(userID).getDocument()
-            return (doc.data()?["unreadCount"] as? Int) ?? 0
-        }
-
-        /// Marks a plan as viewed in Firestore
-        func markPlanViewed(planID: String) async throws {
-            try await db.collection("plans").document(planID).updateData([
-                "isViewed": true
-            ])
-        }
-    
     /// Updates notification preferences for a user
     /// - Parameters:
     ///   - userID: The user's Firebase UID

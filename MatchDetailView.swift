@@ -13,20 +13,25 @@ struct MatchDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let matchWithUser: MatchWithUser
     @ObservedObject var viewModel: MatchesViewModel
-    
+    /// When set, tapping "Propose a Plan" calls this instead of presenting this view's own
+    /// ProposePlanSheet — used when this view is itself already inside a sheet (e.g. presented
+    /// from the message thread's header avatar), so the caller can dismiss this sheet first and
+    /// present its own ProposePlanSheet cleanly instead of stacking sheets.
+    var onProposePlanRequested: (() -> Void)? = nil
+
     @State private var showYayConfirmation = false
     @State private var showNayConfirmation = false
     @State private var showProposePlan = false
     @State private var loadedPhotos: [UIImage] = []
     @State private var selectedPhotoIndex = 0
     @State private var isLoadingPhotos = false
-    
+
     var isPending: Bool {
-        matchWithUser.match.isPending(for: viewModel.currentUser?.id ?? "")
+        matchWithUser.match.isPending(for: FirebaseAuthService.shared.currentUserID ?? "")
     }
     
     /// "~5 mi away" style bucketed distance, or nil if either party has no
-    /// location on file (the app's (0, 0) "unset" sentinel) — never a raw number.
+    /// location on file, or the other user isn't sharing their location.
     var distanceString: String? {
         guard let currentUser = viewModel.currentUser,
               currentUser.latitude != 0 || currentUser.longitude != 0,
@@ -34,28 +39,8 @@ struct MatchDetailView: View {
         else { return nil }
         let userLocation = CLLocation(latitude: matchWithUser.otherUser.latitude, longitude: matchWithUser.otherUser.longitude)
         let currentLocation = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
-        let distanceInMeters = currentLocation.distance(from: userLocation)
-        let distanceInMiles = distanceInMeters / 1609.34
-        let displayString = Self.distanceBucketLabel(miles: distanceInMiles)
-        #if DEBUG
-        print("[DISTANCE-DEBUG] viewerUID=\(currentUser.id) viewerCoord=(\(currentUser.latitude), \(currentUser.longitude)) matchUID=\(matchWithUser.otherUser.id) matchCoord=(\(matchWithUser.otherUser.latitude), \(matchWithUser.otherUser.longitude)) meters=\(distanceInMeters) displayed=\"\(displayString)\"")
-        #endif
-        return displayString
-    }
-
-    /// Buckets a raw mile count into one of the fixed display labels — the exact
-    /// distance is never shown, only which bucket it falls into.
-    static func distanceBucketLabel(miles: Double) -> String {
-        switch miles {
-        case ..<1: return "Under 1 mi away"
-        case ..<3: return "~2 mi away"
-        case ..<7: return "~5 mi away"
-        case ..<12: return "~10 mi away"
-        case ..<20: return "~15 mi away"
-        case ..<35: return "~25 mi away"
-        case ..<60: return "~50 mi away"
-        default: return "50+ mi away"
-        }
+        let distanceInMiles = currentLocation.distance(from: userLocation) / 1609.34
+        return DistanceDisplay.label(miles: distanceInMiles, isSharing: matchWithUser.isOtherUserSharingLocation)
     }
     
     var body: some View {
@@ -63,14 +48,14 @@ struct MatchDetailView: View {
             // Warm gradient background - ALWAYS PRESENT
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             // Always show the content immediately with user data that's already loaded
             ScrollView {
                     VStack(spacing: 24) {
@@ -85,7 +70,7 @@ struct MatchDetailView: View {
                         VStack(spacing: 8) {
                             Text(matchWithUser.otherUser.displayName)
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                             
                         }
                         
@@ -98,7 +83,7 @@ struct MatchDetailView: View {
 
                                 Text(distanceString)
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                    .foregroundColor(Color.appTextStrong)
                             }
                             .padding(.horizontal, 20)
                         }
@@ -113,7 +98,7 @@ struct MatchDetailView: View {
                                     
                                     Text("Shared Interests")
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                        .foregroundColor(Color.appTextStrong)
                                 }
                                 
                                 FlowLayout(spacing: 10) {
@@ -130,7 +115,7 @@ struct MatchDetailView: View {
                             }
                             .padding(20)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.7))
+                            .background(Color.appCardBackground.opacity(0.7))
                             .cornerRadius(16)
                             .padding(.horizontal, 20)
                         }
@@ -145,7 +130,7 @@ struct MatchDetailView: View {
 
                                 Text(categoryMatchLabel)
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             .padding(.horizontal, 20)
                         }
@@ -160,7 +145,7 @@ struct MatchDetailView: View {
                                     
                                     Text("Free at the Same Time")
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                        .foregroundColor(Color.appTextStrong)
                                 }
                                 
                                 FlowLayout(spacing: 10) {
@@ -177,11 +162,11 @@ struct MatchDetailView: View {
                             }
                             .padding(20)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white.opacity(0.7))
+                            .background(Color.appCardBackground.opacity(0.7))
                             .cornerRadius(16)
                             .padding(.horizontal, 20)
                         }
-                        
+
                         // Action buttons (if pending)
                         if isPending {
                             VStack(spacing: 12) {
@@ -223,10 +208,10 @@ struct MatchDetailView: View {
                                         Text("Say Nay")
                                             .font(.system(size: 18, weight: .semibold, design: .rounded))
                                     }
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appTextMuted)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
-                                    .background(Color.white.opacity(0.9))
+                                    .background(Color.appCardBackground.opacity(0.9))
                                     .cornerRadius(16)
                                 }
                             }
@@ -244,12 +229,12 @@ struct MatchDetailView: View {
                                     
                                     Text("You're Connected!")
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color.appNavy)
+                                        .foregroundColor(Color.appPrimaryText)
                                 }
                                 
                                 Text("You both said Yay. Start a conversation!")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
                                 
                                 Button {
@@ -289,7 +274,11 @@ struct MatchDetailView: View {
                                 }
                                 
                                 Button {
-                                    showProposePlan = true
+                                    if let onProposePlanRequested {
+                                        onProposePlanRequested()
+                                    } else {
+                                        showProposePlan = true
+                                    }
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "calendar.badge.plus")
@@ -300,7 +289,7 @@ struct MatchDetailView: View {
                                     .foregroundColor(Color.appPrimary)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
-                                    .background(Color.white.opacity(0.9))
+                                    .background(Color.appCardBackground.opacity(0.9))
                                     .cornerRadius(16)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
@@ -331,7 +320,7 @@ struct MatchDetailView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 32))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                             .symbolRenderingMode(.hierarchical)
                             .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                     }

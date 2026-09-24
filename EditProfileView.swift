@@ -31,8 +31,8 @@ struct EditProfileView: View {
             // Warm gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color.white
+                    Color.appBackground,
+                    Color.appBackground
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -66,14 +66,14 @@ struct EditProfileView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Display Name")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                            .foregroundColor(Color.appTextBody)
                             .padding(.leading, 4)
                         
                         TextField("Enter your name", text: $displayName)
                             .font(.system(size: 18, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appTextStrong)
                             .padding(16)
-                            .background(Color.white.opacity(0.9))
+                            .background(Color.appCardBackground.opacity(0.9))
                             .cornerRadius(12)
                             .focused($isTextFieldFocused)
                             .textInputAutocapitalization(.words)
@@ -102,7 +102,7 @@ struct EditProfileView: View {
                             Spacer()
                             Text("\(displayName.count)/30")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appTextMuted)
                         }
                         .padding(.trailing, 4)
                     }
@@ -116,7 +116,7 @@ struct EditProfileView: View {
                             
                             Text("Tips")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
@@ -125,7 +125,7 @@ struct EditProfileView: View {
                             Text("• This is how others will see you")
                         }
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineSpacing(2)
                     }
                     .padding()

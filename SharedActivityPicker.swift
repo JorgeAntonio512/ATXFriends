@@ -38,7 +38,7 @@ struct SharedActivityPicker: View {
                     .foregroundColor(Color.appPrimary)
                 Text("What activity?")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
             }
 
             if !sharedActivities.isEmpty {
@@ -76,22 +76,22 @@ struct SharedActivityPicker: View {
                             activitySearchText = ""
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                     }
                 }
                 .padding()
-                .background(Color.white.opacity(0.7))
+                .background(Color.appCardBackground.opacity(0.7))
                 .cornerRadius(12)
 
                 if !activitySearchText.isEmpty {
                     if filteredOtherActivities.isEmpty {
                         Text("No activities found")
                             .font(.system(size: 14, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.white.opacity(0.5))
+                            .background(Color.appCardBackground.opacity(0.5))
                             .cornerRadius(12)
                     } else {
                         ForEach(filteredOtherActivities, id: \.id) { activity in
@@ -126,11 +126,11 @@ struct ActivitySelectionRow: View {
         Button(action: onTap) {
             HStack {
                 Image(systemName: "figure.run")
-                    .foregroundColor(isShared ? Color.appPrimary : Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(isShared ? Color.appPrimary : Color.appSecondaryText)
 
                 Text(activity.name)
                     .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
 
                 if isShared {
                     Image(systemName: "star.fill")
@@ -149,7 +149,7 @@ struct ActivitySelectionRow: View {
             .background(
                 isSelected ?
                 Color.appPrimary.opacity(0.15) :
-                Color.white.opacity(0.6)
+                Color.appCardBackground.opacity(0.6)
             )
             .cornerRadius(10)
             .overlay(

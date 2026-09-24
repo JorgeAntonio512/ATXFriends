@@ -37,8 +37,8 @@ struct SignUpView: View {
                 // Warm gradient background
                 LinearGradient(
                     colors: [
-                        Color.white,
-                        Color.white
+                        Color.appBackground,
+                        Color.appBackground
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -55,12 +55,12 @@ struct SignUpView: View {
                         VStack(spacing: 8) {
                             Text("Welcome to ATX Friends")
                                 .font(.system(size: min(28, geometry.size.width * 0.075), weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                                 .multilineTextAlignment(.center)
                             
                             Text("Let's create your account")
                                 .font(.system(size: min(16, geometry.size.width * 0.043), weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                         .padding(.bottom, max(geometry.size.height * 0.025, 16))
                         
@@ -70,7 +70,7 @@ struct SignUpView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope.fill")
@@ -93,7 +93,7 @@ struct SignUpView: View {
                                     }
                             }
                             .padding()
-                            .background(Color.white)
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -108,7 +108,7 @@ struct SignUpView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Password")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "lock.fill")
@@ -128,7 +128,7 @@ struct SignUpView: View {
                                     }
                             }
                             .padding()
-                            .background(Color.white)
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -143,7 +143,7 @@ struct SignUpView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Confirm Password")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                .foregroundColor(Color.appTextBody)
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "lock.fill")
@@ -163,7 +163,7 @@ struct SignUpView: View {
                                     }
                             }
                             .padding()
-                            .background(Color.white)
+                            .background(Color.appCardBackground)
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -178,16 +178,16 @@ struct SignUpView: View {
                         if let errorMessage = viewModel.errorMessage {
                             HStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.circle.fill")
-                                    .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                    .foregroundColor(Color.appDanger)
                                 
                                 Text(errorMessage)
                                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                    .foregroundColor(Color.appDanger)
                                 
                                 Spacer()
                             }
                             .padding()
-                            .background(Color(red: 0.85, green: 0.45, blue: 0.40).opacity(0.1))
+                            .background(Color.appDanger.opacity(0.1))
                             .cornerRadius(12)
                         }
                         
@@ -232,12 +232,12 @@ struct SignUpView: View {
                                 
                                 Text("What happens next?")
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appTextBody)
                             }
                             
                             Text("After creating your account, you'll set up your profile with 3 photos, 3+ activities, and 3+ time slots.")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                .foregroundColor(Color.appSecondaryText)
                                 .lineSpacing(1)
                         }
                         .padding(12)
@@ -247,7 +247,7 @@ struct SignUpView: View {
                         // Terms and Privacy (placeholder)
                         Text("By creating an account, you agree to our\nTerms of Service and Privacy Policy")
                             .font(.system(size: 11, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                            .foregroundColor(Color.appTextMuted)
                             .multilineTextAlignment(.center)
                             .padding(.top, geometry.size.height > 700 ? 8 : 4)
                     }

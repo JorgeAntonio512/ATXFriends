@@ -80,8 +80,8 @@ struct FlowLayout: Layout {
     .background(
         LinearGradient(
             colors: [
-                Color.white,
-                Color.white
+                Color.appBackground,
+                Color.appBackground
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

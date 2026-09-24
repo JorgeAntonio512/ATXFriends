@@ -19,7 +19,7 @@ struct MessageInputBar: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             // Text input
             TextField("Message...", text: $text, axis: .vertical)
                 .font(.system(size: 16, weight: .regular, design: .rounded))
@@ -35,14 +35,14 @@ struct MessageInputBar: View {
                         onSend()
                     }
                 }
-            
+
             // Send button
             Button(action: onSend) {
                 ZStack {
                     Circle()
                         .fill(canSend ? Color.appPrimary : Color.appBorder)
                         .frame(width: 40, height: 40)
-                    
+
                     if isSending {
                         ProgressView()
                             .tint(.white)
@@ -63,12 +63,7 @@ struct MessageInputBar: View {
                 )
             }
             .disabled(!canSend)
+            .accessibilityLabel("Send")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            Color.appCardBackground
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
-        )
     }
 }

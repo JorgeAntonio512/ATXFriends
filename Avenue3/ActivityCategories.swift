@@ -47,6 +47,28 @@ enum ActivityCategory: String, CaseIterable {
         case .uniqueAndNiche: return "Unique & Niche"
         }
     }
+
+    /// Which suggestion pool this category belongs to — Today draws from `.spontaneous`
+    /// categories first, Upcoming from `.planned` ones, so the two tabs' ghost-card
+    /// suggestions come from disjoint pools instead of the same rotation. A static,
+    /// hand-picked tier per category — no new Firestore field, no per-activity data.
+    var suggestionTier: ActivitySuggestionTier {
+        switch self {
+        case .foodAndDrink, .entertainmentAndSocial, .wellnessAndSelfCare,
+             .learningAndEducation, .hobbiesAndCrafts, .uniqueAndNiche:
+            return .spontaneous
+        case .sportsAndFitness, .outdoorAndNature, .artsAndCulture, .musicAndPerformance,
+             .travelAndAdventure, .communityAndVolunteering, .professionalAndBusiness:
+            return .planned
+        }
+    }
+}
+
+/// Today = "who's around right now?" (low-effort, can do with ~zero notice).
+/// Upcoming = "plan something good." (bigger, worth scheduling ahead).
+enum ActivitySuggestionTier {
+    case spontaneous
+    case planned
 }
 
 struct ActivityCategories {

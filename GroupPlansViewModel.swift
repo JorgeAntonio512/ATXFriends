@@ -69,6 +69,9 @@ final class GroupPlansViewModel {
     /// days), keyed by the start of that calendar day. Days that already have a real
     /// upcoming plan are skipped by the caller (see `hasPlan(on:)`); this generator doesn't
     /// know about that — it only avoids exact plan-time collisions via existingPlanStarts.
+    /// Activities are ordered to prefer the `.planned` tier (see ActivityCategories) so
+    /// Upcoming's suggestions stay disjoint from Today's `.spontaneous`-preferring ones
+    /// whenever there's enough variety in the user's profile.
     var openSlotsByDay: [Date: OpenSlot] {
         guard let myProfile else { return [:] }
         let cal = Calendar.current
@@ -81,7 +84,7 @@ final class GroupPlansViewModel {
         let existingStarts = upcomingPlans.map { $0.date }
         let slots = OpenSlotGenerator.generate(
             daySlotCombos: myProfile.daySlotCombos,
-            activities: myProfile.activities,
+            activities: OpenSlotGenerator.activities(from: myProfile.activities, preferring: .planned),
             from: start,
             through: end,
             existingPlanStarts: existingStarts,
