@@ -31,33 +31,37 @@ The loneliness epidemic is deeply entrenched in America now, and it hits younger
 generations hardest. The cause, by and large, is simple: **not enough
 face-to-face interaction.** Daily, weekly, monthly.
 
-So everything in this app is built to produce one thing — two people, in the
+So everything in this app is built to produce one thing — people, in the
 same place, at the same time, doing something together.
 
 ---
 
 ## A look at it
 
-| Matches | Today | Simpatico |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/matches.png" width="230"> | <img src="docs/screenshots/today.png" width="230"> | <img src="docs/screenshots/simpatico.png" width="230"> |
-| *Only people who share an interest and a free slot* | *What's happening in the next 24 hours* | *18 questions, then a compatibility score* |
+| Matches | Today | Upcoming |
+|---|---|---|
+| ![](docs/screenshots/matches.png) | ![](docs/screenshots/today.png) | ![](docs/screenshots/upcoming.png) |
+| *Only people who share an interest and a free slot* | *What's happening in the next 24 hours* | *Plans for any future day, with a few friends* |
 
-| Messages | Settings |
-|:---:|:---:|
-| <img src="docs/screenshots/messages.png" width="230"> | <img src="docs/screenshots/settings.png" width="230"> |
-| *Every connection, nudged toward a real plan* | *Three photos, three interests, three time slots* |
+| Simpatico | Messages | Settings |
+|---|---|---|
+| ![](docs/screenshots/simpatico.png) | ![](docs/screenshots/messages.png) | ![](docs/screenshots/settings.png) |
+| *Answer what matters to you, see who matches* | *Every connection, nudged toward a real plan* | *Three photos, three interests, three time slots* |
 
 ---
 
 ## What it does
 
-Five tabs. That's the whole app.
+Six tabs. That's the whole app.
 
 ### 🤝 Matches
 
 You'll only see people who share **at least one interest** and **at least one
 free time slot** with you. No endless scroll of strangers.
+
+Interests match by category, too. If you like hiking and they like rock
+climbing, you'll both show up as an **Outdoor & Nature** match — labeled as a
+category match, so you know why you're seeing each other.
 
 - **Pending** — mutual "Yay" required. Both of you, or nothing.
 - **Connected** — one tap to make an IRL Plan or open a conversation.
@@ -71,25 +75,37 @@ served, one-on-one. Once claimed, it moves into Messages.
 
 This is the "I'm getting tacos at 2, who's in" tab.
 
-### 💬 Messages
+### 🗓️ Upcoming
 
-Every conversation from Matches and Today lands here.
+Plans for any future date — not just today.
 
-- Text back and forth, with a gentle nudge toward making an actual plan
-- Proposed plans appear as an inline invitation in the thread
-- Confirmed plans pin to the top of the conversation
-- **Afterward, both people get a show-up poll** — thumbs up if the other person
-  came, thumbs down if they didn't. That feeds a **Reliability** score, so
-  flaking has a cost and showing up is worth something.
+Pick a day, describe the plan, and check off the matches you want to invite.
+One person or a few. This is the "trivia next Thursday, who wants in" tab.
 
 ### 🧭 Simpatico
 
 No friendship runs on shared activities alone. There has to be some simpatico.
 
-An 18-question self-assessment about what actually matters to you in a
-friendship. Once two connected people both finish it, a compatibility score
-appears next to their name in Messages. Question format is styled after the old
-OkCupid questionnaire, which was genuinely good at this.
+A set of concrete questions about what actually matters to you in a friendship.
+For each one you give **your answer**, the **answers you'd accept** from a
+friend, and **how much it matters** to you. Skip anything you don't care about.
+Compatibility is scored both ways, so it reflects what each of you wants — not
+just one side.
+
+The format is styled after the old OkCupid questionnaire, which was genuinely
+good at this.
+
+### 💬 Messages
+
+Every conversation from Matches, Today, and Upcoming lands here.
+
+- Text back and forth, with a gentle nudge toward making an actual plan
+- Proposed plans appear as an inline invitation in the thread
+- Confirmed plans pin to the top of the conversation, with one-tap
+  **Add to Calendar** (Apple, Google, or Outlook) and directions to the spot
+- **Afterward, both people get a show-up poll** — thumbs up if the other person
+  came, thumbs down if they didn't. That feeds a **Reliability** score, so
+  flaking has a cost and showing up is worth something.
 
 ### ⚙️ Settings
 
@@ -102,8 +118,11 @@ OkCupid questionnaire, which was genuinely good at this.
 
 ## Status
 
-**Alpha.** First real (non-developer) users came on board September 20, 2026.
-Not on the App Store. Expect rough edges — that's what the Issues tab is for.
+**Beta.** First real (non-developer) users came on board September 20, 2026.
+A public TestFlight beta opened in late September 2026:
+**[Join the beta](https://testflight.apple.com/join/sXKkQtFp)**
+
+Not on the App Store yet. Expect rough edges — that's what the Issues tab is for.
 
 Signup is currently geofenced to **within 50 miles of Austin, TX**. If you fork
 this for your own city, that's the first thing you'll change (see Setup, step 7).
@@ -119,6 +138,7 @@ this for your own city, that's the first thing you'll change (see Setup, step 7)
 | Database | Cloud Firestore |
 | Backend | Firebase Cloud Functions |
 | Calendar | Apple EventKit, Google Calendar API, Microsoft Graph API |
+| Places & maps | Apple MapKit |
 | Dependencies | Swift Package Manager (GoogleSignIn-iOS, MSAL, Firebase SDK) |
 
 ---
@@ -136,13 +156,16 @@ configuration rather than code. Work through it in order.
 - An **Apple Developer account** — the free tier works, but apps installed with
   it expire after 7 days and need the phone plugged back in. The paid tier
   ($99/yr) is worth it the moment you have testers you won't see every week.
-- A **physical iPhone**. The Simulator can't do location, and location is load-bearing here.
+- A **physical iPhone**. The Simulator can't do location, and location is
+  load-bearing here.
 
-### 1. Clone it
+### 1. Fork and clone it
+
+Fork this repo on GitHub, then:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/ATX-Friends.git
-cd ATX-Friends
+git clone https://github.com/YOUR-USERNAME/ATXFriends.git
+cd ATXFriends
 ```
 
 ### 2. Make your own Firebase project
@@ -155,8 +178,8 @@ create a project. Then, inside it:
 - Apple
 - Google
 
-**Firestore Database** → Create database → start in **production mode**
-(the security rules in this repo will replace the defaults in step 5).
+**Firestore Database** → Create database → start in **production mode** (the
+security rules in this repo will replace the defaults in step 5).
 
 **Upgrade to the Blaze plan.** Cloud Functions requires it. It's
 pay-as-you-go, and a small app typically stays inside the free monthly
@@ -167,8 +190,8 @@ if you want the backend to work.
 
 In your Firebase project → Project Settings → Your apps → **Add app → iOS**.
 
-Use your own bundle identifier — something like `com.yourname.YourAppName`. Do
-**not** reuse mine.
+Use your own bundle identifier — something like `com.yourname.YourAppName`.
+Do **not** reuse mine.
 
 Download the `GoogleService-Info.plist` it gives you and drop it into the Xcode
 project (same folder as `Info.plist`). Make sure "Copy items if needed" is
@@ -211,11 +234,11 @@ Settings → General → VPN & Device Management.
 **This is the important one if you're forking.**
 
 Signup is gated to a 50-mile radius around Austin. Search the codebase for the
-Austin coordinates (30.2672, -97.7431) and replace them with your city's. Change
-the radius too if your metro is a different shape.
+Austin coordinates (`30.2672, -97.7431`) and replace them with your city's.
+Change the radius too if your metro is a different shape.
 
 While you're in there, change the app's name and display strings. Please don't
-ship another "ATX Friends" — see [ETHOS.md](./ETHOS.md) and the note on the name
+ship another "ATX Friends" — see [ETHOS.md](ETHOS.md) and the note on the name
 below.
 
 ### 8. Calendar integrations (optional)
@@ -224,6 +247,7 @@ The app can write confirmed plans to a user's calendar. Apple Calendar works out
 of the box via EventKit. The other two need accounts:
 
 **Google Calendar**
+
 1. [Google Cloud Console](https://console.cloud.google.com) → the project Firebase created for you
 2. APIs & Services → Library → enable **Google Calendar API**
 3. OAuth consent screen → Data Access → add the `calendar.events` scope
@@ -233,6 +257,7 @@ You don't need Google's verification review until you go live beyond your test
 list. Plan for that review to take a while when you get there.
 
 **Microsoft / Outlook Calendar**
+
 1. [Azure Portal](https://portal.azure.com) → App registrations → New registration
 2. Supported account types: organizational **and** personal Microsoft accounts
 3. Add the `Calendars.ReadWrite` delegated Microsoft Graph permission
@@ -253,25 +278,32 @@ firebase emulators:exec --only firestore,functions "npm test"
 ## Project structure
 
 ```
-ATX-Friends/
-├── ATX Friends.xcodeproj
-├── ATX Friends/              # SwiftUI app
+ATXFriends/
+├── ATX Friends.xcodeproj     # Open this in Xcode
+├── *.swift                   # Most of the SwiftUI app lives at the top level
+├── ATX Friends/              # App assets and config (Info.plist, etc.)
+├── Avenue3/                  # See note below
+├── Avenue3Tests/             # iOS unit tests
 ├── functions/                # Firebase Cloud Functions
-├── firestore.rules           # Firestore security rules
-├── firestore.indexes.json
+├── firestore-tests/          # Emulator tests for security rules + functions
+├── docs/                     # Screenshots and docs
 ├── README.md
 ├── LICENSE
 ├── COPYING.EXCEPTION
 └── ETHOS.md
 ```
 
+**About "Avenue3":** that's this project's old codename. You'll still see it in
+a few folder and target names. It's the same app — renaming Xcode targets is
+more trouble than it's worth, so the old name stuck around.
+
 ---
 
 ## Contributing
 
-**Start here:** [open issues](../../issues). Anything tagged
-[`good first issue`](../../labels/good%20first%20issue) is a reasonable place
-to jump in cold.
+**Start here:** [open issues](https://github.com/JorgeAntonio512/ATXFriends/issues).
+Anything tagged [`good first issue`](https://github.com/JorgeAntonio512/ATXFriends/labels/good%20first%20issue)
+is a reasonable place to jump in cold.
 
 Bug reports are just as welcome as code. If something broke, tell me what you
 did, what you expected, and what happened instead — that's enough.
@@ -280,7 +312,7 @@ did, what you expected, and what happened instead — that's enough.
 
 1. By submitting a contribution, you agree it's licensed under AGPL-3.0 and you
    grant the same additional permission described in
-   [COPYING.EXCEPTION](./COPYING.EXCEPTION).
+   [COPYING.EXCEPTION](COPYING.EXCEPTION).
 
 2. Please don't put trust-and-safety heuristics or anti-abuse thresholds in a
    public pull request — email me instead. Publishing the exact rules that catch
@@ -290,7 +322,7 @@ did, what you expected, and what happened instead — that's enough.
 
 ## Contact
 
-- **Bugs, features, code** → [open an issue](../../issues)
+- **Bugs, features, code** → [open an issue](https://github.com/JorgeAntonio512/ATXFriends/issues)
 - **Anything else** → gap512@protonmail.com ; (512) 655-3940
 
 I'm a solo developer with a day job, so I'm not always fast. I do read
@@ -301,14 +333,15 @@ everything.
 ## License
 
 ATX Friends is licensed under the **GNU Affero General Public License v3.0**
-([full text](./LICENSE)), with one additional permission for app store
-distribution ([COPYING.EXCEPTION](./COPYING.EXCEPTION)).
+([full text](LICENSE)), with one additional permission for app store
+distribution ([COPYING.EXCEPTION](COPYING.EXCEPTION)).
 
 In plain English:
 
 - **You can** use this code, change it, and launch your own version in your own city.
 - **You can** ship it on the App Store and Google Play. The exception exists specifically so you can.
-- **You must** publish your source code — including if you only ever run it as a hosted service. That's the "Affero" part, and it's deliberate.
+- **You must** publish your source code — including if you only ever run it as
+  a hosted service. That's the "Affero" part, and it's deliberate.
 
 If you want to use it under different terms, ask me. I'm reachable and I'm not
 difficult.
@@ -336,7 +369,7 @@ every feature should have to pass.
 
 **None of it is binding. All of it is the reason this repo exists.**
 
-→ **[Read ETHOS.md](./ETHOS.md)**
+→ **[Read ETHOS.md](ETHOS.md)**
 
 It's a two-minute read. If you're going to take this code and build something
 with it, I'd count it a kindness if you took the two minutes.
