@@ -28,25 +28,36 @@ struct Avenue3App: App {
     
     // Track auth state to manage FCM token
     @State private var currentUserID: String?
-    
+
+    // Drives the "When I open the app" location-sharing trigger below
+    @Environment(\.scenePhase) private var scenePhase
+
     // Firebase initialization
     init() {
         FirebaseApp.configure()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ZStack {
                 RootView()
                     .opacity(showLaunchScreen ? 0 : 1)
-                
+
                 if showLaunchScreen {
                     LaunchScreenView()
                         .transition(.opacity)
                 }
             }
-            .preferredColorScheme(.light)
             .environmentObject(notificationManager)
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                // Logged unconditionally, regardless of the user's sharing mode —
+                // scenePhase alone has silently failed to fire on-device before,
+                // so a missed trigger needs to be visible here, not just inside
+                // LocationSharingManager.
+                print("[LOCSHARE] app scenePhase: \(oldPhase) -> \(newPhase)")
+                guard newPhase == .active else { return }
+                Task { await LocationSharingManager.shared.handleAppForeground() }
+            }
             .onAppear {
                 // Hide launch screen after animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {

@@ -14,7 +14,7 @@ struct SimpaticoView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                appGradient.ignoresSafeArea()
+                Color.appBackground.ignoresSafeArea()
 
                 if viewModel.isLoading {
                     ProgressView()
@@ -34,17 +34,6 @@ struct SimpaticoView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .task { await viewModel.load() }
-    }
-
-    private var appGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color.white,
-                Color.white
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
     }
 }
 
@@ -75,11 +64,11 @@ struct SimpaticoIntroView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(showUpgradeBanner ? "Simpatico got an upgrade" : "Before you begin")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
 
                     Text(headline)
                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -102,7 +91,7 @@ struct SimpaticoIntroView: View {
                     )
                 }
                 .padding(20)
-                .background(Color.white.opacity(0.75))
+                .background(Color.appCardBackground)
                 .cornerRadius(18)
                 .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
             }
@@ -169,7 +158,7 @@ private struct IntroFactRow: View {
 
             Text(text)
                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                .foregroundColor(Color.appSecondaryText)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -205,7 +194,7 @@ struct SimpaticoQuestionFlowView: View {
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                        .foregroundColor(Color.appDanger)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
@@ -235,7 +224,7 @@ struct SimpaticoProgressHeader: View {
             HStack {
                 Text("Question \(viewModel.currentIndex + 1) of \(viewModel.totalCount)")
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                    .foregroundColor(Color.appSecondaryText)
 
                 Spacer()
 
@@ -251,7 +240,7 @@ struct SimpaticoProgressHeader: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(red: 0.80, green: 0.80, blue: 0.75).opacity(0.35))
+                        .fill(Color.appBorder.opacity(0.5))
                     Capsule()
                         .fill(Color.appPrimary)
                         .frame(
@@ -279,7 +268,7 @@ struct SimpaticoQuestionCard: View {
         VStack(alignment: .leading, spacing: 20) {
             Text(question.prompt)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                .foregroundColor(Color.appPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
 
             Divider()
@@ -306,7 +295,7 @@ struct SimpaticoQuestionCard: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("How much does this matter?")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appPrimaryText)
 
                     HStack(spacing: 8) {
                         ForEach(SimpaticoImportance.allCases, id: \.self) { importance in
@@ -324,7 +313,7 @@ struct SimpaticoQuestionCard: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.85))
+                .fill(Color.appCardBackground)
         )
         .shadow(color: Color.black.opacity(0.07), radius: 16, x: 0, y: 4)
     }
@@ -342,7 +331,7 @@ private struct SimpaticoOptionSection: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                .foregroundColor(Color.appPrimaryText)
 
             VStack(spacing: 8) {
                 ForEach(options) { option in
@@ -413,7 +402,7 @@ struct SimpaticoNavButtons: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Color.appPrimary)
                         .frame(width: 52, height: 52)
-                        .background(Color.white.opacity(0.8))
+                        .background(Color.appCardBackground)
                         .cornerRadius(14)
                 }
                 .buttonStyle(.plain)
@@ -427,7 +416,7 @@ struct SimpaticoNavButtons: View {
                     .foregroundColor(Color.appPrimary)
                     .frame(height: 52)
                     .padding(.horizontal, 20)
-                    .background(Color.white.opacity(0.8))
+                    .background(Color.appCardBackground)
                     .cornerRadius(14)
             }
             .buttonStyle(.plain)
@@ -450,7 +439,7 @@ struct SimpaticoNavButtons: View {
                         }
                     }
                 }
-                .foregroundColor(viewModel.canAdvance ? .white : Color(red: 0.70, green: 0.70, blue: 0.70))
+                .foregroundColor(viewModel.canAdvance ? .white : Color.appSecondaryText)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
                 .background(
@@ -458,7 +447,7 @@ struct SimpaticoNavButtons: View {
                         .fill(
                             viewModel.canAdvance
                                 ? Color.appPrimary
-                                : Color(red: 0.85, green: 0.85, blue: 0.83)
+                                : Color.appBorder
                         )
                 )
                 .shadow(
@@ -494,11 +483,11 @@ struct SimpaticoCompleteView: View {
                 VStack(spacing: 10) {
                     Text("All done!")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
 
                     Text("You answered \(viewModel.answeredCount) of \(viewModel.totalCount)")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appSecondaryText)
                 }
 
                 HStack(alignment: .top, spacing: 14) {
@@ -509,12 +498,12 @@ struct SimpaticoCompleteView: View {
 
                     Text("Once a friend finishes their questionnaire too, your Simpatico score appears next to their name in Messages.")
                         .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
+                        .foregroundColor(Color.appSecondaryText)
                         .lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(20)
-                .background(Color.white.opacity(0.70))
+                .background(Color.appCardBackground)
                 .cornerRadius(16)
 
                 Button {
@@ -525,7 +514,7 @@ struct SimpaticoCompleteView: View {
                         .foregroundColor(Color.appPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(Color.white.opacity(0.8))
+                        .background(Color.appCardBackground)
                         .cornerRadius(14)
                 }
                 .buttonStyle(.plain)

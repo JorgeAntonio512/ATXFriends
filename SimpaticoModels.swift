@@ -248,12 +248,41 @@ struct SimpaticoV2State {
     /// share fewer than 5 answered questions.
     static func score(between a: SimpaticoV2State, and b: SimpaticoV2State) -> Int? {
         let sharedIDs = Set(a.answers.keys).intersection(b.answers.keys)
-        guard sharedIDs.count >= 5 else { return nil }
+        guard sharedIDs.count >= 5 else {
+            #if DEBUG
+            print("[SIMPATICO] \(a.userID) <-> \(b.userID): only \(sharedIDs.count) shared answered questions (need 5) — returning nil, badge stays hidden")
+            #endif
+            return nil
+        }
 
         let satisfactionA = satisfaction(of: a.answers, ratedBy: b.answers, sharedIDs: sharedIDs)
         let satisfactionB = satisfaction(of: b.answers, ratedBy: a.answers, sharedIDs: sharedIDs)
 
-        return Int((satisfactionA * satisfactionB).squareRoot().rounded())
+        let combined = (satisfactionA * satisfactionB).squareRoot()
+        let displayed = Int((combined * 100).rounded())
+
+        #if DEBUG
+        print("[SIMPATICO] === score(\(a.userID) <-> \(b.userID)) ===")
+        print("[SIMPATICO] shared question IDs: \(sharedIDs.sorted())")
+        for questionID in sharedIDs.sorted() {
+            guard
+                let aAnswer = a.answers[questionID],
+                let bAnswer = b.answers[questionID],
+                let totalOptions = SimpaticoQuestionBank.question(id: questionID)?.options.count
+            else { continue }
+            let possibleA = Double(aAnswer.weight(totalOptions: totalOptions))
+            let possibleB = Double(bAnswer.weight(totalOptions: totalOptions))
+            let earnedA = aAnswer.acceptable.contains(bAnswer.answer) ? possibleA : 0
+            let earnedB = bAnswer.acceptable.contains(aAnswer.answer) ? possibleB : 0
+            print("[SIMPATICO]   \(questionID): \(a.userID)-direction earned=\(earnedA) possible=\(possibleA) | \(b.userID)-direction earned=\(earnedB) possible=\(possibleB)")
+        }
+        print("[SIMPATICO] satisfaction(\(a.userID)) ratio = \(satisfactionA)")
+        print("[SIMPATICO] satisfaction(\(b.userID)) ratio = \(satisfactionB)")
+        print("[SIMPATICO] combined = sqrt(satisfactionA * satisfactionB) = \(combined)  (0-1 scale)")
+        print("[SIMPATICO] displayed value returned to the UI (\(displayed)%)")
+        #endif
+
+        return displayed
     }
 
     /// `subject`'s satisfaction: the fraction of `subject`'s weight, across shared questions,

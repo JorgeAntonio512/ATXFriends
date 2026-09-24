@@ -44,7 +44,13 @@ final class ProfileViewModel {
     
     /// User's search radius in miles
     var radiusMiles: Double = 10.0
-    
+
+    /// "Share My Location" mode — see LocationSharingMode
+    var locationSharingMode: LocationSharingMode = .off
+
+    /// When a sharing mode last wrote a location
+    var locationUpdatedAt: Date?
+
     /// Error message to display
     var errorMessage: String?
     
@@ -88,7 +94,9 @@ final class ProfileViewModel {
                 selectedActivities = fetchedUser.activities
                 selectedDaySlotCombos = fetchedUser.daySlotCombos
                 radiusMiles = fetchedUser.radiusMiles
-                
+                locationSharingMode = LocationSharingMode(rawValue: fetchedUser.locationSharingMode) ?? .off
+                locationUpdatedAt = fetchedUser.locationUpdatedAt
+
                 if fetchedUser.latitude != 0.0 && fetchedUser.longitude != 0.0 {
                     userLocation = CLLocationCoordinate2D(
                         latitude: fetchedUser.latitude,
@@ -344,10 +352,39 @@ final class ProfileViewModel {
     }
     
     // MARK: - Location Management
-    
+
     /// Updates the user's location
     func updateLocation(_ coordinate: CLLocationCoordinate2D) {
         userLocation = coordinate
+    }
+
+    /// Writes a "Share My Location" mode change (and, when provided, a freshly
+    /// fetched coarse coordinate) directly — bypasses full-profile validation since
+    /// this only ever touches the sharing fields.
+    @MainActor
+    func updateLocationSharing(mode: LocationSharingMode, coordinate: CLLocationCoordinate2D? = nil) async -> Bool {
+        guard let userID = authService.currentUserID else {
+            errorMessage = "No user is signed in."
+            return false
+        }
+        do {
+            try await firestoreService.updateLocationSharing(userID: userID, mode: mode, coordinate: coordinate)
+            locationSharingMode = mode
+            if let coordinate {
+                locationUpdatedAt = Date()
+                userLocation = coordinate
+            }
+            user?.locationSharingMode = mode.rawValue
+            if let coordinate {
+                user?.locationUpdatedAt = locationUpdatedAt
+                user?.latitude = coordinate.latitude
+                user?.longitude = coordinate.longitude
+            }
+            return true
+        } catch {
+            errorMessage = "Failed to update location sharing: \(error.localizedDescription)"
+            return false
+        }
     }
     
     /// Updates the search radius
@@ -435,7 +472,9 @@ final class ProfileViewModel {
                 createdAt: user?.createdAt ?? Date(),
                 updatedAt: Date(),
                 isProfileComplete: true,
-                bio: bio
+                bio: bio,
+                locationSharingMode: user?.locationSharingMode ?? LocationSharingMode.off.rawValue,
+                locationUpdatedAt: user?.locationUpdatedAt
             )
             
             // Save to Firestore immediately
@@ -543,7 +582,9 @@ final class ProfileViewModel {
                 createdAt: user?.createdAt ?? Date(),
                 updatedAt: Date(),
                 isProfileComplete: true,
-                bio: bio
+                bio: bio,
+                locationSharingMode: user?.locationSharingMode ?? LocationSharingMode.off.rawValue,
+                locationUpdatedAt: user?.locationUpdatedAt
             )
             
             uploadProgress = 0.7

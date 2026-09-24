@@ -63,6 +63,13 @@ struct FirebaseUser: Identifiable, Codable {
     /// Whether account is scheduled for deletion
     var isScheduledForDeletion: Bool
 
+    /// "off" | "once" | "onOpen" — see LocationSharingMode. Defaults to "off" for
+    /// every existing and new user.
+    var locationSharingMode: String
+
+    /// When a sharing mode last wrote a (coarse) location. Nil until the first write.
+    var locationUpdatedAt: Date?
+
     // MARK: - Show-up Meter
     // Managed atomically via FieldValue.increment in TodayPlanService — never written by updateUser.
 
@@ -92,7 +99,9 @@ struct FirebaseUser: Identifiable, Codable {
         scheduledDeletionDate: Date? = nil,
         isScheduledForDeletion: Bool = false,
         showUpThumbsUp: Int = 0,
-        showUpTotal: Int = 0
+        showUpTotal: Int = 0,
+        locationSharingMode: String = LocationSharingMode.off.rawValue,
+        locationUpdatedAt: Date? = nil
     ) {
         self.id = id
         self.displayName = displayName
@@ -113,6 +122,8 @@ struct FirebaseUser: Identifiable, Codable {
         self.isScheduledForDeletion = isScheduledForDeletion
         self.showUpThumbsUp = showUpThumbsUp
         self.showUpTotal = showUpTotal
+        self.locationSharingMode = locationSharingMode
+        self.locationUpdatedAt = locationUpdatedAt
     }
     
     // MARK: - Computed Properties

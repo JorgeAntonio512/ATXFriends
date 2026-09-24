@@ -43,4 +43,16 @@ enum TimeSlot: String, Codable, CaseIterable, Identifiable {
     var displayName: String {
         "\(icon) \(rawValue)"
     }
+
+    /// The hour (0-23, in the user's current calendar) this slot starts at — used to turn a
+    /// recurring day/slot combo into a concrete suggested Date for open-slot generation.
+    var startHour: Int {
+        switch self {
+        case .wakeUp: 7
+        case .afternoon: 12
+        case .evening: 17
+        case .night: 21
+        case .owlHours: 2
+        }
+    }
 }

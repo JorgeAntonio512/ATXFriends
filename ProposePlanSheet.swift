@@ -12,14 +12,18 @@ import CoreLocation
 ///   - Matches → connected match row → calendar icon           (.proposal)
 ///   - Matches → row → MatchDetailView → "Propose a Plan"       (.proposal)
 ///   - Messages → thread → calendar icon                        (.proposal)
-///   - Today → "+"                                              (.openPost)
-///   - Upcoming → "+"                                           (.groupInvite)
+///   - Today → "+" or an open-slot ghost card                   (.openPost)
+///   - Upcoming → "+" or an open-slot ghost card                (.groupInvite)
 ///
 /// .proposal writes a Plan (via PlansService, through MessagingViewModel.proposePlan) and posts
 /// a planProposal message into the thread. .openPost writes a TodayPlan to todayPlans — no
 /// recipient, claimable first-come-first-served. .groupInvite writes a GroupPlan to groupPlans —
 /// no message, no thread, invitees found by opening Upcoming. Everything about the view is
 /// shared by default; a mode only changes something explicitly called out below.
+///
+/// .openPost and .groupInvite can additionally be pre-filled from an open-slot ghost card
+/// (OpenSlotGenerator) — see OpenPostPrefill / GroupInvitePrefill. Prefill only ever sets
+/// initial @State values; it never adds a new mode or branch.
 struct ProposePlanSheet: View {
     enum Mode {
         case proposal(matchID: String, receiverID: String)
@@ -41,22 +45,38 @@ struct ProposePlanSheet: View {
         _proposedDate = State(initialValue: Self.nextHourRoundedUp())
     }
 
-    /// Today's open broadcast — writes a TodayPlan, no recipient.
-    init(todayViewModel: TodayViewModel) {
+    /// Today's open broadcast — writes a TodayPlan, no recipient. `prefill` comes from a
+    /// tapped open-slot ghost card; nil means "Or start from scratch" / the toolbar "+".
+    init(todayViewModel: TodayViewModel, prefill: OpenPostPrefill? = nil) {
         self.mode = .openPost
         self.messagingViewModel = nil
         self.todayViewModel = todayViewModel
-        let choice = Self.defaultDayChoice()
-        _dayChoice = State(initialValue: choice)
-        _proposedDate = State(initialValue: Self.defaultPickerTime(for: choice))
+        if let prefill {
+            _activityName = State(initialValue: prefill.activityName)
+            _dayChoice = State(initialValue: prefill.dayChoice)
+            _proposedDate = State(initialValue: prefill.date)
+            _isPrefilled = State(initialValue: true)
+        } else {
+            let choice = Self.defaultDayChoice()
+            _dayChoice = State(initialValue: choice)
+            _proposedDate = State(initialValue: Self.defaultPickerTime(for: choice))
+        }
     }
 
     /// Group invite from Upcoming — writes a GroupPlan directly. No message, no thread.
-    init() {
+    /// `prefill` comes from a tapped open-slot ghost card; nil means Upcoming's "+".
+    init(prefill: GroupInvitePrefill? = nil) {
         self.mode = .groupInvite
         self.messagingViewModel = nil
         self.todayViewModel = nil
-        _proposedDate = State(initialValue: Self.nextHourRoundedUp())
+        if let prefill {
+            _activityName = State(initialValue: prefill.activityName)
+            _proposedDate = State(initialValue: prefill.date)
+            _isPrefilled = State(initialValue: true)
+            _prefillActivityForMatching = State(initialValue: prefill.activityName)
+        } else {
+            _proposedDate = State(initialValue: Self.nextHourRoundedUp())
+        }
     }
 
     /// openPost's When segment — proposal and groupInvite never touch this.
@@ -65,12 +85,26 @@ struct ProposePlanSheet: View {
         case tomorrow = "Tomorrow"
     }
 
+    /// An open-slot ghost card's prefill values for `.openPost`.
+    struct OpenPostPrefill {
+        let activityName: String
+        let dayChoice: DayChoice
+        let date: Date
+    }
+
+    /// An open-slot ghost card's prefill values for `.groupInvite`.
+    struct GroupInvitePrefill {
+        let activityName: String
+        let date: Date
+    }
+
     /// A mutual match the host can invite, with just enough profile info to render a
-    /// checkmark row (photo + name).
+    /// checkmark row (photo + name) and to auto-check matches who share the prefilled activity.
     private struct MutualMatchOption: Identifiable {
         let id: String
         let displayName: String
         let photoURL: String?
+        let activityNames: [String]
     }
 
     // ── form state ─────────────────────────────────────────────────────────
@@ -80,6 +114,11 @@ struct ProposePlanSheet: View {
 
     @State private var isSubmitting = false
     @State private var errorMessage: String?
+
+    /// True when this sheet's What?/When? were seeded from an open-slot ghost card.
+    @State private var isPrefilled = false
+    /// groupInvite only: the prefilled activity name, used to auto-check matches who share it.
+    @State private var prefillActivityForMatching: String?
 
     // ── activity search ─────────────────────────────────────────────────────
     @State private var availableActivities: [Activity] = []
@@ -176,6 +215,21 @@ struct ProposePlanSheet: View {
                             .font(.system(size: 22, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appNavy)
                             .padding(.top, 8)
+
+                        // ── prefill banner ───────────────────────────────
+                        if isPrefilled {
+                            HStack(spacing: 8) {
+                                Image(systemName: "wand.and.stars")
+                                    .font(.system(size: 13))
+                                Text("Filled in from your open slot. Change anything.")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                            }
+                            .foregroundColor(Color.appPrimary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(Color.appPrimary.opacity(0.12))
+                            .cornerRadius(10)
+                        }
 
                         // ── activity field ───────────────────────────────
                         VStack(alignment: .leading, spacing: 8) {
@@ -466,7 +520,9 @@ struct ProposePlanSheet: View {
         }
     }
 
-    /// groupInvite's checklist source: every mutual match, with the other user's photo/name.
+    /// groupInvite's checklist source: every mutual match, with the other user's photo/name
+    /// and activities. When this sheet was opened from an open-slot ghost card, matches who
+    /// share the prefilled activity are pre-checked (the user can still uncheck anyone).
     private func loadMutualMatches() async {
         guard case .groupInvite = mode, let userID = authService.currentUserID else { return }
         await MainActor.run { isLoadingMatches = true }
@@ -479,9 +535,20 @@ struct ProposePlanSheet: View {
         for match in mutual {
             guard let otherUserID = match.otherUserID(for: userID),
                   let user = try? await FirestoreService.shared.fetchUser(userID: otherUserID) else { continue }
-            options.append(MutualMatchOption(id: otherUserID, displayName: user.displayName, photoURL: user.photoURLs.first))
+            options.append(MutualMatchOption(
+                id: otherUserID,
+                displayName: user.displayName,
+                photoURL: user.photoURLs.first,
+                activityNames: user.activities.map { $0.name.lowercased() }
+            ))
         }
-        await MainActor.run { mutualMatchOptions = options }
+        await MainActor.run {
+            mutualMatchOptions = options
+            if let prefillActivity = prefillActivityForMatching?.lowercased() {
+                let sharing = options.filter { $0.activityNames.contains(prefillActivity) }
+                selectedInviteeIDs = Set(sharing.map { $0.id })
+            }
+        }
     }
 
     private func submit() async {

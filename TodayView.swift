@@ -8,6 +8,7 @@ import SwiftUI
 struct TodayView: View {
     @State private var viewModel = TodayViewModel()
     @State private var showCreatePlan = false
+    @State private var selectedGhostSlot: OpenSlot?
 
     var body: some View {
         NavigationStack {
@@ -42,22 +43,26 @@ struct TodayView: View {
                                 .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                         }
                         Spacer()
-                    } else if viewModel.filteredPlans.isEmpty {
-                        Spacer()
-                        emptyState
-                        Spacer()
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 14) {
-                                ForEach(viewModel.filteredPlans) { plan in
-                                    TodayPlanCard(
-                                        plan: plan,
-                                        posterInfo: viewModel.posterInfo[plan.creatorID],
-                                        isOwnPlan: plan.creatorID == viewModel.currentUserID,
-                                        onClaim: {
-                                            await viewModel.claimPlan(plan)
-                                        }
-                                    )
+                                if viewModel.filteredPlans.isEmpty {
+                                    emptyLine
+                                } else {
+                                    ForEach(viewModel.filteredPlans) { plan in
+                                        TodayPlanCard(
+                                            plan: plan,
+                                            posterInfo: viewModel.posterInfo[plan.creatorID],
+                                            isOwnPlan: plan.creatorID == viewModel.currentUserID,
+                                            onClaim: {
+                                                await viewModel.claimPlan(plan)
+                                            }
+                                        )
+                                    }
+                                }
+
+                                if !viewModel.rankedOpenSlots.isEmpty {
+                                    openSlotsSection
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -83,6 +88,9 @@ struct TodayView: View {
             .sheet(isPresented: $showCreatePlan) {
                 ProposePlanSheet(todayViewModel: viewModel)
             }
+            .sheet(item: $selectedGhostSlot) { slot in
+                ProposePlanSheet(todayViewModel: viewModel, prefill: openPostPrefill(for: slot))
+            }
             .alert("Something went wrong", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -99,7 +107,16 @@ struct TodayView: View {
                         .padding(.top, 8)
                 }
             }
+            // Post toast: brief confirmation after posting from a ghost card or from scratch
+            .overlay(alignment: .bottom) {
+                if let toast = viewModel.postToast {
+                    postToastView(message: toast)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 24)
+                }
+            }
             .animation(.spring(response: 0.4, dampingFraction: 0.75), value: viewModel.claimedPlanBanner)
+            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: viewModel.postToast)
         }
         .task {
             await viewModel.loadOpenPlans()
@@ -108,6 +125,13 @@ struct TodayView: View {
         .onDisappear {
             viewModel.removeListener()
         }
+    }
+
+    /// Builds the .openPost prefill for a tapped ghost card, choosing Today/Tomorrow based
+    /// on which calendar day the slot's start time falls on.
+    private func openPostPrefill(for slot: OpenSlot) -> ProposePlanSheet.OpenPostPrefill {
+        let dayChoice: ProposePlanSheet.DayChoice = Calendar.current.isDateInToday(slot.start) ? .today : .tomorrow
+        return ProposePlanSheet.OpenPostPrefill(activityName: slot.activityName, dayChoice: dayChoice, date: slot.start)
     }
 
     // MARK: - Claimed Banner
@@ -140,6 +164,29 @@ struct TodayView: View {
             Task {
                 try? await Task.sleep(nanoseconds: 3_500_000_000)
                 withAnimation { viewModel.claimedPlanBanner = nil }
+            }
+        }
+    }
+
+    // MARK: - Post Toast
+
+    private func postToastView(message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 15, weight: .semibold))
+            Text(message)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(Color.appNavy)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+        .onAppear {
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                withAnimation { viewModel.postToast = nil }
             }
         }
     }
@@ -181,35 +228,122 @@ struct TodayView: View {
         .animation(.spring(response: 0.25), value: isSelected)
     }
 
-    // MARK: - Empty State
+    // MARK: - Empty Line
 
-    private var emptyState: some View {
-        VStack(spacing: 20) {
-            ZStack {
-                Circle()
-                    .fill(Color.appPrimary.opacity(0.15))
-                    .frame(width: 110, height: 110)
-                Image(systemName: "calendar.circle")
-                    .font(.system(size: 52))
-                    .foregroundColor(Color.appPrimary.opacity(0.7))
-            }
-            VStack(spacing: 10) {
-                Text(
-                    viewModel.activityFilter.map { "No \($0) plans today" }
-                        ?? "Nothing happening yet"
-                )
-                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                .foregroundColor(Color.appNavy)
-                .multilineTextAlignment(.center)
+    /// A single small muted line — the ghost cards below are the call to action now, so this
+    /// no longer needs a giant icon or a "tap + to post" subtitle.
+    private var emptyLine: some View {
+        Text(
+            viewModel.activityFilter.map { "No \($0) plans today" }
+                ?? "Nobody's posted yet. Be the first one."
+        )
+        .font(.system(size: 14, weight: .medium, design: .rounded))
+        .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 4)
+        .padding(.bottom, 4)
+    }
 
-                Text("Tap + to post a plan and see who's\nup for something today.")
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-            }
+    // MARK: - Open Slots (Ghost Cards)
+
+    private var openSlotsSectionHeader: String {
+        if !viewModel.filteredPlans.isEmpty {
+            return "Or post your own"
         }
-        .padding(.horizontal, 40)
+        return viewModel.allOpenSlotsAreFallback ? "Free in the next day?" : "Your open slots"
+    }
+
+    private var openSlotsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(openSlotsSectionHeader)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundColor(Color.appNavy)
+                .padding(.top, 4)
+
+            ForEach(viewModel.rankedOpenSlots) { ranked in
+                GhostSlotCardView(
+                    titleLine: Self.titleLine(for: ranked.slot.start),
+                    activityName: ranked.slot.activityName,
+                    buttonIcon: "plus",
+                    buttonLabel: "Post it",
+                    accessibilityLabel: "Post a plan: \(ranked.slot.activityName), \(Self.accessibleTimeDescription(for: ranked.slot.start)).",
+                    onTap: { selectedGhostSlot = ranked.slot }
+                )
+            }
+
+            if let next = viewModel.nextUsualSlot {
+                Button {
+                    NotificationCenter.default.post(name: .navigateToUpcoming, object: nil)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Your next usual slot: \(next.dayOfWeek.rawValue) \(next.timeSlot.rawValue.lowercased())")
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+            }
+
+            Button {
+                showCreatePlan = true
+            } label: {
+                Text("Or start from scratch")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color.appPrimary)
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 4)
+        }
+    }
+
+    /// "Tonight at 7" / "Today at 8am" / "Tomorrow at noon"
+    static func titleLine(for date: Date) -> String {
+        let cal = Calendar.current
+        let hour = cal.component(.hour, from: date)
+        let minute = cal.component(.minute, from: date)
+        let isToday = cal.isDateInToday(date)
+        let isEveningHour = hour >= 17 || hour < 5
+
+        if isToday && isEveningHour {
+            return "Tonight at \(compactHourNoSuffix(hour: hour, minute: minute))"
+        }
+        let dayWord = isToday ? "Today" : "Tomorrow"
+        if hour == 12 && minute == 0 { return "\(dayWord) at noon" }
+        if hour == 0 && minute == 0 { return "\(dayWord) at midnight" }
+        return "\(dayWord) at \(compactTime(hour: hour, minute: minute))"
+    }
+
+    /// "tonight at 7 PM" / "today at 8 AM" / "tomorrow at 8 AM" — for VoiceOver.
+    static func accessibleTimeDescription(for date: Date) -> String {
+        let cal = Calendar.current
+        let hour = cal.component(.hour, from: date)
+        let minute = cal.component(.minute, from: date)
+        let isToday = cal.isDateInToday(date)
+        let isEveningHour = hour >= 17 || hour < 5
+        let dayWord = isToday ? (isEveningHour ? "tonight" : "today") : "tomorrow"
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = minute == 0 ? "h a" : "h:mm a"
+        return "\(dayWord) at \(formatter.string(from: date))"
+    }
+
+    private static func compactHourNoSuffix(hour: Int, minute: Int) -> String {
+        var displayHour = hour % 12
+        if displayHour == 0 { displayHour = 12 }
+        if minute == 0 { return "\(displayHour)" }
+        return String(format: "%d:%02d", displayHour, minute)
+    }
+
+    private static func compactTime(hour: Int, minute: Int) -> String {
+        var displayHour = hour % 12
+        if displayHour == 0 { displayHour = 12 }
+        let suffix = hour >= 12 ? "pm" : "am"
+        if minute == 0 { return "\(displayHour)\(suffix)" }
+        return String(format: "%d:%02d%@", displayHour, minute, suffix)
     }
 }
 

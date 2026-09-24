@@ -18,9 +18,15 @@ final class TodayViewModel {
     var activityFilter: String?
     /// Non-nil when the current user's own plan was just claimed; shown as a banner.
     var claimedPlanBanner: String?
+    /// Non-nil briefly after a successful post (ghost card or scratch); shown as a toast.
+    var postToast: String?
 
     /// Cached display info for plan creators, keyed by userID.
     var posterInfo: [String: PosterInfo] = [:]
+
+    /// The current user's own profile, loaded once for the open-slot generator. Nil until
+    /// loaded or if the user has no profile.
+    var myProfile: FirebaseUser?
 
     struct PosterInfo {
         let displayName: String
@@ -54,6 +60,43 @@ final class TodayViewModel {
         return live.filter { $0.activity.name == filter }
     }
 
+    /// Up to 3 ghost-card suggestions, next 24 hours only. Own usual timeslots first, then
+    /// the fixed fallback clock times fill any remaining spots — so Today always has cards
+    /// even when none of the user's usual slots land in the next day. Purely derived from
+    /// data already loaded — no Firestore access happens here.
+    var rankedOpenSlots: [OpenSlotGenerator.RankedOpenSlot] {
+        guard let myProfile else { return [] }
+        let myExistingStarts = openPlans
+            .filter { $0.creatorID == currentUserID }
+            .map { $0.scheduledTime }
+        return OpenSlotGenerator.generateForToday(
+            daySlotCombos: myProfile.daySlotCombos,
+            activities: myProfile.activities,
+            from: Date(),
+            existingPlanStarts: myExistingStarts,
+            maxCount: 3
+        )
+    }
+
+    /// True only when every card currently shown came from the fallback clock times —
+    /// drives the "Free in the next day?" vs. "Your open slots" section header.
+    var allOpenSlotsAreFallback: Bool {
+        let ranked = rankedOpenSlots
+        return !ranked.isEmpty && ranked.allSatisfy { $0.source == .fallback }
+    }
+
+    /// The user's next usual (profile timeslot) occurrence within the next 7 days,
+    /// regardless of whether it's postable — backs the "Your next usual slot" link.
+    var nextUsualSlot: OpenSlot? {
+        guard let myProfile else { return nil }
+        let now = Date()
+        return OpenSlotGenerator.nextUsualOccurrence(
+            daySlotCombos: myProfile.daySlotCombos,
+            from: now,
+            through: now.addingTimeInterval(7 * 24 * 60 * 60)
+        )
+    }
+
     // MARK: - Load
 
     @MainActor
@@ -67,6 +110,14 @@ final class TodayViewModel {
         } catch {
             errorMessage = "Could not load plans: \(error.localizedDescription)"
         }
+        await loadMyProfileIfNeeded()
+    }
+
+    /// Loads the current user's own profile once, for the open-slot generator.
+    @MainActor
+    func loadMyProfileIfNeeded() async {
+        guard myProfile == nil, let userID = currentUserID else { return }
+        myProfile = try? await firestoreService.fetchUser(userID: userID)
     }
 
     // MARK: - Listener
@@ -166,6 +217,7 @@ final class TodayViewModel {
             // Optimistic insert so the user sees their new post immediately
             openPlans.append(plan)
             openPlans.sort { $0.scheduledTime < $1.scheduledTime }
+            postToast = "Posted!"
             return true
         } catch {
             errorMessage = "Could not post plan: \(error.localizedDescription)"

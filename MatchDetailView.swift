@@ -25,8 +25,8 @@ struct MatchDetailView: View {
         matchWithUser.match.isPending(for: viewModel.currentUser?.id ?? "")
     }
     
-    /// "3 mi" style distance, or nil if either party has no location on file
-    /// (the app's (0, 0) "unset" sentinel).
+    /// "~5 mi away" style bucketed distance, or nil if either party has no
+    /// location on file (the app's (0, 0) "unset" sentinel) — never a raw number.
     var distanceString: String? {
         guard let currentUser = viewModel.currentUser,
               currentUser.latitude != 0 || currentUser.longitude != 0,
@@ -34,11 +34,28 @@ struct MatchDetailView: View {
         else { return nil }
         let userLocation = CLLocation(latitude: matchWithUser.otherUser.latitude, longitude: matchWithUser.otherUser.longitude)
         let currentLocation = CLLocation(latitude: currentUser.latitude, longitude: currentUser.longitude)
-        let distanceInMiles = currentLocation.distance(from: userLocation) / 1609.34
+        let distanceInMeters = currentLocation.distance(from: userLocation)
+        let distanceInMiles = distanceInMeters / 1609.34
+        let displayString = Self.distanceBucketLabel(miles: distanceInMiles)
         #if DEBUG
-        print("[Distance] me=(\(currentUser.latitude),\(currentUser.longitude)) them=(\(matchWithUser.otherUser.latitude),\(matchWithUser.otherUser.longitude)) uid=\(matchWithUser.otherUser.id) result=\(distanceInMiles)")
+        print("[DISTANCE-DEBUG] viewerUID=\(currentUser.id) viewerCoord=(\(currentUser.latitude), \(currentUser.longitude)) matchUID=\(matchWithUser.otherUser.id) matchCoord=(\(matchWithUser.otherUser.latitude), \(matchWithUser.otherUser.longitude)) meters=\(distanceInMeters) displayed=\"\(displayString)\"")
         #endif
-        return distanceInMiles < 1 ? String(format: "%.1f mi", distanceInMiles) : String(format: "%.0f mi", distanceInMiles)
+        return displayString
+    }
+
+    /// Buckets a raw mile count into one of the fixed display labels — the exact
+    /// distance is never shown, only which bucket it falls into.
+    static func distanceBucketLabel(miles: Double) -> String {
+        switch miles {
+        case ..<1: return "Under 1 mi away"
+        case ..<3: return "~2 mi away"
+        case ..<7: return "~5 mi away"
+        case ..<12: return "~10 mi away"
+        case ..<20: return "~15 mi away"
+        case ..<35: return "~25 mi away"
+        case ..<60: return "~50 mi away"
+        default: return "50+ mi away"
+        }
     }
     
     var body: some View {
@@ -72,14 +89,16 @@ struct MatchDetailView: View {
                             
                         }
                         
-                        // Match stats
+                        // Distance — one line, bucketed, no separate "Away" status line
                         if let distanceString {
-                            HStack(spacing: 16) {
-                                StatBadge(
-                                    icon: "location.fill",
-                                    value: distanceString,
-                                    label: "Away"
-                                )
+                            HStack(spacing: 6) {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color.appPrimary)
+
+                                Text(distanceString)
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
                             }
                             .padding(.horizontal, 20)
                         }
@@ -506,33 +525,6 @@ private struct FullScreenPhoto: Identifiable {
     let id = UUID()
     let index: Int
     let photo: UIImage
-}
-
-/// Stat badge component
-struct StatBadge: View {
-    let icon: String
-    let value: String
-    let label: String
-    
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(Color.appPrimary)
-            
-            Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-            
-            Text(label)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(Color.white.opacity(0.7))
-        .cornerRadius(16)
-    }
 }
 
 #Preview {

@@ -21,25 +21,10 @@ struct MessageBubble: View {
             VStack(alignment: isFromCurrentUser ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(isFromCurrentUser ? .white : Color(red: 0.35, green: 0.35, blue: 0.35))
+                    .foregroundColor(isFromCurrentUser ? .white : Color.appPrimaryText)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(
-                        isFromCurrentUser ?
-                        LinearGradient(
-                            colors: [
-                                Color.appPrimary,
-                                Color.appPrimary
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ) :
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.9), Color.white.opacity(0.9)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .background(isFromCurrentUser ? Color.appPrimary : Color.appCardBackground)
                     .cornerRadius(18)
                     .shadow(
                         color: isFromCurrentUser ?
@@ -52,7 +37,7 @@ struct MessageBubble: View {
                 
                 Text(message.sentAt.formatted(date: .omitted, time: .shortened))
                     .font(.system(size: 11, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                    .foregroundColor(Color.appSecondaryText)
                     .padding(.horizontal, 4)
             }
             

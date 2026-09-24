@@ -12,6 +12,18 @@ struct UpcomingView: View {
     @State private var viewModel = GroupPlansViewModel()
     @State private var showComposer = false
     @State private var selectedPlan: GroupPlan?
+    @State private var selectedGhostSlot: OpenSlot?
+
+    /// Tomorrow through +6 days — the 7-day strip's date range.
+    private var next7Days: [Date] {
+        let cal = Calendar.current
+        let startOfToday = cal.startOfDay(for: Date())
+        return (1...7).compactMap { cal.date(byAdding: .day, value: $0, to: startOfToday) }
+    }
+
+    private var hasAnyContent: Bool {
+        !viewModel.upcomingPlans.isEmpty || !viewModel.openSlotsByDay.isEmpty
+    }
 
     var body: some View {
         NavigationStack {
@@ -35,16 +47,15 @@ struct UpcomingView: View {
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                     }
-                } else if viewModel.upcomingPlans.isEmpty {
+                } else if !hasAnyContent {
                     emptyState
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 14) {
-                            ForEach(viewModel.upcomingPlans) { plan in
-                                GroupPlanCard(plan: plan, viewModel: viewModel)
-                                    .onTapGesture {
-                                        selectedPlan = plan
-                                    }
+                        VStack(alignment: .leading, spacing: 20) {
+                            weekStrip
+
+                            ForEach(next7Days, id: \.self) { day in
+                                daySection(for: day)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -68,6 +79,9 @@ struct UpcomingView: View {
             .sheet(isPresented: $showComposer) {
                 ProposePlanSheet()
             }
+            .sheet(item: $selectedGhostSlot) { slot in
+                ProposePlanSheet(prefill: groupInvitePrefill(for: slot))
+            }
             .sheet(item: $selectedPlan) { plan in
                 GroupPlanDetailView(plan: plan, viewModel: viewModel)
             }
@@ -82,6 +96,83 @@ struct UpcomingView: View {
         }
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
+    }
+
+    private func groupInvitePrefill(for slot: OpenSlot) -> ProposePlanSheet.GroupInvitePrefill {
+        ProposePlanSheet.GroupInvitePrefill(activityName: slot.activityName, date: slot.start)
+    }
+
+    // MARK: - Week Strip
+
+    private enum DayDotState {
+        case plan, slot, none
+    }
+
+    private func dotState(for day: Date) -> DayDotState {
+        if viewModel.hasPlan(on: day) { return .plan }
+        if viewModel.openSlotsByDay[Calendar.current.startOfDay(for: day)] != nil { return .slot }
+        return .none
+    }
+
+    private var weekStrip: some View {
+        HStack(spacing: 0) {
+            ForEach(next7Days, id: \.self) { day in
+                VStack(spacing: 6) {
+                    Text(day.formatted(.dateTime.weekday(.abbreviated)))
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                    Text(day.formatted(.dateTime.day()))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.appNavy)
+                    dotView(for: dotState(for: day))
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func dotView(for state: DayDotState) -> some View {
+        switch state {
+        case .plan:
+            Circle().fill(Color.appPrimary).frame(width: 8, height: 8)
+        case .slot:
+            Circle().strokeBorder(Color.appPrimary, lineWidth: 1.5).frame(width: 8, height: 8)
+        case .none:
+            Circle().fill(Color.clear).frame(width: 8, height: 8)
+        }
+    }
+
+    // MARK: - Day Sections
+
+    @ViewBuilder
+    private func daySection(for day: Date) -> some View {
+        if viewModel.hasPlan(on: day) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(Color.appNavy)
+
+                ForEach(viewModel.plans(on: day)) { plan in
+                    GroupPlanCard(plan: plan, viewModel: viewModel)
+                        .onTapGesture {
+                            selectedPlan = plan
+                        }
+                }
+            }
+        } else if let slot = viewModel.openSlotsByDay[Calendar.current.startOfDay(for: day)] {
+            let dayLabel = day.formatted(.dateTime.weekday(.wide))
+            let timeSlotLabel = slot.timeSlot.rawValue.lowercased()
+            GhostSlotCardView(
+                titleLine: "\(dayLabel) \(timeSlotLabel) is open",
+                activityName: slot.activityName,
+                buttonIcon: "paperplane.fill",
+                buttonLabel: "Invite",
+                accessibilityLabel: "Invite matches to plan: \(slot.activityName), \(dayLabel) \(timeSlotLabel).",
+                onTap: { selectedGhostSlot = slot }
+            )
+        }
     }
 
     private var emptyState: some View {

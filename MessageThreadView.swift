@@ -8,6 +8,24 @@
 import SwiftUI
 import EventKit
 import EventKitUI
+import MapKit
+import CoreLocation
+
+/// The day word used by both the pinned-plan card's headline and the confirmed-plan empty
+/// state, so the two stay in sync: "Tonight" (today, 5pm+), "Today" (today, earlier),
+/// "Tomorrow", or a short weekday + date (e.g. "Sat, Oct 3").
+fileprivate func planDayWord(for date: Date) -> String {
+    let cal = Calendar.current
+    if cal.isDateInToday(date) {
+        return cal.component(.hour, from: date) >= 17 ? "Tonight" : "Today"
+    } else if cal.isDateInTomorrow(date) {
+        return "Tomorrow"
+    } else {
+        let df = DateFormatter()
+        df.dateFormat = "EEE, MMM d"
+        return df.string(from: date)
+    }
+}
 
 /// Full-screen chat interface for a message thread
 struct MessageThreadView: View {
@@ -21,6 +39,8 @@ struct MessageThreadView: View {
     @State private var showReschedule = false
     @State private var showCancelAlert = false
     @State private var showAllPlans = false
+    @State private var isPlanCardExpanded = true
+    @State private var hasSetInitialPlanCardState = false
 
     @State private var calendarHandler = PlanCalendarActionHandler()
     
@@ -56,29 +76,35 @@ struct MessageThreadView: View {
         return Array(upcoming.dropFirst())
     }
 
+    /// Messages to render in the thread. Hides planProposal messages whose plan is already
+    /// confirmed — the pinned card is their home once confirmed, per viewModel.confirmedPlanIDs
+    /// (the same live Firestore listener that drives the pinned card). Revert by changing this
+    /// to `viewModel.messages`. Declined/cancelled proposals and pending ones are unaffected.
+    private var visibleMessages: [Message] {
+        viewModel.messages.filter { message in
+            guard message.kind == .planProposal, let planID = message.planID else { return true }
+            return !viewModel.confirmedPlanIDs.contains(planID)
+        }
+    }
+
     var body: some View {
         let _ = print("🟢 DEBUG: MessageThreadView body executing")
         NavigationStack {
             ZStack {
-                // Warm gradient background
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+                Color.appBackground
+                    .ignoresSafeArea()
+
                 VStack(spacing: 0) {
                     // Pinned confirmed-plan card — hidden for event threads and when no plan exists
                     if !thread.isEventThread, let plan = activePinnedPlan {
                         PinnedPlanCard(
                             plan: plan,
                             overflowCount: overflowPlans.count,
-                            otherUserShowUpMeter: viewModel.otherUserShowUpMeter,
+                            otherUserDisplayName: thread.otherUser.displayName,
+                            otherUserPhotoURL: thread.otherUser.photoURLs.first,
+                            currentUserPhotoURL: viewModel.currentUserPhotoURL,
                             addedProviders: calendarHandler.addedProviders,
+                            isExpanded: $isPlanCardExpanded,
                             onReschedule: { showReschedule = true },
                             onCancel: { showCancelAlert = true },
                             onShowAll: { showAllPlans = true },
@@ -111,18 +137,20 @@ struct MessageThreadView: View {
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 16) {
-                                // Date header
-                                Text("Today")
-                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 6)
-                                    .background(Color.white.opacity(0.6))
-                                    .cornerRadius(12)
-                                    .padding(.top, 20)
+                                // Date header — omitted when filtering leaves nothing under it
+                                if !visibleMessages.isEmpty {
+                                    Text("Today")
+                                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                        .foregroundColor(Color.appSecondaryText)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(Color.appCardBackground)
+                                        .cornerRadius(12)
+                                        .padding(.top, 20)
+                                }
                                 
                                 // Messages
-                                if viewModel.messages.isEmpty {
+                                if visibleMessages.isEmpty {
                                     // Empty conversation state
                                     VStack(spacing: 16) {
                                         ZStack {
@@ -137,22 +165,36 @@ struct MessageThreadView: View {
                                         .padding(.top, 40)
                                         
                                         VStack(spacing: 8) {
-                                            Text("Start the conversation!")
-                                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                                .foregroundColor(Color.appNavy)
-                                            
-                                            if thread.isEventThread, let event = thread.event {
-                                                Text("You're both going to \(event.name).\nSay hello!")
+                                            if !thread.isEventThread,
+                                               let plan = activePinnedPlan,
+                                               let confirmedDate = plan.confirmedDate {
+                                                Text(emptyStateConfirmedPlanTitle(for: confirmedDate))
+                                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                                    .foregroundColor(Color.appPrimaryText)
+
+                                                Text("Say hi to \(thread.otherUser.displayName) before you head out.")
                                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                    .foregroundColor(Color.appSecondaryText)
                                                     .multilineTextAlignment(.center)
                                                     .lineSpacing(4)
                                             } else {
-                                                Text("You matched with \(thread.otherUser.displayName).\nSay hello!")
-                                                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                                    .multilineTextAlignment(.center)
-                                                    .lineSpacing(4)
+                                                Text("Start the conversation!")
+                                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                                    .foregroundColor(Color.appPrimaryText)
+
+                                                if thread.isEventThread, let event = thread.event {
+                                                    Text("You're both going to \(event.name).\nSay hello!")
+                                                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                                                        .foregroundColor(Color.appSecondaryText)
+                                                        .multilineTextAlignment(.center)
+                                                        .lineSpacing(4)
+                                                } else {
+                                                    Text("You matched with \(thread.otherUser.displayName).\nSay hello!")
+                                                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                                                        .foregroundColor(Color.appSecondaryText)
+                                                        .multilineTextAlignment(.center)
+                                                        .lineSpacing(4)
+                                                }
                                             }
                                         }
                                         
@@ -166,12 +208,12 @@ struct MessageThreadView: View {
                                                     
                                                     Text("You both like:")
                                                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                                        .foregroundColor(Color.appSecondaryText)
                                                 }
-                                                
+
                                                 Text(match.overlappingActivityNames.joined(separator: ", "))
                                                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                    .foregroundColor(Color.appSecondaryText)
                                             }
                                             .padding()
                                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -182,9 +224,10 @@ struct MessageThreadView: View {
                                     }
                                 } else {
                                     // Message bubbles
-                                    ForEach(viewModel.messages, id: \.id) { message in
+                                    ForEach(visibleMessages, id: \.id) { message in
                                         messageBubble(for: message)
                                             .id(message.id)
+                                            .transition(.opacity.combined(with: .move(edge: .top)))
                                     }
                                 }
                                 
@@ -326,6 +369,7 @@ struct MessageThreadView: View {
                 viewModel.listenToConfirmedPlan(forMatch: match.id)
                 await viewModel.loadPendingShowUpReport(otherUserID: thread.otherUser.id)
                 await viewModel.loadOtherUserShowUpMeter(otherUserID: thread.otherUser.id)
+                await viewModel.loadCurrentUserPhoto()
             }
         }
         .onAppear {
@@ -341,6 +385,15 @@ struct MessageThreadView: View {
         .onChange(of: activePinnedPlan?.id) { _, newPlanID in
             if let newPlanID {
                 calendarHandler.loadAddedState(planID: newPlanID)
+                if !hasSetInitialPlanCardState {
+                    isPlanCardExpanded = viewModel.messages.isEmpty
+                    hasSetInitialPlanCardState = true
+                }
+            }
+        }
+        .onChange(of: isMessageFieldFocused) { _, isFocused in
+            if isFocused {
+                withAnimation(.snappy) { isPlanCardExpanded = false }
             }
         }
         .sheet(isPresented: $showReschedule) {
@@ -415,6 +468,16 @@ struct MessageThreadView: View {
 
     // MARK: - Helpers
 
+    private func emptyStateConfirmedPlanTitle(for date: Date) -> String {
+        let word = planDayWord(for: date)
+        switch word {
+        case "Tonight", "Today", "Tomorrow":
+            return "You're on for \(word.lowercased())."
+        default:
+            return "You're on for \(word)."
+        }
+    }
+
     @ViewBuilder
     private func messageBubble(for message: Message) -> some View {
         if message.kind == .planProposal {
@@ -436,175 +499,181 @@ struct MessageThreadView: View {
 struct PinnedPlanCard: View {
     let plan: Plan
     let overflowCount: Int
-    let otherUserShowUpMeter: String
+    let otherUserDisplayName: String
+    let otherUserPhotoURL: String?
+    let currentUserPhotoURL: String?
     let addedProviders: Set<CalendarProvider>
+    @Binding var isExpanded: Bool
     let onReschedule: () -> Void
     let onCancel: () -> Void
     let onShowAll: () -> Void
     let onAddToCalendar: (CalendarProvider) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "calendar.badge.checkmark")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Color(red: 0.30, green: 0.58, blue: 0.35))
-                Text("Plan confirmed")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.30, green: 0.58, blue: 0.35))
-                Spacer()
-                if overflowCount > 0 {
-                    Button(action: onShowAll) {
-                        Text("+\(overflowCount) more")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.30, green: 0.58, blue: 0.35))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color(red: 0.30, green: 0.58, blue: 0.35).opacity(0.12))
-                            .cornerRadius(6)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(plan.activity.name)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
-
-                    if let date = plan.confirmedDate {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                            Text(formattedDate(date))
-                                .font(.system(size: 13, design: .rounded))
-                                .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
-                        }
-                    }
-
-                    if let location = plan.location, !location.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "mappin.circle.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(Color.appPrimary)
-                            Text(location)
-                                .font(.system(size: 13, design: .rounded))
-                                .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
-                        }
-                    }
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color.appPrimary)
-                        Text(otherUserShowUpMeter)
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color.appPrimary)
-                    }
-                }
-                Spacer()
-            }
-
-            Divider()
-                .background(Color.appPrimary.opacity(0.20))
-
-            HStack(spacing: 8) {
-                if let location = plan.location, !location.isEmpty {
-                    navigationActionChip(tint: Color(red: 0.27, green: 0.49, blue: 0.78))
-                }
-
-                calendarActionChip(
-                    addedProviders: addedProviders,
-                    tint: Color.appPrimary,
-                    onSelect: onAddToCalendar
-                )
-
-                actionChip(
-                    label: "Reschedule",
-                    icon: "arrow.clockwise",
-                    tint: Color.appPrimary
-                ) { onReschedule() }
-
-                Spacer()
-
-                Button(action: onCancel) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("Cancel plan")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                    }
-                    .foregroundColor(Color(red: 0.72, green: 0.33, blue: 0.28))
-                }
-                .buttonStyle(.plain)
+        SwiftUI.Group {
+            if isExpanded {
+                expandedTicket
+            } else {
+                collapsedStrip
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(red: 0.93, green: 0.97, blue: 0.93))
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(Color(red: 0.30, green: 0.58, blue: 0.35))
-                .frame(height: 3)
-        }
+        .padding(.top, 8)
     }
 
-    private func actionChip(
-        label: String,
-        icon: String,
-        tint: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: icon)
-                    .font(.system(size: 11, weight: .semibold))
-                Text(label)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-            }
-            .foregroundColor(tint)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(tint.opacity(0.12))
-            .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
-    }
+    // MARK: - Expanded Ticket
 
-    private func calendarActionChip(
-        addedProviders: Set<CalendarProvider>,
-        tint: Color,
-        onSelect: @escaping (CalendarProvider) -> Void
-    ) -> some View {
-        Menu {
-            ForEach(CalendarProvider.allCases) { provider in
-                Button {
-                    onSelect(provider)
-                } label: {
-                    Label(
-                        addedProviders.contains(provider) ? "\(provider.displayName) — Added ✓" : provider.displayName,
-                        systemImage: addedProviders.contains(provider) ? "checkmark.circle.fill" : "calendar"
-                    )
+    private var expandedTicket: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            topRow
+
+            TimelineView(.periodic(from: Date(), by: 60)) { context in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(headlineText(now: context.date))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.appNavy)
+                    Text(sublineText(now: context.date))
+                        .font(.system(size: 15, design: .rounded))
+                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
                 }
             }
-        } label: {
+
+            peopleRow
+
+            locationSection
+
+            buttonsRow
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+
+    private var topRow: some View {
+        HStack(spacing: 8) {
             HStack(spacing: 5) {
-                Image(systemName: addedProviders.isEmpty ? "calendar.badge.plus" : "checkmark.circle.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                Text(addedProviders.isEmpty ? "Add to Calendar" : "Added ✓")
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("Plan confirmed")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
             }
-            .foregroundColor(tint)
+            .foregroundColor(Color(red: 0.30, green: 0.58, blue: 0.35))
             .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(tint.opacity(0.12))
-            .cornerRadius(8)
+            .padding(.vertical, 5)
+            .background(Color(red: 0.30, green: 0.58, blue: 0.35).opacity(0.14))
+            .cornerRadius(20)
+
+            if overflowCount > 0 {
+                Button(action: onShowAll) {
+                    Text("+\(overflowCount) more")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(red: 0.30, green: 0.58, blue: 0.35))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(red: 0.30, green: 0.58, blue: 0.35).opacity(0.12))
+                        .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+
+            Menu {
+                Button(action: onReschedule) {
+                    Label("Reschedule", systemImage: "arrow.clockwise")
+                }
+                Button(role: .destructive, action: onCancel) {
+                    Label("Cancel plan", systemImage: "xmark")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color.appNavy)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel("More plan options")
         }
     }
 
-    private func navigationActionChip(tint: Color) -> some View {
+    private var peopleRow: some View {
+        HStack(spacing: 10) {
+            ZStack(alignment: .leading) {
+                personAvatar(url: otherUserPhotoURL, fallbackInitial: String(otherUserDisplayName.prefix(1)))
+                    .offset(x: 20)
+                personAvatar(url: currentUserPhotoURL, fallbackInitial: "Y")
+            }
+            .frame(width: 50, height: 30, alignment: .leading)
+
+            Text("You & \(otherUserDisplayName)")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundColor(Color.appNavy)
+        }
+    }
+
+    @ViewBuilder
+    private func personAvatar(url: String?, fallbackInitial: String) -> some View {
+        ZStack {
+            if let urlString = url, let imageURL = URL(string: urlString) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        avatarFallback(fallbackInitial)
+                    }
+                }
+            } else {
+                avatarFallback(fallbackInitial)
+            }
+        }
+        .frame(width: 30, height: 30)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white, lineWidth: 2))
+    }
+
+    private func avatarFallback(_ letter: String) -> some View {
+        Circle()
+            .fill(Color.appPrimary.opacity(0.7))
+            .overlay {
+                Text(letter.uppercased())
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+    }
+
+    @ViewBuilder
+    private var locationSection: some View {
+        if let lat = plan.locationLatitude, let lng = plan.locationLongitude {
+            navigationMenu {
+                PlanMapSnapshotView(
+                    planID: plan.id,
+                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng),
+                    placeName: plan.locationName,
+                    secondaryLine: secondaryPlaceLine
+                )
+            }
+        } else if let location = plan.location, !location.isEmpty {
+            navigationMenu {
+                HStack(spacing: 8) {
+                    Image(systemName: "mappin.circle.fill")
+                        .foregroundColor(Color.appPrimary)
+                    Text(location)
+                        .font(.system(size: 14, design: .rounded))
+                        .foregroundColor(Color.appNavy)
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private var secondaryPlaceLine: String? {
+        guard let location = plan.location, !location.isEmpty else { return nil }
+        if let name = plan.locationName, location == name { return nil }
+        return location
+    }
+
+    @ViewBuilder
+    private func navigationMenu<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         Menu {
             ForEach(NavigationApp.availableApps) { app in
                 Button {
@@ -616,32 +685,289 @@ struct PinnedPlanCard: View {
                 }
             }
         } label: {
-            HStack(spacing: 5) {
-                Image(systemName: "map.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                Text("Directions")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+            content()
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var buttonsRow: some View {
+        HStack(spacing: 10) {
+            if hasLocation {
+                directionsButton
+                calendarIconButton
+            } else {
+                addToCalendarFullWidthButton
             }
-            .foregroundColor(tint)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(tint.opacity(0.12))
-            .cornerRadius(8)
         }
     }
 
-    private func formattedDate(_ date: Date) -> String {
-        let cal = Calendar.current
-        let tf = DateFormatter()
-        tf.dateFormat = "h:mma"
-        tf.amSymbol = "am"
-        tf.pmSymbol = "pm"
-        let timeStr = tf.string(from: date).replacingOccurrences(of: ":00", with: "")
-        if cal.isDateInToday(date) { return "Today at \(timeStr)" }
-        if cal.isDateInTomorrow(date) { return "Tomorrow at \(timeStr)" }
+    private var hasLocation: Bool {
+        (plan.locationLatitude != nil && plan.locationLongitude != nil) || !(plan.location?.isEmpty ?? true)
+    }
+
+    private var directionsButton: some View {
+        navigationMenu {
+            HStack(spacing: 8) {
+                Text("Get directions")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 15, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.appPrimary)
+            .cornerRadius(14)
+        }
+    }
+
+    private var calendarIconButton: some View {
+        Menu {
+            calendarMenuItems
+        } label: {
+            Image(systemName: addedProviders.isEmpty ? "calendar.badge.plus" : "checkmark.circle.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color.appPrimary)
+                .frame(width: 50, height: 50)
+                .background(Color.appPrimary.opacity(0.12))
+                .cornerRadius(14)
+        }
+        .accessibilityLabel("Add to calendar")
+    }
+
+    private var addToCalendarFullWidthButton: some View {
+        Menu {
+            calendarMenuItems
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: addedProviders.isEmpty ? "calendar.badge.plus" : "checkmark.circle.fill")
+                Text(addedProviders.isEmpty ? "Add to Calendar" : "Added to Calendar")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.appPrimary)
+            .cornerRadius(14)
+        }
+        .accessibilityLabel("Add to calendar")
+    }
+
+    @ViewBuilder
+    private var calendarMenuItems: some View {
+        ForEach(CalendarProvider.allCases) { provider in
+            Button {
+                onAddToCalendar(provider)
+            } label: {
+                Label(
+                    addedProviders.contains(provider) ? "\(provider.displayName) — Added ✓" : provider.displayName,
+                    systemImage: addedProviders.contains(provider) ? "checkmark.circle.fill" : "calendar"
+                )
+            }
+        }
+    }
+
+    private var cardBackground: some View {
+        // The rest of this screen (and the app) uses a fixed white/navy/orange palette that
+        // doesn't adapt to system dark mode — Color.white here matches that, rather than
+        // going systemBackground and floating a near-black card on an otherwise-white screen.
+        RoundedRectangle(cornerRadius: 22)
+            .fill(Color.white)
+            .overlay(
+                RoundedRectangle(cornerRadius: 22)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+    }
+
+    // MARK: - Collapsed Strip
+
+    private var collapsedStrip: some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(Color(red: 0.30, green: 0.58, blue: 0.35))
+                .frame(width: 8, height: 8)
+
+            Button {
+                withAnimation(.snappy) { isExpanded = true }
+            } label: {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(headlineText(now: Date()))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.appNavy)
+                    Text(collapsedSubtitle)
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+
+            if hasLocation {
+                navigationMenu {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color.appPrimary)
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel("Get directions")
+            }
+
+            Button {
+                withAnimation(.snappy) { isExpanded = true }
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color.appNavy)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(cardBackground)
+    }
+
+    private var collapsedSubtitle: String {
+        if let name = plan.locationName, !name.isEmpty {
+            return "\(plan.activity.name) · \(name)"
+        } else if let location = plan.location, !location.isEmpty {
+            return "\(plan.activity.name) · \(location)"
+        }
+        return plan.activity.name
+    }
+
+    // MARK: - Headline / Countdown
+
+    private func headlineText(now: Date) -> String {
+        guard let date = plan.confirmedDate else { return plan.activity.name }
+        return "\(planDayWord(for: date)) · \(timeString(date))"
+    }
+
+    private func sublineText(now: Date) -> String {
+        guard let date = plan.confirmedDate else { return plan.activity.name }
+        if let suffix = countdownSuffix(for: date, now: now) {
+            return "\(plan.activity.name) · \(suffix)"
+        }
+        return plan.activity.name
+    }
+
+    private func timeString(_ date: Date) -> String {
         let df = DateFormatter()
-        df.dateFormat = "EEE, MMM d"
-        return "\(df.string(from: date)) at \(timeStr)"
+        df.dateFormat = "h:mm a"
+        return df.string(from: date)
+    }
+
+    private func countdownSuffix(for date: Date, now: Date) -> String? {
+        let diff = date.timeIntervalSince(now)
+        if diff >= 0 && diff <= 3 * 3600 {
+            let minutes = Int((diff / 60).rounded())
+            if minutes < 60 {
+                return "starts in \(max(minutes, 1)) min"
+            }
+            let hours = Int((diff / 3600).rounded())
+            return "starts in \(hours) hr"
+        } else if diff < 0 && diff >= -2 * 3600 {
+            return "happening now"
+        }
+        return nil
+    }
+}
+
+/// In-memory cache of rendered map snapshots, keyed by plan ID, so the same plan's map
+/// isn't re-rendered by MKMapSnapshotter on every card redraw.
+@MainActor
+final class PlanMapSnapshotCache {
+    static let shared = PlanMapSnapshotCache()
+    private var images: [String: UIImage] = [:]
+
+    func image(for planID: String) -> UIImage? { images[planID] }
+    func store(_ image: UIImage, for planID: String) { images[planID] = image }
+}
+
+/// A small static map with a pin at the plan's location, used by the expanded ticket.
+private struct PlanMapSnapshotView: View {
+    let planID: String
+    let coordinate: CLLocationCoordinate2D
+    let placeName: String?
+    let secondaryLine: String?
+
+    @Environment(\.displayScale) private var displayScale
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.appPrimary.opacity(0.12))
+                .overlay {
+                    if let image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+
+            if let placeName, !placeName.isEmpty {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(placeName)
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.appNavy)
+                    if let secondaryLine, !secondaryLine.isEmpty {
+                        Text(secondaryLine)
+                            .font(.system(size: 11, design: .rounded))
+                            .foregroundColor(Color.appNavy.opacity(0.7))
+                            .lineLimit(1)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.92))
+                .cornerRadius(10)
+                .padding(8)
+            }
+        }
+        .frame(height: 118)
+        .task(id: planID) {
+            await loadSnapshot()
+        }
+    }
+
+    private func loadSnapshot() async {
+        if let cached = PlanMapSnapshotCache.shared.image(for: planID) {
+            image = cached
+            return
+        }
+        let options = MKMapSnapshotter.Options()
+        options.region = MKCoordinateRegion(
+            center: coordinate,
+            latitudinalMeters: 600,
+            longitudinalMeters: 600
+        )
+        options.size = CGSize(width: 360, height: 236)
+        options.scale = displayScale
+
+        guard let snapshot = try? await MKMapSnapshotter(options: options).start() else { return }
+        let rendered = Self.renderPin(on: snapshot, at: coordinate)
+        PlanMapSnapshotCache.shared.store(rendered, for: planID)
+        image = rendered
+    }
+
+    private static func renderPin(on snapshot: MKMapSnapshotter.Snapshot, at coordinate: CLLocationCoordinate2D) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: snapshot.image.size)
+        return renderer.image { _ in
+            snapshot.image.draw(at: .zero)
+            let point = snapshot.point(for: coordinate)
+            let pinImage = UIImage(systemName: "mappin.circle.fill")?
+                .withTintColor(.systemOrange, renderingMode: .alwaysOriginal)
+            let pinSize = CGSize(width: 28, height: 28)
+            let pinOrigin = CGPoint(x: point.x - pinSize.width / 2, y: point.y - pinSize.height)
+            pinImage?.draw(in: CGRect(origin: pinOrigin, size: pinSize))
+        }
     }
 }
 
@@ -673,7 +999,7 @@ struct ShowUpPromptCard: View {
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(red: 0.65, green: 0.65, blue: 0.65))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 .buttonStyle(.plain)
             }
@@ -681,10 +1007,10 @@ struct ShowUpPromptCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Your \(activityName) hangout has passed.")
                     .font(.system(size: 13, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                 Text("Did \(otherUserName) show up?")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                    .foregroundColor(Color.appPrimaryText)
             }
 
             HStack(spacing: 10) {
@@ -774,25 +1100,18 @@ struct ReschedulePlanSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color.appBackground
+                    .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Suggest a new time")
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                                .foregroundColor(Color.appNavy)
+                                .foregroundColor(Color.appPrimaryText)
                             Text("Your friend will need to re-confirm.")
                                 .font(.system(size: 14, design: .rounded))
-                                .foregroundColor(Color(red: 0.55, green: 0.55, blue: 0.55))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                         .padding(.top, 8)
 
@@ -804,7 +1123,7 @@ struct ReschedulePlanSheet: View {
                         )
                         .datePickerStyle(.graphical)
                         .tint(Color.appPrimary)
-                        .background(Color.white.opacity(0.85))
+                        .background(Color.appCardBackground)
                         .cornerRadius(12)
 
                         Button {
@@ -881,15 +1200,8 @@ struct UpcomingPlansSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                Color.appBackground
+                    .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 12) {
@@ -947,7 +1259,7 @@ struct UpcomingPlanRow: View {
             HStack {
                 Text(plan.activity.name)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                    .foregroundColor(Color.appPrimaryText)
                 Spacer()
                 Button(action: onCancel) {
                     HStack(spacing: 3) {
@@ -965,10 +1277,10 @@ struct UpcomingPlanRow: View {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     Text(formattedPlanDate(date))
                         .font(.system(size: 13, design: .rounded))
-                        .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
 
@@ -979,7 +1291,7 @@ struct UpcomingPlanRow: View {
                         .foregroundColor(Color.appPrimary)
                     Text(location)
                         .font(.system(size: 13, design: .rounded))
-                        .foregroundColor(Color(red: 0.45, green: 0.45, blue: 0.45))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
         }

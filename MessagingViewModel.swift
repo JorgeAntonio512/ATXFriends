@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseFirestore
+import SwiftUI
 
 /// ViewModel for managing messaging threads and conversations
 @Observable
@@ -35,6 +36,11 @@ final class MessagingViewModel {
     /// Updated in real time by listenToConfirmedPlan — empty when no confirmed plans exist.
     var confirmedPlans: [Plan] = []
 
+    /// IDs of every confirmed plan for the open thread, including past ones.
+    /// Updated in real time by listenToConfirmedPlan alongside confirmedPlans — this is the
+    /// single source of truth for "is this plan confirmed" used to hide inline proposal cards.
+    var confirmedPlanIDs: Set<String> = []
+
     /// The soonest confirmed upcoming plan; nil when confirmedPlans is empty.
     var pinnedPlan: Plan? { confirmedPlans.first }
 
@@ -45,6 +51,10 @@ final class MessagingViewModel {
     /// Show-up reliability meter string for the other participant in the open thread.
     /// Fetched once when the thread opens; defaults to "New" until loaded.
     var otherUserShowUpMeter: String = "New"
+
+    /// Current user's own profile photo, for the pinned-plan card's People row.
+    /// Fetched once when the thread opens.
+    var currentUserPhotoURL: String? = nil
 
     /// Non-nil when a show-up report write fails; triggers an alert in MessageThreadView.
     var showUpReportError: String? = nil
@@ -481,20 +491,24 @@ final class MessagingViewModel {
         planListener = nil
         messages = []
         confirmedPlans = []
+        confirmedPlanIDs = []
         pendingShowUpPlan = nil
     }
 
     // MARK: - Pinned Plan Listener
 
-    /// Starts a real-time listener that keeps pinnedPlan in sync with the confirmed plan
-    /// for the given match. Call this after loadMessages and stop via stopListening.
+    /// Starts a real-time listener that keeps pinnedPlan and confirmedPlanIDs in sync with
+    /// the plans for the given match. Call this after loadMessages and stop via stopListening.
     func listenToConfirmedPlan(forMatch matchID: String) {
         print("📌 MessagingViewModel.listenToConfirmedPlan: starting for match \(matchID)")
         planListener?.remove()
-        planListener = PlansService.shared.listenToConfirmedPlan(forMatch: matchID) { [weak self] plans in
+        planListener = PlansService.shared.listenToConfirmedPlan(forMatch: matchID) { [weak self] plans, confirmedIDs in
             Task { @MainActor in
                 print("📌 MessagingViewModel: confirmedPlans updated → \(plans.map { $0.activity.name })")
-                self?.confirmedPlans = plans
+                withAnimation {
+                    self?.confirmedPlans = plans
+                    self?.confirmedPlanIDs = confirmedIDs
+                }
             }
         }
     }
@@ -507,6 +521,15 @@ final class MessagingViewModel {
     func loadOtherUserShowUpMeter(otherUserID: String) async {
         if let firebaseUser = try? await FirestoreService.shared.fetchUser(userID: otherUserID) {
             otherUserShowUpMeter = firebaseUser.showUpMeter
+        }
+    }
+
+    /// Fetches the current user's own profile photo for the pinned-plan card's People row.
+    @MainActor
+    func loadCurrentUserPhoto() async {
+        guard let currentUserID = authService.currentUserID else { return }
+        if let firebaseUser = try? await FirestoreService.shared.fetchUser(userID: currentUserID) {
+            currentUserPhotoURL = firebaseUser.photoURLs.first
         }
     }
 

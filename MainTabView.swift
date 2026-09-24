@@ -11,6 +11,7 @@ import CoreLocation
 extension Notification.Name {
     static let navigateToMatchThread = Notification.Name("navigateToMatchThread")
     static let navigateToSimpatico = Notification.Name("navigateToSimpatico")
+    static let navigateToUpcoming = Notification.Name("navigateToUpcoming")
     static let showUpReportSubmitted = Notification.Name("showUpReportSubmitted")
 }
 
@@ -193,6 +194,9 @@ struct MainTabView: View {
             )
             selectedTab = .messages
         }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToUpcoming)) { _ in
+            selectedTab = .upcoming
+        }
         .fullScreenCover(item: $threadToOpen) { thread in
             MessageThreadView(thread: thread, viewModel: MessagingViewModel())
         }
@@ -231,9 +235,9 @@ struct CustomTabBar: View {
             VStack(spacing: 0) {
                 // Sliding indicator bar at top
                 ZStack(alignment: .leading) {
-                    // Full-width divider line (light gray)
+                    // Full-width divider line
                     Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+                        .fill(Color.appBorder)
                         .frame(height: 1)
                     
                     // Sage green active indicator
@@ -924,17 +928,9 @@ struct SettingsTabView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Warm gradient background
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+                Color.appBackground
+                    .ignoresSafeArea()
+
                 ScrollView {
                     VStack(spacing: 0) {
                         // Settings List
@@ -1005,7 +1001,12 @@ struct SettingsTabView: View {
                                     )
                                 }
                             }
-                            
+
+                            // Share My Location Section
+                            SettingsCard(title: "Share My Location") {
+                                ShareMyLocationContent(viewModel: profileViewModel)
+                            }
+
                             // Account Section
                             SettingsCard(title: "Account") {
                                 VStack(spacing: 12) {
@@ -1051,39 +1052,39 @@ struct SettingsTabView: View {
                                             VStack(alignment: .leading, spacing: 2) {
                                                 Text("Location")
                                                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                                                
+                                                    .foregroundColor(Color.appPrimaryText)
+
                                                 Text("Manage location access")
                                                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                    .foregroundColor(Color.appSecondaryText)
                                             }
-                                            
+
                                             Spacer()
-                                            
+
                                             // Status badge
                                             Text(locationStatusBadge)
                                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                                                 .foregroundColor(
-                                                    locationStatusBadge == "Denied" ? 
-                                                    Color(red: 0.85, green: 0.45, blue: 0.40) :
+                                                    locationStatusBadge == "Denied" ?
+                                                    Color.appDanger :
                                                     locationStatusBadge == "Not Set" ?
-                                                    Color(red: 0.60, green: 0.60, blue: 0.60) :
+                                                    Color.appSecondaryText :
                                                     Color.appPrimary
                                                 )
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 4)
                                                 .background(
                                                     locationStatusBadge == "Denied" ?
-                                                    Color(red: 0.85, green: 0.45, blue: 0.40).opacity(0.1) :
+                                                    Color.appDanger.opacity(0.1) :
                                                     locationStatusBadge == "Not Set" ?
-                                                    Color(red: 0.60, green: 0.60, blue: 0.60).opacity(0.1) :
+                                                    Color.appSecondaryText.opacity(0.1) :
                                                     Color.appPrimary.opacity(0.1)
                                                 )
                                                 .cornerRadius(8)
-                                            
+
                                             Image(systemName: "chevron.right")
                                                 .font(.system(size: 14, weight: .semibold))
-                                                .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                                                .foregroundColor(Color.appSecondaryText)
                                         }
                                         .padding(.vertical, 8)
                                         .contentShape(Rectangle())
@@ -1101,13 +1102,13 @@ struct SettingsTabView: View {
                                         HStack(spacing: 12) {
                                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                                 .font(.system(size: 20))
-                                                .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                                .foregroundColor(Color.appDanger)
                                                 .frame(width: 32)
-                                            
+
                                             VStack(alignment: .leading, spacing: 2) {
                                                 Text("Sign Out")
                                                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                                                    .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                                    .foregroundColor(Color.appDanger)
                                             }
                                             
                                             Spacer()
@@ -1123,11 +1124,11 @@ struct SettingsTabView: View {
                             VStack(spacing: 4) {
                                 Text("ATX Friends")
                                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
-                                
+                                    .foregroundColor(Color.appSecondaryText)
+
                                 Text("Version 1.0.0")
                                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                             .padding(.top, 20)
                             .padding(.bottom, 40)
@@ -1207,15 +1208,15 @@ struct SettingsCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                .foregroundColor(Color.appSecondaryText)
                 .textCase(.uppercase)
                 .padding(.leading, 4)
-            
+
             VStack(spacing: 0) {
                 content
             }
             .padding()
-            .background(Color.white.opacity(0.6))
+            .background(Color.appCardBackground)
             .cornerRadius(16)
         }
     }
@@ -1227,7 +1228,7 @@ struct SettingsRow: View {
     let title: String
     let subtitle: String
     var action: (() -> Void)? = nil
-    
+
     var body: some View {
         Button {
             print("🟣 SettingsRow tapped: \(title)")
@@ -1238,22 +1239,22 @@ struct SettingsRow: View {
                     .font(.system(size: 20))
                     .foregroundColor(Color.appPrimary)
                     .frame(width: 32)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                    
+                        .foregroundColor(Color.appPrimaryText)
+
                     Text(subtitle)
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                    .foregroundColor(Color.appSecondaryText)
             }
             .padding(.vertical, 8)
             .contentShape(Rectangle()) // Make entire row tappable
@@ -1268,30 +1269,30 @@ struct SettingsRowLabel: View {
     let title: String
     let subtitle: String
     var showChevron: Bool = false
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .foregroundColor(Color.appPrimary)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
-                
+                    .foregroundColor(Color.appPrimaryText)
+
                 Text(subtitle)
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
             }
-            
+
             Spacer()
-            
+
             if showChevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(red: 0.70, green: 0.70, blue: 0.70))
+                    .foregroundColor(Color.appSecondaryText)
             }
         }
         .padding(.vertical, 8)

@@ -49,13 +49,35 @@ final class FirestoreService {
     /// Updates only the location fields on a user document, leaving every other field
     /// untouched. Used by LocationRepairService to backfill a real coordinate without
     /// risking a stale overwrite of the rest of the profile.
+    ///
+    /// Coordinates are snapped to the coarse grid before writing — this field is
+    /// readable by other users (see firestore.rules), so nothing more precise than
+    /// ~0.7 mi may ever land here.
     /// - Throws: Firestore errors
     func updateUserLocation(userID: String, latitude: Double, longitude: Double) async throws {
+        let snapped = CoarseLocation.snap(CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
         try await db.collection(usersCollection).document(userID).updateData([
-            "latitude": latitude,
-            "longitude": longitude,
-            "location": GeoPoint(latitude: latitude, longitude: longitude)
+            "latitude": snapped.latitude,
+            "longitude": snapped.longitude,
+            "location": GeoPoint(latitude: snapped.latitude, longitude: snapped.longitude)
         ])
+    }
+
+    /// Updates the "Share My Location" mode and, when a fresh fix is provided, the
+    /// coarse coordinate and `locationUpdatedAt`. Passing `coordinate: nil` (e.g. for
+    /// a switch to .off) updates only the mode, leaving the last stored location and
+    /// its timestamp untouched.
+    /// - Throws: Firestore errors
+    func updateLocationSharing(userID: String, mode: LocationSharingMode, coordinate: CLLocationCoordinate2D?) async throws {
+        var data: [String: Any] = ["locationSharingMode": mode.rawValue]
+        if let coordinate {
+            let snapped = CoarseLocation.snap(coordinate)
+            data["latitude"] = snapped.latitude
+            data["longitude"] = snapped.longitude
+            data["location"] = GeoPoint(latitude: snapped.latitude, longitude: snapped.longitude)
+            data["locationUpdatedAt"] = Timestamp(date: Date())
+        }
+        try await db.collection(usersCollection).document(userID).updateData(data)
     }
 
     /// Updates the FCM token for a user
@@ -426,7 +448,11 @@ final class FirestoreService {
     
     /// Converts a FirebaseUser model to Firestore data
     private func userToFirestoreData(_ user: FirebaseUser) -> [String: Any] {
-        return [
+        // Snapped here too, defense-in-depth: this is the same field
+        // updateUserLocation/updateLocationSharing write to, and the one other
+        // users' match cards read — only coarse coordinates may ever land in it.
+        let snapped = CoarseLocation.snap(CLLocationCoordinate2D(latitude: user.latitude, longitude: user.longitude))
+        var data: [String: Any] = [
             "displayName": user.displayName,
             "bio": user.bio,
             "photoURLs": user.photoURLs,
@@ -436,9 +462,9 @@ final class FirestoreService {
             "daySlotCombos": user.daySlotCombos.map { combo in
                 return "\(combo.dayOfWeek.rawValue)_\(combo.timeSlot.rawValue)"
             },
-            "location": GeoPoint(latitude: user.latitude, longitude: user.longitude),
-            "latitude": user.latitude,
-            "longitude": user.longitude,
+            "location": GeoPoint(latitude: snapped.latitude, longitude: snapped.longitude),
+            "latitude": snapped.latitude,
+            "longitude": snapped.longitude,
             "radiusMiles": user.radiusMiles,
             "createdAt": Timestamp(date: user.createdAt),
             "updatedAt": Timestamp(date: user.updatedAt),
@@ -450,8 +476,15 @@ final class FirestoreService {
                 "planConfirmations": user.notificationPreferences.planConfirmations,
                 "groupUpdates": user.notificationPreferences.groupUpdates
             ],
-            "blockedUsers": user.blockedUsers
+            "blockedUsers": user.blockedUsers,
+            "locationSharingMode": user.locationSharingMode
         ]
+        // Only set when present so a merge-write (updateUser) never clobbers an
+        // already-stored timestamp with nil.
+        if let locationUpdatedAt = user.locationUpdatedAt {
+            data["locationUpdatedAt"] = Timestamp(date: locationUpdatedAt)
+        }
+        return data
     }
     
     /// Converts Firestore data to a FirebaseUser model
@@ -525,7 +558,11 @@ final class FirestoreService {
         // Parse show-up meter counters (default to 0; updated atomically via FieldValue.increment)
         let showUpThumbsUp = data["showUpThumbsUp"] as? Int ?? 0
         let showUpTotal = data["showUpTotal"] as? Int ?? 0
-        
+
+        // Default to "off" for every account that predates this setting
+        let locationSharingMode = data["locationSharingMode"] as? String ?? LocationSharingMode.off.rawValue
+        let locationUpdatedAt = (data["locationUpdatedAt"] as? Timestamp)?.dateValue()
+
         return FirebaseUser(
             id: id,
             displayName: displayName,
@@ -542,7 +579,9 @@ final class FirestoreService {
             blockedUsers: blockedUsers,
             bio: bio,
             showUpThumbsUp: showUpThumbsUp,
-            showUpTotal: showUpTotal
+            showUpTotal: showUpTotal,
+            locationSharingMode: locationSharingMode,
+            locationUpdatedAt: locationUpdatedAt
         )
     }
     

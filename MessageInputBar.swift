@@ -28,7 +28,7 @@ struct MessageInputBar: View {
                 .lineLimit(1...5)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.white.opacity(0.9))
+                .background(Color.appCardBackground)
                 .cornerRadius(20)
                 .onSubmit {
                     if canSend {
@@ -40,22 +40,7 @@ struct MessageInputBar: View {
             Button(action: onSend) {
                 ZStack {
                     Circle()
-                        .fill(
-                            canSend ?
-                            LinearGradient(
-                                colors: [
-                                    Color.appPrimary,
-                                    Color.appPrimary
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ) :
-                            LinearGradient(
-                                colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(canSend ? Color.appPrimary : Color.appBorder)
                         .frame(width: 40, height: 40)
                     
                     if isSending {
@@ -82,15 +67,8 @@ struct MessageInputBar: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
-            LinearGradient(
-                colors: [
-                    Color.white.opacity(0.95),
-                    Color.white.opacity(0.95)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
+            Color.appCardBackground
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
         )
     }
 }

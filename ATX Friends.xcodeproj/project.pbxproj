@@ -114,6 +114,10 @@
 		68A3C08E3052018100C9FDEF /* WaitlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3C08D3052018100C9FDEF /* WaitlistView.swift */; };
 		68A3DF863040B8F3006BB37B /* ProposePlanSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3DF853040B8F3006BB37B /* ProposePlanSheet.swift */; };
 		68A3DF883040B912006BB37B /* PlanProposalCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A3DF873040B912006BB37B /* PlanProposalCard.swift */; };
+		68A925D03064C367005C1547 /* LocationSharingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925CF3064C367005C1547 /* LocationSharingManager.swift */; };
+		68A925D23064C40C005C1547 /* ShareLocationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */; };
+		68A925D43064CDCA005C1547 /* OpenSlotGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */; };
+		68A925D63064D3DA005C1547 /* GhostSlotCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */; };
 		68CCEDE7304058A900640AB1 /* SimpaticoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE4304058A900640AB1 /* SimpaticoService.swift */; };
 		68CCEDE8304058A900640AB1 /* SimpaticoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE3304058A900640AB1 /* SimpaticoModels.swift */; };
 		68CCEDE9304058A900640AB1 /* SimpaticoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CCEDE5304058A900640AB1 /* SimpaticoView.swift */; };
@@ -243,6 +247,10 @@
 		68A3C08D3052018100C9FDEF /* WaitlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitlistView.swift; sourceTree = "<group>"; };
 		68A3DF853040B8F3006BB37B /* ProposePlanSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProposePlanSheet.swift; sourceTree = "<group>"; };
 		68A3DF873040B912006BB37B /* PlanProposalCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanProposalCard.swift; sourceTree = "<group>"; };
+		68A925CF3064C367005C1547 /* LocationSharingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingManager.swift; sourceTree = "<group>"; };
+		68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLocationSettingsView.swift; sourceTree = "<group>"; };
+		68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSlotGenerator.swift; sourceTree = "<group>"; };
+		68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostSlotCardView.swift; sourceTree = "<group>"; };
 		68CCEDE3304058A900640AB1 /* SimpaticoModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoModels.swift; sourceTree = "<group>"; };
 		68CCEDE4304058A900640AB1 /* SimpaticoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoService.swift; sourceTree = "<group>"; };
 		68CCEDE5304058A900640AB1 /* SimpaticoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpaticoView.swift; sourceTree = "<group>"; };
@@ -477,6 +485,10 @@
 				6892C92F3061095F00BFC363 /* GroupPlanDetailView.swift */,
 				68950C68306469FC004AE41D /* AuthErrorMessage.swift */,
 				68950C6A30647357004AE41D /* LocationRepairService.swift */,
+				68A925CF3064C367005C1547 /* LocationSharingManager.swift */,
+				68A925D13064C40C005C1547 /* ShareLocationSettingsView.swift */,
+				68A925D33064CDCA005C1547 /* OpenSlotGenerator.swift */,
+				68A925D53064D3DA005C1547 /* GhostSlotCardView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -671,6 +683,7 @@
 				1834BA3B2FD0F24E00F3ABF4 /* GroupView.swift in Sources */,
 				1834BA5B2FD413E200F3ABF4 /* EventDetailView.swift in Sources */,
 				18345AD02FBAA7DE00CF18FF /* PlansService.swift in Sources */,
+				68A925D43064CDCA005C1547 /* OpenSlotGenerator.swift in Sources */,
 				18A775472FABFAF60045B6D3 /* ProfileCompleteView.swift in Sources */,
 				18A775152FAB0C000045B6D3 /* MatchingService.swift in Sources */,
 				18345AE22FBD349900CF18FF /* PhotosSettingsView.swift in Sources */,
@@ -694,6 +707,7 @@
 				18A775392FABF8D80045B6D3 /* MainTabView.swift in Sources */,
 				18A7754B2FABFE250045B6D3 /* MatchesView.swift in Sources */,
 				18A775372FABF8A30045B6D3 /* RootView.swift in Sources */,
+				68A925D63064D3DA005C1547 /* GhostSlotCardView.swift in Sources */,
 				1834BA4F2FD1DE4000F3ABF4 /* InviteMemberSheet.swift in Sources */,
 				18E738E32FAD4AE30002E8B7 /* PlansView.swift in Sources */,
 				18A774F82FAB07550045B6D3 /* TimeSlot.swift in Sources */,
@@ -719,6 +733,8 @@
 				18A775252FABF43C0045B6D3 /* ProfileViewModel.swift in Sources */,
 				18A7752F2FABF6F50045B6D3 /* SignUpView.swift in Sources */,
 				1834BA592FD413A800F3ABF4 /* EventsView.swift in Sources */,
+				68A925D23064C40C005C1547 /* ShareLocationSettingsView.swift in Sources */,
+				68A925D03064C367005C1547 /* LocationSharingManager.swift in Sources */,
 				6892C92E3061092000BFC363 /* UpcomingView.swift in Sources */,
 				18A7755F2FAC019B0045B6D3 /* HomeViewModel.swift in Sources */,
 				18A775612FAC01CD0045B6D3 /* UserProfileView.swift in Sources */,
@@ -920,7 +936,7 @@
 				CODE_SIGN_ENTITLEMENTS = Avenue3/Avenue3.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 3XC8EEXBN9;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -930,7 +946,7 @@
 				INFOPLIST_FILE = Avenue3/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "ATX Friends";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "ATX Friends adds your confirmed plans to your calendar when you ask it to.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ATX Friends uses your location to confirm you're in the Austin area — we don't track you after signup.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ATX Friends uses your location to confirm you're in the Austin area, and — only if you turn on location sharing in Settings — to show your approximate distance to matches.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -971,7 +987,7 @@
 				CODE_SIGN_ENTITLEMENTS = Avenue3/Avenue3.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 3XC8EEXBN9;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -981,7 +997,7 @@
 				INFOPLIST_FILE = Avenue3/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "ATX Friends";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "ATX Friends adds your confirmed plans to your calendar when you ask it to.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ATX Friends uses your location to confirm you're in the Austin area — we don't track you after signup.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "ATX Friends uses your location to confirm you're in the Austin area, and — only if you turn on location sharing in Settings — to show your approximate distance to matches.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

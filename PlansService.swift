@@ -97,29 +97,33 @@ final class PlansService {
     // MARK: - Confirmed Plan Listener
 
     /// Real-time listener that delivers all confirmed, unexpired upcoming plans for a match,
-    /// sorted soonest first. Delivers an empty array when none exist.
-    /// Filters by matchID only (no composite index needed) then narrows client-side.
+    /// sorted soonest first, plus the full set of confirmed plan IDs for that match (including
+    /// past ones) so callers can tell whether any given plan is confirmed without a second query.
+    /// Delivers empty results when none exist. Filters by matchID only (no composite index
+    /// needed) then narrows client-side.
     func listenToConfirmedPlan(
         forMatch matchID: String,
-        completion: @escaping ([Plan]) -> Void
+        completion: @escaping (_ upcomingConfirmedPlans: [Plan], _ allConfirmedPlanIDs: Set<String>) -> Void
     ) -> ListenerRegistration {
         db.collection(plansCollection)
             .whereField("matchID", isEqualTo: matchID)
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error {
                     print("❌ PlansService.listenToConfirmedPlan error: \(error.localizedDescription)")
-                    completion([])
+                    completion([], [])
                     return
                 }
-                guard let self else { completion([]); return }
+                guard let self else { completion([], []); return }
                 let plans = snapshot?.documents
                     .compactMap { self.firestoreDataToPlan(id: $0.documentID, data: $0.data()) } ?? []
                 print("📌 PlansService.listenToConfirmedPlan: \(plans.count) total plans for match \(matchID)")
-                let upcoming = plans
-                    .filter { $0.status == .confirmed && ($0.confirmedDate ?? .distantPast) > Date() }
+                let confirmedPlans = plans.filter { $0.status == .confirmed }
+                let upcoming = confirmedPlans
+                    .filter { ($0.confirmedDate ?? .distantPast) > Date() }
                     .sorted { ($0.confirmedDate ?? .distantFuture) < ($1.confirmedDate ?? .distantFuture) }
-                print("📌 PlansService.listenToConfirmedPlan: \(upcoming.count) confirmed upcoming plan(s)")
-                completion(upcoming)
+                let allConfirmedIDs = Set(confirmedPlans.map(\.id))
+                print("📌 PlansService.listenToConfirmedPlan: \(upcoming.count) confirmed upcoming plan(s), \(allConfirmedIDs.count) confirmed total")
+                completion(upcoming, allConfirmedIDs)
             }
     }
 

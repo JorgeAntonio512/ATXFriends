@@ -16,16 +16,9 @@ struct MessagesListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
- 
+                Color.appBackground
+                    .ignoresSafeArea()
+
                 if viewModel.isLoading {
                     VStack(spacing: 20) {
                         ProgressView()
@@ -33,7 +26,7 @@ struct MessagesListView: View {
                             .scaleEffect(1.2)
                         Text("Loading messages...")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                 } else if viewModel.messageThreads.isEmpty {
                     EmptyMessagesView()
@@ -44,7 +37,7 @@ struct MessagesListView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Individuals & Couples")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .textCase(.uppercase)
                                     .padding(.leading, 4)
                                 
@@ -70,16 +63,16 @@ struct MessagesListView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Events")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .textCase(.uppercase)
                                     .padding(.leading, 4)
                                 
                                 Text("Coming soon")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .padding()
                                     .frame(maxWidth: .infinity)
-                                    .background(Color.white.opacity(0.5))
+                                    .background(Color.appCardBackground)
                                     .cornerRadius(12)
                             }
                             
@@ -87,16 +80,16 @@ struct MessagesListView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Groups")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .textCase(.uppercase)
                                     .padding(.leading, 4)
                                 
                                 Text("Group conversations will appear here")
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .padding()
                                     .frame(maxWidth: .infinity)
-                                    .background(Color.white.opacity(0.5))
+                                    .background(Color.appCardBackground)
                                     .cornerRadius(12)
                             }
                         }
@@ -156,7 +149,7 @@ struct MessageThreadRow: View {
                             HStack {
                                 Spacer()
                                 Circle()
-                                    .fill(Color(red: 0.85, green: 0.45, blue: 0.40))
+                                    .fill(Color.appDanger)
                                     .frame(width: 14, height: 14)
                                     .offset(x: 4, y: -4)
                             }
@@ -171,7 +164,7 @@ struct MessageThreadRow: View {
                     HStack(spacing: 6) {
                         Text(thread.otherUser.displayName)
                             .font(.system(size: 17, weight: isUnread ? .bold : .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appPrimaryText)
                             .lineLimit(1)
 
                         HStack(spacing: 4) {
@@ -214,8 +207,8 @@ struct MessageThreadRow: View {
                             .font(.system(size: 15, weight: isUnread ? .medium : .regular, design: .rounded))
                             .foregroundColor(
                                 isUnread ?
-                                Color(red: 0.35, green: 0.35, blue: 0.35) :
-                                Color(red: 0.50, green: 0.50, blue: 0.50)
+                                Color.appPrimaryText :
+                                Color.appSecondaryText
                             )
                             .lineLimit(2)
                     }
@@ -226,11 +219,11 @@ struct MessageThreadRow: View {
                 if !thread.timeText.isEmpty {
                     Text(thread.timeText)
                         .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                        .foregroundColor(Color.appSecondaryText)
                 }
             }
             .padding(16)
-            .background(Color.white.opacity(isUnread ? 0.9 : 0.7))
+            .background(Color.appCardBackground.opacity(isUnread ? 1.0 : 0.7))
             .cornerRadius(16)
         }
         .buttonStyle(.plain)
@@ -255,11 +248,11 @@ struct EmptyMessagesView: View {
             VStack(spacing: 12) {
                 Text("No Messages Yet")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
  
                 Text("When you match with someone and\nboth say Yay, you can start chatting!")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -271,12 +264,12 @@ struct EmptyMessagesView: View {
                         .foregroundColor(Color.appPrimary)
                     Text("Get Started")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appSecondaryText)
                 }
  
                 Text("Check the Matches tab to see potential friends. Say Yay to people you'd like to connect with!")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .lineSpacing(2)
             }
             .padding()
@@ -295,15 +288,8 @@ struct EmptyMessagesView: View {
 #Preview("Empty Messages") {
     NavigationStack {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color.white,
-                    Color.white
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            Color.appBackground
+                .ignoresSafeArea()
             EmptyMessagesView()
         }
         .navigationTitle("Messages")

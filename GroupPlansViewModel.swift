@@ -16,6 +16,9 @@ final class GroupPlansViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    /// The current user's own profile, loaded once for the open-slot generator.
+    var myProfile: FirebaseUser?
+
     private var listener: ListenerRegistration?
     private let authService = FirebaseAuthService.shared
     private let firestoreService = FirestoreService.shared
@@ -38,11 +41,19 @@ final class GroupPlansViewModel {
                 await self.loadMissingUsers()
             }
         }
+        Task { @MainActor in await self.loadMyProfileIfNeeded() }
     }
 
     func stopListening() {
         listener?.remove()
         listener = nil
+    }
+
+    /// Loads the current user's own profile once, for the open-slot generator.
+    @MainActor
+    func loadMyProfileIfNeeded() async {
+        guard myProfile == nil, let userID = currentUserID else { return }
+        myProfile = try? await firestoreService.fetchUser(userID: userID)
     }
 
     /// Active group plans the user hosts or is invited to, with a future date, soonest first.
@@ -52,6 +63,51 @@ final class GroupPlansViewModel {
         return groupPlans
             .filter { $0.status == .active && $0.date > now && ($0.isHost(userID: userID) || $0.isInvitee(userID: userID)) }
             .sorted { $0.date < $1.date }
+    }
+
+    /// Up to one open-slot ghost suggestion per day, for the next 7 days (tomorrow ... +6
+    /// days), keyed by the start of that calendar day. Days that already have a real
+    /// upcoming plan are skipped by the caller (see `hasPlan(on:)`); this generator doesn't
+    /// know about that — it only avoids exact plan-time collisions via existingPlanStarts.
+    var openSlotsByDay: [Date: OpenSlot] {
+        guard let myProfile else { return [:] }
+        let cal = Calendar.current
+        let now = Date()
+        guard
+            let start = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)),
+            let end = cal.date(byAdding: .day, value: 7, to: cal.startOfDay(for: now))
+        else { return [:] }
+
+        let existingStarts = upcomingPlans.map { $0.date }
+        let slots = OpenSlotGenerator.generate(
+            daySlotCombos: myProfile.daySlotCombos,
+            activities: myProfile.activities,
+            from: start,
+            through: end,
+            existingPlanStarts: existingStarts,
+            maxCount: 7
+        )
+
+        var result: [Date: OpenSlot] = [:]
+        for slot in slots {
+            let day = cal.startOfDay(for: slot.start)
+            if result[day] == nil {
+                result[day] = slot
+            }
+        }
+        return result
+    }
+
+    /// True if any active upcoming plan falls on the same calendar day as `date`.
+    func hasPlan(on date: Date) -> Bool {
+        let cal = Calendar.current
+        return upcomingPlans.contains { cal.isDate($0.date, inSameDayAs: date) }
+    }
+
+    /// Active upcoming plans on the same calendar day as `date`.
+    func plans(on date: Date) -> [GroupPlan] {
+        let cal = Calendar.current
+        return upcomingPlans.filter { cal.isDate($0.date, inSameDayAs: date) }
     }
 
     func hostName(for plan: GroupPlan) -> String {

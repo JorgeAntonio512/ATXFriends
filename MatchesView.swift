@@ -40,17 +40,9 @@ struct MatchesView: View {
                 }
                 
 
-                // Warm gradient background
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.white
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+                Color.appBackground
+                    .ignoresSafeArea()
+
                 if isLoading {
                     // Loading state
                     VStack(spacing: 20) {
@@ -60,7 +52,7 @@ struct MatchesView: View {
                         
                         Text("Finding your matches...")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
                 } else if pendingMatchesWithUsers.isEmpty && mutualMatchesWithUsers.isEmpty {
                     // Empty state - wrapped in ScrollView for pull-to-refresh
@@ -89,11 +81,11 @@ struct MatchesView: View {
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text("Pending Matches")
                                                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                                                .foregroundColor(Color.appNavy)
+                                                .foregroundColor(Color.appPrimaryText)
                                             
                                             Text("Say Yay to connect")
                                                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                .foregroundColor(Color.appSecondaryText)
                                         }
                                         
                                         Spacer()
@@ -151,11 +143,11 @@ struct MatchesView: View {
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text("Connected")
                                                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                                                .foregroundColor(Color.appNavy)
+                                                .foregroundColor(Color.appPrimaryText)
                                             
                                             Text("You've both said Yay")
                                                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                                                .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                                .foregroundColor(Color.appSecondaryText)
                                         }
                                         
                                         Spacer()
@@ -267,7 +259,7 @@ struct MatchesView: View {
             HStack(spacing: 12) {
                 Text("Connected")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
@@ -313,7 +305,7 @@ struct MatchesView: View {
                                     
                                     Text(matchWithUser.otherUser.displayName)
                                         .font(.system(size: 11, design: .rounded))
-                                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                                        .foregroundColor(Color.appPrimaryText)
                                         .lineLimit(1)
                                         .frame(width: 60)
                                 }
@@ -328,7 +320,7 @@ struct MatchesView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white)
+            .background(Color.appCardBackground)
             .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
     }
@@ -352,15 +344,15 @@ struct MatchesView: View {
                     
                     Text("You're connected!")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appNavy)
+                        .foregroundColor(Color.appPrimaryText)
                     
                     Text(matchWithUser.otherUser.displayName)
                         .font(.system(size: 17, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                        .foregroundColor(Color.appPrimaryText)
                     
                     Text("Go say hi 👋")
                         .font(.system(size: 15, design: .rounded))
-                        .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                        .foregroundColor(Color.appSecondaryText)
                     
                     VStack(spacing: 12) {
                         Button(action: {
@@ -394,13 +386,13 @@ struct MatchesView: View {
                         }) {
                             Text("Maybe later")
                                 .font(.system(size: 15, design: .rounded))
-                                .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                                .foregroundColor(Color.appSecondaryText)
                         }
                     }
                     .padding(.top, 8)
                 }
                 .padding(32)
-                .background(Color.white)
+                .background(Color.appCardBackground)
                 .cornerRadius(28)
                 .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
                 .padding(.horizontal, 40)
@@ -518,7 +510,7 @@ struct PendingMatchCard: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(matchWithUser.otherUser.displayName)
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appPrimaryText)
 
                         if let distanceText = matchWithUser.distanceText {
                             HStack(spacing: 4) {
@@ -527,7 +519,7 @@ struct PendingMatchCard: View {
                                     .foregroundColor(Color.appPrimary)
                                 Text(distanceText)
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                         }
 
@@ -541,7 +533,7 @@ struct PendingMatchCard: View {
                                         .foregroundColor(Color.appPrimary)
                                     Text("Shared Interests")
                                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                                 FlowLayout(spacing: 6) {
                                     ForEach(matchWithUser.sharedActivities, id: \.self) { activity in
@@ -564,7 +556,7 @@ struct PendingMatchCard: View {
                                     .foregroundColor(Color.appPrimary)
                                 Text(categoryMatchLabel)
                                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                    .foregroundColor(Color.appSecondaryText)
                             }
                         }
 
@@ -576,7 +568,7 @@ struct PendingMatchCard: View {
                                         .foregroundColor(Color.appPrimary)
                                     Text("Free at the same time")
                                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                                        .foregroundColor(Color.appSecondaryText)
                                 }
                                 FlowLayout(spacing: 6) {
                                     ForEach(matchWithUser.sharedTimes, id: \.self) { time in
@@ -608,10 +600,10 @@ struct PendingMatchCard: View {
                         Text("Nay")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
                     }
-                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+                    .foregroundColor(Color.appSecondaryText)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(Color(red: 0.95, green: 0.95, blue: 0.95))
+                    .background(Color.appBorder.opacity(0.5))
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
@@ -644,7 +636,7 @@ struct PendingMatchCard: View {
             .padding(.vertical, 12)
             .frame(width: 300)
         }
-        .background(Color.white)
+        .background(Color.appCardBackground)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
     }
@@ -706,7 +698,7 @@ struct ConnectedMatchRow: View {
                     HStack(spacing: 6) {
                         Text(matchWithUser.otherUser.displayName)
                             .font(.system(size: 17, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.35, blue: 0.35))
+                            .foregroundColor(Color.appPrimaryText)
                             .lineLimit(1)
                             .truncationMode(.tail)
 
@@ -719,11 +711,11 @@ struct ConnectedMatchRow: View {
                     if let firstActivity = matchWithUser.sharedActivities.first {
                         Text(firstActivity + (matchWithUser.sharedActivities.count > 1 ? " +\(matchWithUser.sharedActivities.count - 1) more" : ""))
                             .font(.system(size: 14, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     } else if let categoryMatchLabel = matchWithUser.categoryMatchLabel {
                         Text(categoryMatchLabel)
                             .font(.system(size: 14, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                            .foregroundColor(Color.appSecondaryText)
                     }
 
                     FlowLayout(spacing: 8) {
@@ -756,10 +748,10 @@ struct ConnectedMatchRow: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "location.fill")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                 Text(distanceText.replacingOccurrences(of: " away", with: ""))
                                     .font(.system(size: 12, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                                    .foregroundColor(Color.appSecondaryText)
                                     .lineLimit(1)
                             }
                         }
@@ -803,7 +795,7 @@ struct ConnectedMatchRow: View {
                 .buttonStyle(.plain)
             }
             .padding(16)
-            .background(Color.white.opacity(0.8))
+            .background(Color.appCardBackground)
             .cornerRadius(16)
         }
         .buttonStyle(.plain)
@@ -828,11 +820,11 @@ struct EmptyMatchesView: View {
             VStack(spacing: 12) {
                 Text("No Matches Yet")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.appNavy)
+                    .foregroundColor(Color.appPrimaryText)
                 
                 Text("We're looking for people who share\nyour interests and availability.\nCheck back soon!")
                     .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -846,12 +838,12 @@ struct EmptyMatchesView: View {
                     
                     Text("How Matching Works")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .foregroundColor(Color.appSecondaryText)
                 }
                 
                 Text("We automatically find people nearby who share at least one activity AND one time slot with you.")
                     .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(Color(red: 0.50, green: 0.50, blue: 0.50))
+                    .foregroundColor(Color.appSecondaryText)
                     .lineSpacing(2)
             }
             .padding()
@@ -870,16 +862,9 @@ struct EmptyMatchesView: View {
 #Preview("Empty State") {
     NavigationStack {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color.white,
-                    Color.white
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
+            Color.appBackground
+                .ignoresSafeArea()
+
             EmptyMatchesView()
         }
         .navigationTitle("Matches")
