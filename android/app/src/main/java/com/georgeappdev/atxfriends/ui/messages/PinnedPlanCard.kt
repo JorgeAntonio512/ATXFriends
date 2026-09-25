@@ -15,9 +15,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +33,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,8 +53,8 @@ private val CardShape = RoundedCornerShape(22.dp)
 
 /**
  * Port of iOS PinnedPlanCard: the soonest confirmed plan, pinned above the messages, as an
- * expanded "ticket" or a collapsed strip. Expanding works; every action (⋯ menu, +N more,
- * directions, calendar, reschedule Accept/Decline) is shown but disabled this round.
+ * expanded "ticket" or a collapsed strip, with the ⋯ menu (Reschedule / Cancel plan), "+N more",
+ * the pending-reschedule answer, directions, and Add to Calendar.
  */
 @Composable
 fun PinnedPlanCard(
@@ -59,12 +67,15 @@ fun PinnedPlanCard(
     expanded: Boolean,
     onExpand: () -> Unit,
     dates: MessageDates,
+    isBusy: Boolean,
+    addedToCalendar: Boolean,
+    actions: PlanActions,
 ) {
     Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
         if (expanded) {
-            ExpandedTicket(plan, overflowCount, otherUserName, otherUserPhotoURL, myPhotoURL, myID, dates)
+            ExpandedTicket(plan, overflowCount, otherUserName, otherUserPhotoURL, myPhotoURL, myID, dates, isBusy, addedToCalendar, actions)
         } else {
-            CollapsedStrip(plan, onExpand, dates)
+            CollapsedStrip(plan, onExpand, dates, onDirections = { actions.directions(plan) })
         }
     }
 }
@@ -86,13 +97,24 @@ private fun ExpandedTicket(
     myPhotoURL: String?,
     myID: String,
     dates: MessageDates,
+    isBusy: Boolean,
+    addedToCalendar: Boolean,
+    actions: PlanActions,
 ) {
     val colors = AtxTheme.colors
     Column(
         Modifier.fillMaxWidth().cardBackground(colors.cardBackground).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        TopRow(overflowCount)
+        TopRow(
+            overflowCount = overflowCount,
+            // One reschedule request at a time — hidden for both people while one is pending.
+            canReschedule = plan.status == PlanStatus.CONFIRMED,
+            enabled = !isBusy,
+            onShowAll = actions.showAll,
+            onReschedule = { actions.openReschedule(plan.id) },
+            onCancel = { actions.confirmCancel(plan.id) },
+        )
 
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(dates.pinnedHeadline(plan), style = atxText(28.sp, FontWeight.Bold), color = colors.primaryText)
@@ -100,19 +122,26 @@ private fun ExpandedTicket(
         }
 
         if (plan.status == PlanStatus.COUNTER_PROPOSED) {
-            RescheduleRequest(plan, myID, otherUserName, dates)
+            RescheduleRequest(plan, myID, otherUserName, dates, isBusy, actions)
         }
 
         PeopleRow(otherUserName, otherUserPhotoURL, myPhotoURL)
 
-        LocationSection(plan)
+        LocationSection(plan, onDirections = { actions.directions(plan) })
 
-        ButtonsRow(plan)
+        ButtonsRow(plan, addedToCalendar, onDirections = { actions.directions(plan) }, onAddToCalendar = { actions.addToCalendar(plan) })
     }
 }
 
 @Composable
-private fun TopRow(overflowCount: Int) {
+private fun TopRow(
+    overflowCount: Int,
+    canReschedule: Boolean,
+    enabled: Boolean,
+    onShowAll: () -> Unit,
+    onReschedule: () -> Unit,
+    onCancel: () -> Unit,
+) {
     val colors = AtxTheme.colors
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -132,26 +161,65 @@ private fun TopRow(overflowCount: Int) {
                 style = atxText(12.sp, FontWeight.SemiBold),
                 color = PlanColors.positiveGreen,
                 modifier = Modifier
-                    .notYetAvailable()
-                    .background(PlanColors.positiveGreen.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(PlanColors.positiveGreen.copy(alpha = 0.12f))
+                    .clickable(role = Role.Button, onClick = onShowAll)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             )
         }
 
         Spacer(Modifier.weight(1f))
 
-        Box(
-            Modifier.size(44.dp).notYetAvailable(stringResource(R.string.plan_more_options)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(R.drawable.ic_msg_more), null, tint = colors.primaryText, modifier = Modifier.size(22.dp))
+        var menuOpen by remember { mutableStateOf(false) }
+        Box {
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .clickable(enabled = enabled, role = Role.Button, onClick = { menuOpen = true }),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_msg_more),
+                    stringResource(R.string.plan_more_options),
+                    tint = colors.primaryText,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false },
+                containerColor = colors.cardBackground,
+            ) {
+                if (canReschedule) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.plan_reschedule), style = atxText(16.sp), color = colors.primaryText) },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_msg_refresh), null, tint = colors.primaryText, modifier = Modifier.size(20.dp)) },
+                        onClick = {
+                            menuOpen = false
+                            onReschedule()
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.plan_cancel_plan), style = atxText(16.sp), color = colors.danger) },
+                    leadingIcon = { Icon(painterResource(R.drawable.ic_msg_close), null, tint = colors.danger, modifier = Modifier.size(20.dp)) },
+                    onClick = {
+                        menuOpen = false
+                        onCancel()
+                    },
+                )
+            }
         }
     }
 }
 
-/** Port of iOS RescheduleRequestView: who suggested which new time, and Accept/Decline or "Waiting for …". */
+/**
+ * Port of iOS RescheduleRequestView: who suggested which new time, and Accept/Decline for the
+ * person who can answer or "Waiting for …" for the requester. Also used by the upcoming-plans rows.
+ */
 @Composable
-private fun RescheduleRequest(plan: Plan, myID: String, otherUserName: String, dates: MessageDates) {
+fun RescheduleRequest(plan: Plan, myID: String, otherUserName: String, dates: MessageDates, isBusy: Boolean, actions: PlanActions) {
     val colors = AtxTheme.colors
     val canRespond = plan.canRespondToReschedule(myID)
     Column(
@@ -174,7 +242,15 @@ private fun RescheduleRequest(plan: Plan, myID: String, otherUserName: String, d
                 }
             }
         }
-        if (canRespond) AcceptDeclineRow()
+        if (canRespond) {
+            AcceptDeclineRow(
+                isBusy = isBusy,
+                onAccept = { actions.acceptReschedule(plan.id) },
+                onDecline = { actions.declineReschedule(plan.id) },
+                acceptHint = stringResource(R.string.plan_reschedule_accept_hint),
+                declineHint = stringResource(R.string.plan_reschedule_decline_hint),
+            )
+        }
     }
 }
 
@@ -216,18 +292,22 @@ private fun PersonAvatar(url: String?, fallbackInitial: String, modifier: Modifi
 
 /**
  * iOS shows a MapKit snapshot here when the plan has coordinates. Android has no map yet, so it
- * shows the same tinted box and place label, with a pin in place of the map.
+ * shows the same tinted box and place label, with a pin in place of the map. Tapping it opens
+ * directions, as on iOS.
  */
 @Composable
-private fun LocationSection(plan: Plan) {
+private fun LocationSection(plan: Plan, onDirections: () -> Unit) {
     val colors = AtxTheme.colors
+    val directions = stringResource(R.string.plan_get_directions)
     if (plan.locationLatitude != null && plan.locationLongitude != null) {
         val secondary = plan.location?.takeIf { it.isNotEmpty() && it != plan.locationName }
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(118.dp)
-                .background(colors.appPrimary.copy(alpha = 0.12f), RoundedCornerShape(16.dp)),
+                .clip(RoundedCornerShape(16.dp))
+                .background(colors.appPrimary.copy(alpha = 0.12f))
+                .clickable(role = Role.Button, onClickLabel = directions, onClick = onDirections),
         ) {
             Icon(
                 painterResource(R.drawable.ic_msg_place),
@@ -258,25 +338,37 @@ private fun LocationSection(plan: Plan) {
             }
         }
     } else if (!plan.location.isNullOrEmpty()) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = directions, onClick = onDirections),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Icon(painterResource(R.drawable.ic_msg_place), null, tint = colors.appPrimary, modifier = Modifier.size(20.dp))
             Text(plan.location, style = atxText(14.sp), color = colors.primaryText)
         }
     }
 }
 
+/**
+ * "Get directions" plus the calendar icon when the plan has a place, otherwise a full-width
+ * "Add to Calendar". Once added (remembered per plan on this device) the icon becomes a check
+ * and the label "Added to Calendar".
+ */
 @Composable
-private fun ButtonsRow(plan: Plan) {
+private fun ButtonsRow(plan: Plan, addedToCalendar: Boolean, onDirections: () -> Unit, onAddToCalendar: () -> Unit) {
     val colors = AtxTheme.colors
     val shape = RoundedCornerShape(14.dp)
+    val calendarIcon = if (addedToCalendar) R.drawable.ic_msg_check_circle else R.drawable.ic_msg_calendar_plus
+    val calendarLabel = stringResource(if (addedToCalendar) R.string.plan_added_to_calendar else R.string.plan_add_to_calendar)
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         if (plan.hasLocation) {
             Row(
                 Modifier
                     .weight(1f)
                     .height(50.dp)
-                    .notYetAvailable()
-                    .background(colors.appPrimary, shape),
+                    .clip(shape)
+                    .background(colors.appPrimary)
+                    .clickable(role = Role.Button, onClick = onDirections),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
@@ -286,34 +378,37 @@ private fun ButtonsRow(plan: Plan) {
             Box(
                 Modifier
                     .size(50.dp)
-                    .notYetAvailable(stringResource(R.string.plan_add_to_calendar_a11y))
-                    .background(colors.appPrimary.copy(alpha = 0.12f), shape),
+                    .clip(shape)
+                    .background(colors.appPrimary.copy(alpha = 0.12f))
+                    .clickable(role = Role.Button, onClick = onAddToCalendar)
+                    .semantics { contentDescription = calendarLabel },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(painterResource(R.drawable.ic_msg_calendar_plus), null, tint = colors.appPrimary, modifier = Modifier.size(22.dp))
+                Icon(painterResource(calendarIcon), null, tint = colors.appPrimary, modifier = Modifier.size(22.dp))
             }
         } else {
-            // "Added to Calendar" is per-device state on iOS; Android has none yet.
             Row(
                 Modifier
                     .weight(1f)
                     .height(50.dp)
-                    .notYetAvailable()
-                    .background(colors.appPrimary, shape),
+                    .clip(shape)
+                    .background(colors.appPrimary)
+                    .clickable(role = Role.Button, onClick = onAddToCalendar),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
-                Icon(painterResource(R.drawable.ic_msg_calendar_plus), null, tint = Color.White, modifier = Modifier.size(20.dp))
-                Text(stringResource(R.string.plan_add_to_calendar), style = atxText(17.sp, FontWeight.SemiBold), color = Color.White)
+                Icon(painterResource(calendarIcon), null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Text(calendarLabel, style = atxText(17.sp, FontWeight.SemiBold), color = Color.White)
             }
         }
     }
 }
 
 @Composable
-private fun CollapsedStrip(plan: Plan, onExpand: () -> Unit, dates: MessageDates) {
+private fun CollapsedStrip(plan: Plan, onExpand: () -> Unit, dates: MessageDates, onDirections: () -> Unit) {
     val colors = AtxTheme.colors
     val expandLabel = stringResource(R.string.plan_show_details)
+    val directionsLabel = stringResource(R.string.plan_get_directions)
     Row(
         Modifier.fillMaxWidth().cardBackground(colors.cardBackground).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -342,7 +437,10 @@ private fun CollapsedStrip(plan: Plan, onExpand: () -> Unit, dates: MessageDates
                 iconSize = 18.dp,
                 background = colors.appPrimary,
                 tint = Color.White,
-                modifier = Modifier.notYetAvailable(stringResource(R.string.plan_get_directions)),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.plan_get_directions), onClick = onDirections)
+                    .semantics { contentDescription = directionsLabel },
             )
         }
 

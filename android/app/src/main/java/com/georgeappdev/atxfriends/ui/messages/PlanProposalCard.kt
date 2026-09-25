@@ -1,6 +1,8 @@
 package com.georgeappdev.atxfriends.ui.messages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,10 +18,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,11 +39,20 @@ import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
  * Port of iOS PlanProposalCard: a plan-proposal message shown as a card, on the sender's side.
- * The plan comes from the thread's live plans listener instead of a one-time fetch per card.
- * Accept / Decline (receiver only, pending plans) are shown but disabled this round.
+ * The plan comes from the thread's live plans listener instead of a one-time fetch per card,
+ * so the card updates itself after Accept / Decline (receiver only, pending plans).
  */
 @Composable
-fun PlanProposalCard(message: Message, isMine: Boolean, state: ProposalCardState, myID: String, dates: MessageDates) {
+fun PlanProposalCard(
+    message: Message,
+    isMine: Boolean,
+    state: ProposalCardState,
+    myID: String,
+    dates: MessageDates,
+    isBusy: Boolean,
+    onAccept: (planID: String) -> Unit,
+    onDecline: (planID: String) -> Unit,
+) {
     val colors = AtxTheme.colors
     val shape = RoundedCornerShape(16.dp)
     SideAlignedRow(isMine, horizontalPadding = 16.dp) {
@@ -96,7 +110,12 @@ fun PlanProposalCard(message: Message, isMine: Boolean, state: ProposalCardState
                         }
                     }
                     if (plan.status == PlanStatus.PENDING && plan.receiverID == myID) {
-                        AcceptDeclineRow(Modifier.padding(top = 4.dp))
+                        AcceptDeclineRow(
+                            isBusy = isBusy,
+                            onAccept = { onAccept(plan.id) },
+                            onDecline = { onDecline(plan.id) },
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
                     }
                 }
             }
@@ -109,35 +128,52 @@ private fun SummaryText(text: String, maxLines: Int) {
     Text(text, style = atxText(14.sp), color = AtxTheme.colors.secondaryText, maxLines = maxLines)
 }
 
-/** iOS's Decline / Accept pair — used by the proposal card and the reschedule request. Disabled. */
+/**
+ * iOS's Decline / Accept pair — used by the proposal card and the reschedule request. While
+ * [isBusy] (a write is saving) both are disabled under a spinner, so a double tap can't send
+ * two writes.
+ */
 @Composable
-fun AcceptDeclineRow(modifier: Modifier = Modifier) {
+fun AcceptDeclineRow(
+    isBusy: Boolean,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+    modifier: Modifier = Modifier,
+    acceptHint: String? = null,
+    declineHint: String? = null,
+) {
     val colors = AtxTheme.colors
     val shape = RoundedCornerShape(10.dp)
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        val decline = stringResource(R.string.plan_decline)
-        Text(
-            decline,
-            style = atxText(15.sp, FontWeight.SemiBold),
-            color = PlanColors.declinedRed,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .notYetAvailable()
-                .background(PlanColors.declinedRed.copy(alpha = 0.10f), shape)
-                .padding(vertical = 9.dp),
-        )
-        Text(
-            stringResource(R.string.plan_accept),
-            style = atxText(15.sp, FontWeight.SemiBold),
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .notYetAvailable()
-                .background(colors.appPrimary, shape)
-                .padding(vertical = 9.dp),
-        )
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Row(Modifier.alpha(if (isBusy) 0.5f else 1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                stringResource(R.string.plan_decline),
+                style = atxText(15.sp, FontWeight.SemiBold),
+                color = PlanColors.declinedRed,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(shape)
+                    .background(PlanColors.declinedRed.copy(alpha = 0.10f))
+                    .clickable(enabled = !isBusy, role = Role.Button, onClickLabel = declineHint, onClick = onDecline)
+                    .padding(vertical = 9.dp),
+            )
+            Text(
+                stringResource(R.string.plan_accept),
+                style = atxText(15.sp, FontWeight.SemiBold),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(shape)
+                    .background(colors.appPrimary)
+                    .clickable(enabled = !isBusy, role = Role.Button, onClickLabel = acceptHint, onClick = onAccept)
+                    .padding(vertical = 9.dp),
+            )
+        }
+        if (isBusy) {
+            CircularProgressIndicator(color = colors.appPrimary, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+        }
     }
 }
 

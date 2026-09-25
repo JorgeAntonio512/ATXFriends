@@ -30,6 +30,20 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.georgeappdev.atxfriends.AtxFriendsApp
+import com.georgeappdev.atxfriends.domain.openslots.OpenSlot
+import com.georgeappdev.atxfriends.navigation.AppTab
+import com.georgeappdev.atxfriends.navigation.LocalTabNavigator
+import com.georgeappdev.atxfriends.ui.components.GhostCardStyle
+import com.georgeappdev.atxfriends.ui.components.GhostSlotCard
+import com.georgeappdev.atxfriends.ui.plans.ComposerMode
+import com.georgeappdev.atxfriends.ui.plans.ComposerPrefill
+import com.georgeappdev.atxfriends.ui.plans.ComposerRequest
+import com.georgeappdev.atxfriends.ui.plans.ComposerResult
+import com.georgeappdev.atxfriends.ui.plans.PlanComposerSheet
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -43,7 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -62,8 +75,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
- * Port of iOS TodayView, read-only this round: "I'm in", "Post it", the next-usual-slot link,
- * "Or start from scratch", and the + button are shown in the iOS style but do nothing.
+ * Port of iOS TodayView. "+", "Or start from scratch" and a ghost card's "Post it" open the plan
+ * composer (.openPost, prefilled from a ghost card); "I'm in" claims a plan and opens the new
+ * thread in Messages; the next-usual-slot link jumps to Upcoming.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,9 +93,23 @@ fun TodayScreen(viewModel: TodayViewModel = viewModel(factory = TodayViewModel.F
         onDispose { vm.onDisappear() }
     }
 
+    var composer by remember { mutableStateOf<ComposerRequest?>(null) }
+    val openComposer: (ComposerPrefill?) -> Unit = { composer = ComposerRequest(ComposerMode.OpenPost, it) }
+
+    // After a claim: hand the thread to Messages and switch tabs (iOS .navigateToMatchThread).
+    val tabs = LocalTabNavigator.current
+    val threadRequests = (LocalContext.current.applicationContext as AtxFriendsApp).container.threadRequests
+    LaunchedEffect(state.threadToOpen) {
+        state.threadToOpen?.let {
+            threadRequests.request(it)
+            viewModel.onThreadOpened()
+            tabs.open(AppTab.MESSAGES)
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(colors.appBackground)) {
         Column(Modifier.fillMaxSize()) {
-            TodayTopBar()
+            TodayTopBar(onNewPlan = { openComposer(null) })
 
             // Filter chips only when there's something to filter.
             if (state.availableActivities.isNotEmpty()) {
@@ -110,11 +138,20 @@ fun TodayScreen(viewModel: TodayViewModel = viewModel(factory = TodayViewModel.F
                                 TodayPlanCard(
                                     plan = plan,
                                     timeBadge = TodayFeed.timeBadgeLabel(plan.scheduledTime, state.now, state.zone, shortTime),
+                                    isClaiming = plan.id in state.claimingIDs,
+                                    onClaim = { viewModel.claim(plan.id) },
                                 )
                             }
                         }
                         if (state.openSlots.isNotEmpty()) {
-                            item(key = "openSlots") { OpenSlotsSection(state) }
+                            item(key = "openSlots") {
+                                OpenSlotsSection(
+                                    state,
+                                    onPostSlot = { slot -> openComposer(ComposerPrefill(slot.activityName, slot.start)) },
+                                    onStartFromScratch = { openComposer(null) },
+                                    onNextUsualSlot = { tabs.open(AppTab.UPCOMING) },
+                                )
+                            }
                         }
                     }
                 }
@@ -130,6 +167,35 @@ fun TodayScreen(viewModel: TodayViewModel = viewModel(factory = TodayViewModel.F
         ) {
             state.claimedBannerActivity?.let { ClaimedBanner(stringResource(R.string.today_claimed_banner, it)) }
         }
+
+        // "Posted!" toast: slides up from the bottom after posting.
+        AnimatedVisibility(
+            visible = state.showPostedToast,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp),
+        ) {
+            PostedToast()
+        }
+    }
+
+    composer?.let { request ->
+        PlanComposerSheet(
+            request,
+            onDismiss = { composer = null },
+            onDone = { result -> (result as? ComposerResult.Posted)?.let { viewModel.onPosted(it.plan) } },
+        )
+    }
+
+    state.actionError?.let { message ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissActionError,
+            title = { Text(stringResource(R.string.today_error_title)) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissActionError) { Text(stringResource(R.string.action_ok)) }
+            },
+        )
     }
 
     state.loadError?.let { detail ->
@@ -157,9 +223,9 @@ private fun rememberShortTimeFormatter(): (ZonedDateTime) -> String {
     }
 }
 
-/** iOS large navigation title with the + toolbar button (disabled this round). */
+/** iOS large navigation title with the + toolbar button. */
 @Composable
-private fun TodayTopBar() {
+private fun TodayTopBar(onNewPlan: () -> Unit) {
     val colors = AtxTheme.colors
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Box(Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.CenterEnd) {
@@ -169,7 +235,8 @@ private fun TodayTopBar() {
                 tint = colors.appPrimary,
                 modifier = Modifier
                     .size(28.dp)
-                    .semantics { role = Role.Button; disabled() },
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable(role = Role.Button, onClick = onNewPlan),
             )
         }
         Text(
@@ -259,7 +326,12 @@ private fun ClaimedBanner(message: String) {
 }
 
 @Composable
-private fun OpenSlotsSection(state: TodayUiState) {
+private fun OpenSlotsSection(
+    state: TodayUiState,
+    onPostSlot: (OpenSlot) -> Unit,
+    onStartFromScratch: () -> Unit,
+    onNextUsualSlot: () -> Unit,
+) {
     val colors = AtxTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -279,19 +351,24 @@ private fun OpenSlotsSection(state: TodayUiState) {
             val slot = ranked.slot
             GhostSlotCard(
                 titleLine = TodayFeed.timeUntilLine(slot.start, state.now, state.zone),
-                activityName = slot.activityName,
+                activityLine = stringResource(R.string.today_ghost_activity, slot.activityName),
+                style = GhostCardStyle.SOLID,
+                buttonIcon = R.drawable.ic_add,
+                buttonLabel = stringResource(R.string.today_post_it),
                 accessibilityLabel = stringResource(
                     R.string.today_ghost_a11y,
                     slot.activityName,
                     TodayFeed.accessibleTimeDescription(slot.start, state.now, state.zone),
                 ),
+                onTap = { onPostSlot(slot) },
             )
         }
 
         state.nextUsualSlot?.let { next ->
-            // Opens Upcoming on iOS; disabled this round.
             Row(
-                Modifier.padding(top = 2.dp).semantics { role = Role.Button; disabled() },
+                Modifier
+                    .padding(top = 2.dp)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.today_open_upcoming), onClick = onNextUsualSlot),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -311,7 +388,28 @@ private fun OpenSlotsSection(state: TodayUiState) {
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(top = 4.dp)
-                .semantics { role = Role.Button; disabled() },
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(role = Role.Button, onClick = onStartFromScratch),
         )
+    }
+}
+
+/** iOS post toast: navy capsule with a check, white text. */
+@Composable
+private fun PostedToast() {
+    val colors = AtxTheme.colors
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        Modifier
+            .shadow(8.dp, shape, ambientColor = Color.Black.copy(alpha = 0.15f), spotColor = Color.Black.copy(alpha = 0.15f))
+            .clip(shape)
+            .background(colors.appNavy)
+            .padding(horizontal = 18.dp, vertical = 12.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(painterResource(R.drawable.ic_msg_check_circle), contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+        Text(stringResource(R.string.today_posted_toast), style = atxText(14.sp, FontWeight.SemiBold), color = Color.White)
     }
 }

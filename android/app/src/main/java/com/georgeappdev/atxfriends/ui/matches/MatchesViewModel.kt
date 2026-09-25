@@ -47,6 +47,8 @@ data class MatchUi(
     /** I haven't said Yay/Nay yet (iOS MatchDetailView.isPending). */
     val isPending: Boolean,
     val isMutual: Boolean,
+    /** The other person's UID (a proposal's receiverID). */
+    val otherUserID: String = "",
 ) {
     val firstPhotoURL: String? get() = photoURLs.firstOrNull()
 
@@ -227,6 +229,7 @@ class MatchesViewModel(
 
     private fun MatchEntry.toUi(me: UserProfile?) = MatchUi(
         matchID = match.id,
+        otherUserID = other.id,
         name = other.displayName,
         photoURLs = other.photoURLs,
         distanceText = me?.let { DistanceDisplay.between(it, other) },

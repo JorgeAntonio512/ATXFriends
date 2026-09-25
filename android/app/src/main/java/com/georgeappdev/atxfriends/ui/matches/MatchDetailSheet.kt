@@ -55,11 +55,17 @@ import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
  * Port of iOS MatchDetailView. Say Yay / Say Nay each ask for confirmation with the iOS alert
- * text. Send Message / Propose a Plan are shown but disabled this round.
+ * text. [onProposePlan] backs "Propose a Plan"; Send Message is shown but disabled this round.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MatchDetailSheet(match: MatchUi, onDismiss: () -> Unit, onDecide: (yay: Boolean) -> Unit, isSaving: Boolean) {
+fun MatchDetailSheet(
+    match: MatchUi,
+    onDismiss: () -> Unit,
+    onDecide: (yay: Boolean) -> Unit,
+    isSaving: Boolean,
+    onProposePlan: (() -> Unit)? = null,
+) {
     val colors = AtxTheme.colors
     var fullScreenIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     /** true = confirming Yay, false = confirming Nay. */
@@ -115,7 +121,7 @@ fun MatchDetailSheet(match: MatchUi, onDismiss: () -> Unit, onDecide: (yay: Bool
                     }
                 }
 
-                if (match.isMutual) ConnectedBlock()
+                if (match.isMutual) ConnectedBlock(onProposePlan)
             }
 
             // Close button, top right (iOS xmark.circle.fill).
@@ -239,9 +245,9 @@ private fun DetailCard(icon: Int, title: String, chips: List<String>) {
     }
 }
 
-/** The mutual-match block: "You're Connected!" with Send Message / Propose a Plan (disabled). */
+/** The mutual-match block: "You're Connected!" with Send Message (disabled) / Propose a Plan. */
 @Composable
-private fun ConnectedBlock() {
+private fun ConnectedBlock(onProposePlan: (() -> Unit)?) {
     val colors = AtxTheme.colors
     Column(
         Modifier
@@ -261,7 +267,7 @@ private fun ConnectedBlock() {
             textAlign = TextAlign.Center,
         )
         DetailButton(R.drawable.ic_tab_messages_selected, stringResource(R.string.match_detail_send_message), filled = true)
-        DetailButton(R.drawable.ic_calendar_add, stringResource(R.string.match_detail_propose_plan), filled = false, outlined = true)
+        DetailButton(R.drawable.ic_calendar_add, stringResource(R.string.match_detail_propose_plan), filled = false, outlined = true, onClick = onProposePlan)
     }
 }
 

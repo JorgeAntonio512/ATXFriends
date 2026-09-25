@@ -3,6 +3,7 @@ package com.georgeappdev.atxfriends.data.firestore
 import com.georgeappdev.atxfriends.data.model.FirestoreEnum
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
 
@@ -29,6 +30,15 @@ class DocumentUpdate private constructor(val fields: Map<String, Any?>) {
         fun put(field: String, value: Long) = apply { fields[field] = value }
         fun put(field: String, value: Instant) = apply { fields[field] = DocReader.toTimestamp(value) }
         fun putStrings(field: String, value: List<String>) = apply { fields[field] = value.toList() }
+        fun putInstants(field: String, value: List<Instant>) = apply { fields[field] = value.map(DocReader::toTimestamp) }
+        fun putBooleans(field: String, value: List<Boolean>) = apply { fields[field] = value.toList() }
+        fun put(field: String, value: GeoPoint) = apply { fields[field] = value }
+
+        /** Adds [value] to an array field unless already present (iOS `FieldValue.arrayUnion`). */
+        fun arrayUnion(field: String, value: String) = apply { fields[field] = FieldValue.arrayUnion(value) }
+
+        /** Removes every copy of [value] from an array field (iOS `FieldValue.arrayRemove`). */
+        fun arrayRemove(field: String, value: String) = apply { fields[field] = FieldValue.arrayRemove(value) }
 
         fun put(field: String, value: FirestoreEnum) = apply {
             fields[field] = requireNotNull(value.raw) { "Refusing to write an UNKNOWN value to '$field'" }

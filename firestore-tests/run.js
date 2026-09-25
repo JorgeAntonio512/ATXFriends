@@ -26,6 +26,7 @@ import {
   where,
   serverTimestamp,
   deleteField,
+  addDoc,
 } from 'firebase/firestore';
 
 let passed = 0;
@@ -546,6 +547,43 @@ async function main() {
     await seed((db) => setDoc(doc(db, 'groupPlans/g19'), validGroupPlan()));
     const q = query(collection(bob, 'groupPlans'), where('inviteeIDs', 'array-contains', 'bob'));
     await assertSucceeds(getDocs(q));
+  });
+
+  // ---- groupPlans: the exact documents each app creates ----
+  // Field for field what Android PlanWrites.groupPlan (add(), auto-ID) and iOS
+  // groupPlanToFirestoreData (setData on a new UUID) write, including the embedded activity's
+  // five Codable keys and the optional place fields. Guards the Upcoming invite flow: both
+  // must be accepted and must come back from both Upcoming list queries.
+  const appGroupPlan = () => ({
+    hostID: 'alice',
+    inviteeIDs: ['bob'],
+    responses: { bob: 'invited' },
+    activity: { id: 'ACT-UUID', name: 'Board Games', isUserAdded: false, createdAt: new Date(), isPrimary: false },
+    date: new Date(Date.now() + 60 * 60 * 1000),
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    location: 'Vigilante Gaming Bar, 7010 Easy Wind Dr',
+    locationName: 'Vigilante Gaming Bar',
+    locationLatitude: 30.3389,
+    locationLongitude: -97.7194,
+  });
+
+  await check('groupPlans: Android invite document (add, auto-ID) is accepted and listed', async () => {
+    const ref = await assertSucceeds(addDoc(collection(alice, 'groupPlans'), appGroupPlan()));
+    const hostIDs = (await getDocs(query(collection(alice, 'groupPlans'), where('hostID', '==', 'alice')))).docs.map((d) => d.id);
+    const inviteeIDs = (await getDocs(query(collection(bob, 'groupPlans'), where('inviteeIDs', 'array-contains', 'bob')))).docs.map((d) => d.id);
+    if (!hostIDs.includes(ref.id) || !inviteeIDs.includes(ref.id)) throw new Error('new invite missing from an Upcoming query');
+  });
+
+  await check('groupPlans: iOS invite document (setData on a new UUID, free-text place) is accepted and listed', async () => {
+    const plan = appGroupPlan();
+    delete plan.locationName;
+    delete plan.locationLatitude;
+    delete plan.locationLongitude;
+    await assertSucceeds(setDoc(doc(alice, 'groupPlans/6F9619FF-8B86-D011-B42D-00C04FC964FF'), plan));
+    const inviteeIDs = (await getDocs(query(collection(bob, 'groupPlans'), where('inviteeIDs', 'array-contains', 'bob')))).docs.map((d) => d.id);
+    if (!inviteeIDs.includes('6F9619FF-8B86-D011-B42D-00C04FC964FF')) throw new Error('new invite missing from the invitee query');
   });
 
   await testEnv.cleanup();

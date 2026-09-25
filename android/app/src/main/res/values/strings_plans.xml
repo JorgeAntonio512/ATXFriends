@@ -1,0 +1,95 @@
+<resources>
+    <!-- Plan composer (iOS ProposePlanSheet / PlanLocationField), Upcoming (UpcomingView,
+         GroupPlanDetailView) and Today posting/claiming. Own file so parallel rounds don't collide. -->
+
+    <!-- ProposePlanSheet -->
+    <string name="composer_title_proposal">Propose a Plan</string>
+    <string name="composer_title_open_post">Post a Plan</string>
+    <string name="composer_title_group_invite">Plan Something</string>
+    <string name="composer_header_proposal">What do you want to do?</string>
+    <string name="composer_header_open_post">Open to everyone on ATX Friends · next 24 hours</string>
+    <string name="composer_header_group_invite">Invite matches — any date.</string>
+    <string name="composer_submit_proposal">Send Proposal</string>
+    <string name="composer_submit_open_post">Post Plan</string>
+    <string name="composer_submit_group_invite">Send Invites</string>
+    <string name="composer_prefill_banner">Filled in from your open slot. Change anything.</string>
+    <string name="composer_activity_label">Activity</string>
+    <string name="composer_activity_placeholder">e.g. Hiking, Tacos, Board games…</string>
+    <string name="composer_when_label">When</string>
+    <string name="composer_today">Today</string>
+    <string name="composer_tomorrow">Tomorrow</string>
+    <string name="composer_time">Time</string>
+    <string name="composer_invitees_label">Who\'s invited?</string>
+    <string name="composer_no_mutual_matches">You don\'t have any mutual matches yet.</string>
+    <string name="composer_invitees_load_error">Couldn\'t load your matches.</string>
+    <string name="composer_choose_time">Choose a time</string>
+    <string name="composer_submitting">Sending…</string>
+
+    <!-- PlanLocationField -->
+    <string name="where_label">Where?</string>
+    <string name="where_placeholder">Search for a place…</string>
+    <string name="where_clear">Clear location</string>
+    <string name="where_missing_hint">Add a place so people know where to meet</string>
+    <string name="where_searching">Searching…</string>
+    <string name="where_no_matches">No matches — you can enter any location</string>
+    <string name="where_search_error">Couldn\'t search right now — you can still type a location</string>
+    <string name="where_distance_tenths">%1$.1f mi</string>
+    <string name="where_distance_whole">%1$.0f mi</string>
+
+    <!-- Today posting and claiming -->
+    <string name="today_posted_toast">Posted!</string>
+    <string name="today_joining">Joining…</string>
+    <string name="today_open_upcoming">Opens Upcoming</string>
+
+    <!-- UpcomingView -->
+    <string name="upcoming_title">Upcoming</string>
+    <string name="upcoming_new_plan">Plan something</string>
+    <string name="upcoming_loading">Loading plans…</string>
+    <string name="upcoming_empty_title">Nothing planned yet</string>
+    <string name="upcoming_empty_body">Tap + to invite some friends.</string>
+    <string name="upcoming_error_title">Something went wrong</string>
+    <string name="upcoming_load_error">Couldn\'t load your plans. Check your connection and try again.</string>
+    <string name="upcoming_ghost_title">%1$s %2$s is open</string>
+    <string name="upcoming_invite">Invite</string>
+    <string name="upcoming_ghost_a11y">Invite matches to plan: %1$s, %2$s %3$s.</string>
+    <string name="upcoming_hosted_by">Hosted by %1$s</string>
+    <string name="upcoming_going_count">%1$d going</string>
+    <string name="upcoming_status_hosting">Hosting</string>
+    <string name="upcoming_status_going">Going</string>
+    <string name="upcoming_status_cant_make">Can\'t make it</string>
+    <string name="upcoming_status_invited">Invited</string>
+    <string name="upcoming_unknown_name">…</string>
+    <string name="upcoming_day_a11y_plan">%1$s, plan scheduled</string>
+    <string name="upcoming_day_a11y_slot">%1$s, open slot</string>
+    <!-- Android-only: the composer's send has waited ~10s (no connection); it's queued. -->
+    <string name="composer_offline_invite">No connection. Your invite will send when you\'re back online.</string>
+    <string name="composer_offline_plan">No connection. Your plan will send when you\'re back online.</string>
+    <string name="upcoming_today">Today</string>
+    <string name="upcoming_later">Later</string>
+    <!-- Android-only: confirms an invite was sent, so the composer closing isn't the only sign. -->
+    <string name="upcoming_invite_sent_for">Invite sent for %1$s</string>
+    <string name="upcoming_invite_sent">Invite sent.</string>
+
+    <!-- GroupPlanDetailView -->
+    <string name="group_detail_title">Plan Details</string>
+    <string name="group_detail_done">Done</string>
+    <string name="group_detail_active">Active</string>
+    <string name="group_detail_cancelled">Cancelled</string>
+    <string name="group_detail_activity">Activity</string>
+    <string name="group_detail_when">When</string>
+    <string name="group_detail_location">Location</string>
+    <string name="group_detail_host">Host</string>
+    <string name="group_detail_whos_invited">Who\'s invited</string>
+    <string name="group_detail_going">Going</string>
+    <string name="group_detail_cant_make">Can\'t make it</string>
+    <string name="group_detail_add_to_calendar">Add to Calendar</string>
+    <string name="group_detail_cancel_plan">Cancel Plan</string>
+    <string name="group_detail_cancel_title">Cancel Plan?</string>
+    <string name="group_detail_cancel_message">This removes the plan for everyone invited.</string>
+    <string name="group_detail_keep_plan">Keep Plan</string>
+    <string name="group_detail_directions">Get directions</string>
+    <string name="group_detail_respond_error">Couldn\'t update your response. Please try again.</string>
+    <string name="group_detail_cancel_error">Couldn\'t cancel the plan. Please try again.</string>
+    <string name="group_detail_calendar_notes">Hosted by %1$s. Invited: %2$s.</string>
+    <string name="plan_actions_no_app">No app on this phone can open that.</string>
+</resources>

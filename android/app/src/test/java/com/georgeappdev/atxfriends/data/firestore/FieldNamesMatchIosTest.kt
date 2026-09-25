@@ -28,7 +28,7 @@ class FieldNamesMatchIosTest {
 
     @Test
     fun collections() = assertKeys(
-        listOf("users", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports"),
+        listOf("users", "activities", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports"),
         Collections,
     )
 
@@ -49,6 +49,13 @@ class FieldNamesMatchIosTest {
         NotificationPreferenceFields,
     )
 
+    /** FirestoreService.addActivity. */
+    @Test
+    fun activityCatalog() = assertKeys(
+        listOf("name", "isUserAdded", "createdAt", "category", "needsReview"),
+        ActivityDocFields,
+    )
+
     @Test
     fun embeddedActivity() = assertKeys(listOf("id", "name", "isUserAdded", "createdAt", "isPrimary"), ActivityFields)
 
@@ -56,7 +63,7 @@ class FieldNamesMatchIosTest {
     fun matches() = assertKeys(
         listOf(
             "user1ID", "user2ID", "user1Decision", "user2Decision", "isMutualMatch", "createdAt", "updatedAt",
-            "overlappingActivityNames", "overlappingDaySlots", "overlappingCategoryNames",
+            "overlappingActivityNames", "overlappingDaySlots", "overlappingCategoryNames", "isBlocked",
         ),
         MatchFields,
     )

@@ -65,8 +65,32 @@ final class GroupPlansViewModel {
             .sorted { $0.date < $1.date }
     }
 
-    /// Up to one open-slot ghost suggestion per day, for the next 7 days (tomorrow ... +6
-    /// days), keyed by the start of that calendar day. Days that already have a real
+    /// Upcoming plans later today — shown in the "Today" section above the week strip, which
+    /// itself starts tomorrow. (Before this section existed, an invite for later today — the
+    /// composer's default time — was saved but shown nowhere.)
+    var todayPlans: [GroupPlan] {
+        Self.todayPlans(upcomingPlans, now: Date(), calendar: .current)
+    }
+
+    /// Upcoming plans after the week strip's last day — shown in the "Later" section.
+    var laterPlans: [GroupPlan] {
+        Self.laterPlans(upcomingPlans, now: Date(), calendar: .current)
+    }
+
+    /// Plans (already filtered to upcoming) on today's calendar day.
+    static func todayPlans(_ plans: [GroupPlan], now: Date, calendar: Calendar) -> [GroupPlan] {
+        plans.filter { calendar.isDate($0.date, inSameDayAs: now) }
+    }
+
+    /// Plans (already filtered to upcoming) on or after the start of today + 8 days — past the
+    /// strip, which runs tomorrow through today + 7.
+    static func laterPlans(_ plans: [GroupPlan], now: Date, calendar: Calendar) -> [GroupPlan] {
+        guard let afterStrip = calendar.date(byAdding: .day, value: 8, to: calendar.startOfDay(for: now)) else { return [] }
+        return plans.filter { $0.date >= afterStrip }
+    }
+
+    /// Up to one open-slot ghost suggestion per day, for tomorrow through today + 6 (the
+    /// window ends at the start of the strip's 7th day), keyed by the start of that calendar day. Days that already have a real
     /// upcoming plan are skipped by the caller (see `hasPlan(on:)`); this generator doesn't
     /// know about that — it only avoids exact plan-time collisions via existingPlanStarts.
     /// Activities are ordered to prefer the `.planned` tier (see ActivityCategories) so

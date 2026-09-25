@@ -160,10 +160,13 @@ private fun DecisionButton(
     }
 }
 
-/** Port of iOS ConnectedMatchRow. The Plan and Message buttons are disabled this round. */
+/**
+ * Port of iOS ConnectedMatchRow. [onPlan] opens the plan composer; without it the Plan button
+ * is inert. The Message button is disabled this round.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ConnectedMatchRow(match: MatchUi, onTap: () -> Unit, modifier: Modifier = Modifier) {
+fun ConnectedMatchRow(match: MatchUi, onTap: () -> Unit, modifier: Modifier = Modifier, onPlan: (() -> Unit)? = null) {
     val colors = AtxTheme.colors
     Row(
         modifier
@@ -209,9 +212,10 @@ fun ConnectedMatchRow(match: MatchUi, onTap: () -> Unit, modifier: Modifier = Mo
             }
         }
 
-        // Plan and Message: shown in the iOS style, disabled this round.
+        // Plan opens the composer (.proposal); Message is shown in the iOS style, disabled this round.
         Box(
-            Modifier.size(44.dp).clip(CircleShape).background(colors.appPrimary.copy(alpha = 0.15f)),
+            Modifier.size(44.dp).clip(CircleShape).background(colors.appPrimary.copy(alpha = 0.15f))
+                .then(if (onPlan != null) Modifier.clickable(role = Role.Button, onClick = onPlan) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Icon(painterResource(R.drawable.ic_calendar_add), contentDescription = stringResource(R.string.matches_plan_button), tint = colors.appPrimary, modifier = Modifier.size(22.dp))

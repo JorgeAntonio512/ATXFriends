@@ -14,7 +14,8 @@ struct UpcomingView: View {
     @State private var selectedPlan: GroupPlan?
     @State private var selectedGhostSlot: OpenSlot?
 
-    /// Tomorrow through +6 days — the 7-day strip's date range.
+    /// Tomorrow through today + 7 — the 7-day strip's date range. Plans later today and past
+    /// the strip get their own "Today" and "Later" sections.
     private var next7Days: [Date] {
         let cal = Calendar.current
         let startOfToday = cal.startOfDay(for: Date())
@@ -52,10 +53,18 @@ struct UpcomingView: View {
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
+                            if !viewModel.todayPlans.isEmpty {
+                                planListSection(title: "Today", plans: viewModel.todayPlans)
+                            }
+
                             weekStrip
 
                             ForEach(next7Days, id: \.self) { day in
                                 daySection(for: day)
+                            }
+
+                            if !viewModel.laterPlans.isEmpty {
+                                planListSection(title: "Later", plans: viewModel.laterPlans)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -141,6 +150,26 @@ struct UpcomingView: View {
             Circle().strokeBorder(Color.appPrimary, lineWidth: 1.5).frame(width: 8, height: 8)
         case .none:
             Circle().fill(Color.clear).frame(width: 8, height: 8)
+        }
+    }
+
+    // MARK: - Today / Later
+
+    /// A titled list of plan cards — the "Today" section above the strip and the "Later"
+    /// section below it. Each card's pill shows its date and time.
+    private func planListSection(title: String, plans: [GroupPlan]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundColor(Color.appPrimaryText)
+                .accessibilityAddTraits(.isHeader)
+
+            ForEach(plans) { plan in
+                GroupPlanCard(plan: plan, viewModel: viewModel)
+                    .onTapGesture {
+                        selectedPlan = plan
+                    }
+            }
         }
     }
 

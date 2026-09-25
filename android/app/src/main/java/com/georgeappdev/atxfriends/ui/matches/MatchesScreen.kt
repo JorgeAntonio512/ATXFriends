@@ -28,6 +28,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.georgeappdev.atxfriends.R
 import com.georgeappdev.atxfriends.ui.components.atxText
+import com.georgeappdev.atxfriends.ui.plans.ComposerMode
+import com.georgeappdev.atxfriends.ui.plans.ComposerRequest
+import com.georgeappdev.atxfriends.ui.plans.PlanComposerSheet
 import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /** Port of iOS MatchesView. Read-only this round. */
@@ -54,6 +60,10 @@ fun MatchesScreen(viewModel: MatchesViewModel = viewModel(factory = MatchesViewM
 
     // Runs each time the tab appears (iOS .onAppear).
     LaunchedEffect(Unit) { viewModel.onAppear() }
+
+    // The plan composer (.proposal), from a connected row's Plan icon or Match Detail.
+    var composer by remember { mutableStateOf<ComposerRequest?>(null) }
+    val proposeTo: (MatchUi) -> Unit = { m -> composer = ComposerRequest(ComposerMode.Proposal(m.matchID, m.otherUserID)) }
 
     Column(Modifier.fillMaxSize().background(colors.appBackground)) {
         Text(
@@ -86,7 +96,7 @@ fun MatchesScreen(viewModel: MatchesViewModel = viewModel(factory = MatchesViewM
                         }
                     }
                 } else {
-                    MatchesList(state, onSelect = viewModel::select, onDecide = viewModel::decide)
+                    MatchesList(state, onSelect = viewModel::select, onDecide = viewModel::decide, onPlan = proposeTo)
                 }
             }
         }
@@ -98,7 +108,12 @@ fun MatchesScreen(viewModel: MatchesViewModel = viewModel(factory = MatchesViewM
             onDismiss = viewModel::dismissDetail,
             onDecide = { yay -> viewModel.decide(match.matchID, yay) },
             isSaving = state.isDeciding,
+            onProposePlan = { proposeTo(match) },
         )
+    }
+
+    composer?.let { request ->
+        PlanComposerSheet(request, onDismiss = { composer = null })
     }
 
     state.celebration?.let { match ->
@@ -132,7 +147,12 @@ private fun MatchesLoading() {
 }
 
 @Composable
-private fun MatchesList(state: MatchesUiState, onSelect: (String) -> Unit, onDecide: (String, Boolean) -> Unit) {
+private fun MatchesList(
+    state: MatchesUiState,
+    onSelect: (String) -> Unit,
+    onDecide: (String, Boolean) -> Unit,
+    onPlan: (MatchUi) -> Unit,
+) {
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = 20.dp, bottom = 40.dp),
@@ -177,7 +197,12 @@ private fun MatchesList(state: MatchesUiState, onSelect: (String) -> Unit, onDec
                 )
             }
             items(state.connected, key = { "c-" + it.matchID }) { match ->
-                ConnectedMatchRow(match, onTap = { onSelect(match.matchID) }, modifier = Modifier.padding(horizontal = 20.dp))
+                ConnectedMatchRow(
+                    match,
+                    onTap = { onSelect(match.matchID) },
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    onPlan = { onPlan(match) },
+                )
             }
         }
     }

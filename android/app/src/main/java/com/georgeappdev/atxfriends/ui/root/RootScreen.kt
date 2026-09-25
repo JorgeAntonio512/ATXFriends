@@ -19,7 +19,7 @@ fun RootScreen(viewModel: RootViewModel = viewModel(factory = RootViewModel.Fact
         when (kind) {
             SessionState.Loading::class -> LoadingScreen()
             SessionState.SignedOut::class -> AuthNavHost()
-            SessionState.Ready::class -> MainScaffold()
+            SessionState.Ready::class -> SignedInScope { MainScaffold() }
             SessionState.NotFinished::class -> AccountNotFinishedScreen(onSignOut = viewModel::signOut)
             SessionState.LoadFailed::class -> LoadFailedScreen(onRetry = viewModel::retry, onSignOut = viewModel::signOut)
             else -> LoadingScreen()

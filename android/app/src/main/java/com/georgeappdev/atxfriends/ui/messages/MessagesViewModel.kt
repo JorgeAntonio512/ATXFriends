@@ -43,10 +43,7 @@ data class MessagesUiState(
     val myPhotoURL: String? = null,
 )
 
-/**
- * Port of the thread-list half of iOS MessagingViewModel. Read-only: opening a conversation
- * does not mark it read on Android yet, so its unread styling stays until an iPhone reads it.
- */
+/** Port of the thread-list half of iOS MessagingViewModel. */
 class MessagesViewModel(private val container: AppContainer) : ViewModel() {
 
     private val _state = MutableStateFlow(MessagesUiState())
@@ -54,10 +51,21 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
 
     private var loadJob: Job? = null
 
+    /**
+     * A thread another tab asked to open (Today's "I'm in"), waiting for the next load to finish
+     * so a just-created match is in the list (iOS MessagesListView pendingRoute).
+     */
+    private var pendingThreadID: String? = null
+
     init {
         val ready = container.session.state.value as? SessionState.Ready
         if (ready != null) {
             _state.update { it.copy(myID = ready.user.uid, myPhotoURL = ready.profile.photoURLs.firstOrNull()) }
+            viewModelScope.launch {
+                container.threadRequests.pending.collect { request ->
+                    if (request != null) pendingThreadID = container.threadRequests.consume()?.matchID
+                }
+            }
             viewModelScope.launch {
                 container.messages.unreadMatchIDs(ready.user.uid)
                     .catch { /* iOS keeps its last unread set when the listener errors. */ }
@@ -71,11 +79,25 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
 
     fun refresh() = load(isRefresh = true)
 
+    /**
+     * Opens a conversation and, like iOS, marks it read right away, before the thread has even
+     * loaded (UnreadState.markConversationRead). A failure here is retried by the open thread.
+     */
     fun open(threadID: String) {
         _state.update { s -> s.copy(openThread = s.threads.firstOrNull { it.id == threadID }) }
+        val myID = _state.value.myID
+        if (myID.isEmpty()) return
+        viewModelScope.launch { orNull { container.messages.markConversationRead(threadID, myID) } }
     }
 
-    fun closeThread() = _state.update { it.copy(openThread = null) }
+    /**
+     * Closes the conversation and refreshes the list so its last message and plan pill are
+     * current. (iOS leaves the list as it was until the tab reappears.)
+     */
+    fun closeThread() {
+        _state.update { it.copy(openThread = null) }
+        load(isRefresh = false)
+    }
 
     private fun load(isRefresh: Boolean) {
         val myID = _state.value.myID
@@ -95,6 +117,7 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
             try {
                 val threads = sortThreadsForDisplay(fetchThreads(myID))
                 _state.update { it.copy(threads = threads, isLoading = false, isRefreshing = false) }
+                openPendingThread()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -103,6 +126,16 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * Opens the requested thread if it loaded, and forgets the request either way, as iOS does
+     * (its Matches-tab fallback isn't used for this route).
+     */
+    private fun openPendingThread() {
+        val id = pendingThreadID ?: return
+        pendingThreadID = null
+        if (_state.value.threads.any { it.id == id }) open(id)
     }
 
     /**

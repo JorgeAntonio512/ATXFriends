@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings main (iOS SettingsTabView in MainTabView.swift) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_profile">Profile</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_share_location">Share My Location</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_row_display_name">Display Name</string>
+    <string name="settings_row_display_name_sub">Update your display name</string>
+    <string name="settings_row_photos">Photos</string>
+    <string name="settings_row_photos_sub">Manage your 3 photos</string>
+    <string name="settings_row_activities">Activities</string>
+    <string name="settings_row_activities_sub">Your 3 interests</string>
+    <string name="settings_row_availability">Availability</string>
+    <string name="settings_row_availability_sub">Your 3 time slots</string>
+    <string name="settings_row_radius">Search Radius</string>
+    <string name="settings_row_radius_sub">%1$d miles</string>
+    <string name="settings_row_notifications">Notifications</string>
+    <string name="settings_row_notifications_sub">Manage alerts</string>
+    <string name="settings_row_privacy">Privacy &amp; Safety</string>
+    <string name="settings_row_privacy_sub">Blocking, reporting, and data</string>
+    <string name="settings_row_location">Location</string>
+    <string name="settings_row_location_sub">Manage location access</string>
+    <string name="settings_location_precise">Precise</string>
+    <string name="settings_location_approximate">Approximate</string>
+    <string name="settings_location_denied">Denied</string>
+    <string name="settings_location_not_set">Not Set</string>
+    <string name="settings_footer_app">ATX Friends</string>
+    <string name="settings_footer_version">Version 1.0.0</string>
+
+    <!-- Shared -->
+    <string name="settings_save">Save</string>
+    <string name="settings_saving">Saving...</string>
+    <string name="settings_error_title">Error</string>
+    <string name="settings_save_failed">Failed to save changes</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_tips">Tips</string>
+    <string name="settings_open_settings">Open Settings</string>
+    <!-- Android-only: iOS autosaves silently and only logs failures. -->
+    <string name="settings_autosave_failed">Couldn\'t save your changes. Check your connection and try again.</string>
+
+    <!-- Display name (iOS EditProfileView) -->
+    <string name="name_field_label">Display Name</string>
+    <string name="name_field_placeholder">Enter your name</string>
+    <string name="name_error">Please enter a name (2-30 characters)</string>
+    <string name="name_counter">%1$d/30</string>
+    <string name="name_tip_1">• Use your first name or a friendly nickname</string>
+    <string name="name_tip_2">• Keep it appropriate and respectful</string>
+    <string name="name_tip_3">• This is how others will see you</string>
+
+    <!-- Photos (iOS PhotosSettingsView) -->
+    <string name="photos_title">Your Photos</string>
+    <string name="photos_subtitle">Tap any photo to replace it</string>
+    <string name="photos_uploading">Uploading...</string>
+    <string name="photos_tips_title">Photo Tips</string>
+    <string name="photos_tip_1">• Choose clear, recent photos</string>
+    <string name="photos_tip_2">• Smiling faces work best</string>
+    <string name="photos_tip_3">• Show your personality!</string>
+    <string name="photos_process_failed">Failed to process the selected image.</string>
+    <!-- Android-only: iOS sets these errors but never shows them. -->
+    <string name="photos_upload_failed">Couldn\'t upload your photo. Check your connection and try again.</string>
+    <string name="photos_too_large">That photo is too large to upload. Please choose a different one.</string>
+    <string name="photos_slot_description">Photo %1$d of 3. Tap to replace.</string>
+    <string name="photos_empty_slot_description">Add photo %1$d of 3</string>
+
+    <!-- Activities (iOS ActivitiesSettingsView) -->
+    <string name="activities_warning_title">Select 3 Main activities to continue</string>
+    <string name="activities_warning_count">%1$d/3 Main selected</string>
+    <string name="activities_title">Your Activities</string>
+    <string name="activities_subtitle">Select 3 Main activities, plus up to 7 Extras</string>
+    <string name="activities_main_header">Main (%1$d/3)</string>
+    <string name="activities_extras_header">Extras (%1$d/7)</string>
+    <string name="activities_search_placeholder">Search activities...</string>
+    <string name="activities_available">Available Activities</string>
+    <string name="activities_add_inline">Add \'%1$s\' — choose a category</string>
+    <string name="activities_already_exists">Activity already exists</string>
+    <string name="activities_add_custom">Add Custom Activity</string>
+    <string name="activities_max_title">You\'ve selected the max of 10 activities!</string>
+    <string name="activities_max_body">Remove one to add a different activity</string>
+    <string name="activities_adding">Adding activity...</string>
+    <string name="activities_custom_body">Can\'t find what you\'re looking for? Add your own!</string>
+    <string name="activities_custom_name_label">Activity Name</string>
+    <string name="activities_custom_name_placeholder">e.g. Rock Climbing</string>
+    <string name="activities_custom_category_label">Category</string>
+    <string name="activities_custom_category_placeholder">Choose a category</string>
+    <string name="activities_custom_add_button">Add Activity</string>
+    <string name="activities_make_main">Make %1$s a Main activity</string>
+    <string name="activities_is_main">%1$s is a Main activity</string>
+    <string name="activities_remove">Remove %1$s</string>
+    <!-- Android-only: iOS sets these errors but never shows them. -->
+    <string name="activities_load_failed">Couldn\'t load activities. Check your connection and try again.</string>
+    <string name="activities_add_failed">Couldn\'t add that activity. Please try again.</string>
+
+    <!-- Availability (iOS AvailabilitySettingsView) -->
+    <string name="availability_warning_title">Select at least 3 time slots to continue</string>
+    <string name="availability_warning_count">%1$d/3 selected</string>
+    <string name="availability_title">Your Availability</string>
+    <string name="availability_subtitle">Select at least 3 times when you\'re usually free to hang out</string>
+    <string name="availability_selected_count">%1$d selected</string>
+    <string name="availability_grid_header">Tap to add a time slot</string>
+    <string name="availability_remove">Remove %1$s</string>
+
+    <!-- Search radius (iOS SearchRadiusSettingsView) -->
+    <string name="radius_title">Search Radius</string>
+    <string name="radius_subtitle">How far away should we look for matches?</string>
+    <string name="radius_mile">mile</string>
+    <string name="radius_miles">miles</string>
+    <string name="radius_min_label">5 miles</string>
+    <string name="radius_max_label">25 miles</string>
+    <string name="radius_guide_title">Distance Guide</string>
+    <string name="radius_guide_1_distance">5-10 miles</string>
+    <string name="radius_guide_1_desc">Your neighborhood</string>
+    <string name="radius_guide_2_distance">10-15 miles</string>
+    <string name="radius_guide_2_desc">Nearby areas</string>
+    <string name="radius_guide_3_distance">15-25 miles</string>
+    <string name="radius_guide_3_desc">Greater Austin area</string>
+    <string name="radius_how_title">How This Works</string>
+    <string name="radius_how_1">• We\'ll show you people within this radius</string>
+    <string name="radius_how_2">• Larger radius = more potential matches</string>
+    <string name="radius_how_3">• Smaller radius = closer connections</string>
+    <string name="radius_how_4">• You can change this anytime</string>
+
+    <!-- Share My Location (iOS ShareMyLocationContent) -->
+    <string name="share_mode_off">Off</string>
+    <string name="share_mode_once">Update once</string>
+    <string name="share_mode_on_open">When I open the app</string>
+    <string name="share_explainer">Your matches see about how far away you are — never your exact location.</string>
+    <string name="share_last_updated">Last updated: %1$s</string>
+    <string name="share_today">today</string>
+    <string name="share_this_week">this week</string>
+    <string name="share_over_week">over a week ago</string>
+    <string name="share_update_now">Update now</string>
+    <string name="share_permission_title">Location access needed</string>
+    <string name="share_permission_body">ATX Friends can\'t access your location. Enable it in Settings to share your distance with matches.</string>
+    <!-- Android-only: iOS sets this error but never shows it. -->
+    <string name="share_save_failed">Couldn\'t update location sharing. Check your connection and try again.</string>
+
+    <!-- Notifications (iOS NotificationSettingsView) -->
+    <string name="notif_title">Notifications</string>
+    <string name="notif_status_title">Notification Status</string>
+    <string name="notif_status_enabled">Enabled</string>
+    <string name="notif_status_disabled">Disabled</string>
+    <string name="notif_status_not_set">Not Set</string>
+    <string name="notif_disabled_title">Notifications are disabled</string>
+    <string name="notif_disabled_body">To receive match updates, messages, and plan notifications, please enable notifications in Settings.</string>
+    <string name="notif_enable_title">Enable Notifications</string>
+    <string name="notif_enable_body">Get notified when you have new matches, messages, and plan confirmations.</string>
+    <string name="notif_types_header">NOTIFICATION TYPES</string>
+    <string name="notif_new_matches">New Matches</string>
+    <string name="notif_new_matches_desc">When you match with someone new</string>
+    <string name="notif_messages">Messages</string>
+    <string name="notif_messages_desc">When you receive a new message</string>
+    <string name="notif_plan_requests">Plan Requests</string>
+    <string name="notif_plan_requests_desc">When someone invites you to hang out</string>
+    <string name="notif_plan_confirmations">Plan Confirmations</string>
+    <string name="notif_plan_confirmations_desc">When a plan is confirmed</string>
+    <string name="notif_footer">These notifications help you stay connected with your matches and never miss important updates.</string>
+    <!-- Android-only: iOS logs these failures but never shows them. -->
+    <string name="notif_load_failed">Couldn\'t load your notification settings. Check your connection and try again.</string>
+    <string name="notif_save_failed">Couldn\'t save your notification settings. Check your connection and try again.</string>
+
+    <!-- Privacy & Safety (iOS PrivacyAndSafetyView) -->
+    <string name="privacy_title">Privacy &amp; Safety</string>
+    <string name="privacy_header_body">Manage your privacy settings, blocked users, and account data.</string>
+    <string name="privacy_row_block">Block a User</string>
+    <string name="privacy_row_block_sub">Block someone from your matches</string>
+    <string name="privacy_row_blocked">Blocked Users</string>
+    <string name="privacy_row_blocked_sub">Manage your blocked list</string>
+    <string name="privacy_row_delete">Delete Account</string>
+    <string name="privacy_row_delete_sub">Permanently delete your data</string>
+    <string name="privacy_row_export">Export My Data</string>
+    <string name="privacy_row_export_sub">Download a copy of your data</string>
+    <string name="privacy_row_protect">How We Protect Your Data</string>
+    <string name="privacy_row_protect_sub">Learn about our privacy practices</string>
+    <string name="privacy_policy_url" translatable="false">https://avenue3.app/privacy.html</string>
+
+    <!-- Block a User (iOS BlockUserView) -->
+    <string name="block_title">Block a User</string>
+    <string name="block_loading">Loading matches...</string>
+    <string name="block_empty_title">No Matches to Block</string>
+    <string name="block_empty_body">You don\'t have any current matches. Users you block will appear here.</string>
+    <string name="block_header">Select a user to block</string>
+    <string name="block_section_matches">Matches</string>
+    <string name="block_section_connections">Current Connections</string>
+    <string name="block_confirm_title">Block %1$s?</string>
+    <string name="block_confirm_body">They won\'t be able to see your profile or contact you.</string>
+    <string name="block_confirm_button">Block</string>
+    <string name="block_success_title">User Blocked</string>
+    <string name="block_success_body">%1$s has been blocked</string>
+    <string name="block_user_fallback">User</string>
+    <!-- Android-only: iOS sets these errors but never shows them. -->
+    <string name="block_load_failed">Couldn\'t load your matches. Check your connection and try again.</string>
+    <string name="block_failed">Couldn\'t block this person. Check your connection and try again.</string>
+
+    <!-- Blocked Users (iOS BlockedUsersView) -->
+    <string name="blocked_title">Blocked Users</string>
+    <string name="blocked_loading">Loading blocked users...</string>
+    <string name="blocked_empty_title">No Blocked Users</string>
+    <string name="blocked_empty_body">You haven\'t blocked anyone yet. Users you block won\'t be able to see your profile or contact you.</string>
+    <string name="blocked_header_body">These users can\'t see your profile or contact you</string>
+    <string name="blocked_unblock">Unblock</string>
+    <string name="blocked_confirm_title">Unblock %1$s?</string>
+    <string name="blocked_confirm_body">They\'ll be able to see your profile and contact you again.</string>
+    <string name="blocked_success_title">User Unblocked</string>
+    <string name="blocked_success_body">%1$s has been unblocked</string>
+    <!-- Android-only: iOS sets these errors but never shows them. -->
+    <string name="blocked_load_failed">Couldn\'t load your blocked list. Check your connection and try again.</string>
+    <string name="blocked_unblock_failed">Couldn\'t unblock this person. Check your connection and try again.</string>
+
+    <!-- Delete Account (iOS DeleteAccountView) -->
+    <string name="delete_title">Delete Account</string>
+    <string name="delete_warning">This permanently deletes your account right away. It can\'t be undone.</string>
+    <string name="delete_what_header">What will be deleted:</string>
+    <string name="delete_profile_title">Profile &amp; Photos</string>
+    <string name="delete_profile_desc">Your profile, photos, and Simpatico answers</string>
+    <string name="delete_matches_title">Matches</string>
+    <string name="delete_matches_desc">All your matches — removed for the other person too</string>
+    <string name="delete_messages_title">Messages</string>
+    <string name="delete_messages_desc">Every conversation, including the messages you received — the other person\'s thread with you disappears</string>
+    <string name="delete_plans_title">Plans</string>
+    <string name="delete_plans_desc">Your plans, Today plans, and group plans you host — removed for everyone involved. You\'re also removed from group plans you were invited to.</string>
+    <string name="delete_confirm_header">Type DELETE to confirm</string>
+    <string name="delete_confirm_body">Your account and everything above will be gone for good. To confirm, type DELETE below:</string>
+    <string name="delete_confirm_placeholder">Type DELETE</string>
+    <string name="delete_button">Permanently Delete My Account</string>
+    <string name="delete_button_busy">Deleting Your Account…</string>
+    <string name="delete_error_title">Couldn\'t Delete Account</string>
+    <string name="delete_error_body">We couldn\'t delete your account. Check your connection and try again.</string>
+
+    <!-- Export My Data (iOS ExportDataView) -->
+    <string name="export_title">Export My Data</string>
+    <string name="export_subtitle">Download a complete copy of your ATX Friends data</string>
+    <string name="export_included_header">What\'s included in your export:</string>
+    <string name="export_profile_title">Profile Information</string>
+    <string name="export_profile_desc">Your name, account creation date, and search radius</string>
+    <string name="export_activities_title">Activities</string>
+    <string name="export_activities_desc">All activities you\'ve selected</string>
+    <string name="export_availability_title">Availability</string>
+    <string name="export_availability_desc">Your selected days and time slots</string>
+    <string name="export_photos_title">Photos</string>
+    <string name="export_photos_desc">URLs to all your profile photos</string>
+    <string name="export_matches_title">Matches</string>
+    <string name="export_matches_desc">All your mutual connections</string>
+    <string name="export_messages_title">Messages</string>
+    <string name="export_messages_desc">Complete message history</string>
+    <string name="export_plans_title">Plans</string>
+    <string name="export_plans_desc">All proposed and confirmed plans</string>
+    <string name="export_info_title">Your Data, Your Way</string>
+    <!-- iOS names Files and AirDrop; this is the same idea in Android terms. -->
+    <string name="export_info_body">Export your data to save it to your files, email it, or share it with another app. The export is in plain text format for easy reading.</string>
+    <string name="export_button">Export My Data</string>
+    <string name="export_button_busy">Exporting...</string>
+    <string name="export_failed">Failed to export data. Please try again.</string>
+    <string name="export_file_name" translatable="false">ATX Friends Data Export.txt</string>
+    <string name="export_share_subject">ATX Friends Data Export</string>
+</resources>

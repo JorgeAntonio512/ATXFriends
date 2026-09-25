@@ -9,6 +9,9 @@ import com.georgeappdev.atxfriends.data.model.TodayPlanStatus
 import com.georgeappdev.atxfriends.data.model.UserProfile
 import com.georgeappdev.atxfriends.data.repository.UserDoc
 import com.georgeappdev.atxfriends.domain.today.OpenSlotsHeader
+import com.georgeappdev.atxfriends.domain.today.PlanAlreadyClaimedException
+import com.georgeappdev.atxfriends.navigation.ThreadRequest
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -71,7 +74,11 @@ class TodayViewModelTest {
         fetchUser = { id -> mapOf("me" to me, "sam" to sam)[id]?.let(UserDoc::Found) ?: UserDoc.Missing },
         clock = { start.plusMillis(testScheduler.currentTime) },
         zone = { zone },
+        claimPlan = { plan, claimer -> claimCalls += plan.id to claimer; claimResult() },
     )
+
+    private val claimCalls = mutableListOf<Pair<String, String>>()
+    private var claimResult: suspend () -> String = { "me_sam" }
 
     @Test
     fun loadsFeedWithPosterInfoAndOwnPost() = runTest(dispatcher) {
@@ -168,6 +175,73 @@ class TodayViewModelTest {
         assertEquals(OpenSlotsHeader.YOUR_OPEN_SLOTS, vm.state.value.openSlotsHeader)
         vm.dismissError()
         assertNull(vm.state.value.loadError)
+        vm.onDisappear()
+    }
+
+    // ── Posting and claiming ─────────────────────────────────────────────────────────
+
+    @Test
+    fun claim_opensTheThreadWithThePoster_andDropsTheCard() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onAppear()
+        vm.claim("sams")
+        assertEquals(listOf("sams" to "me"), claimCalls)
+        assertEquals(ThreadRequest("me_sam", "sam", "Sam"), vm.state.value.threadToOpen)
+        assertEquals(listOf("mine"), vm.state.value.plans.map { it.id })
+        assertTrue(vm.state.value.claimingIDs.isEmpty())
+        vm.onThreadOpened()
+        assertNull(vm.state.value.threadToOpen)
+        vm.onDisappear()
+    }
+
+    @Test
+    fun claim_showsJoiningWhileSaving_andIgnoresDoubleTaps() = runTest(dispatcher) {
+        val gate = CompletableDeferred<String>()
+        claimResult = { gate.await() }
+        val vm = viewModel()
+        vm.onAppear()
+        vm.claim("sams")
+        assertEquals(setOf("sams"), vm.state.value.claimingIDs)
+        vm.claim("sams")
+        gate.complete("me_sam")
+        assertEquals(1, claimCalls.size)
+        assertTrue(vm.state.value.claimingIDs.isEmpty())
+        vm.onDisappear()
+    }
+
+    @Test
+    fun claim_lostRace_showsTheMessage_andResetsTheButton() = runTest(dispatcher) {
+        claimResult = { throw PlanAlreadyClaimedException() }
+        val vm = viewModel()
+        vm.onAppear()
+        vm.claim("sams")
+        assertEquals("This plan is no longer available — someone got there first!", vm.state.value.actionError)
+        assertTrue(vm.state.value.claimingIDs.isEmpty())
+        assertNull(vm.state.value.threadToOpen)
+        assertEquals("the card stays until the listener drops it", listOf("sams", "mine"), vm.state.value.plans.map { it.id })
+        vm.dismissActionError()
+        assertNull(vm.state.value.actionError)
+        vm.onDisappear()
+    }
+
+    @Test
+    fun claim_ownPostIsIgnored() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onAppear()
+        vm.claim("mine")
+        assertTrue(claimCalls.isEmpty())
+        vm.onDisappear()
+    }
+
+    @Test
+    fun onPosted_showsThePlanAtOnce_andFlashesPostedForTwoSeconds() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onAppear()
+        vm.onPosted(plan("new", "Bowling", 30, creator = "me"))
+        assertEquals(listOf("new", "sams", "mine"), vm.state.value.plans.map { it.id })
+        assertTrue(vm.state.value.showPostedToast)
+        advanceTimeBy(TodayViewModel.TOAST_MILLIS + 1)
+        assertFalse(vm.state.value.showPostedToast)
         vm.onDisappear()
     }
 }

@@ -3,6 +3,14 @@ package com.georgeappdev.atxfriends.ui.messages
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,18 +67,9 @@ object PlanColors {
     val counterTint = Color(0.50f, 0.50f, 0.85f)
     val pendingGold = Color(0.70f, 0.55f, 0.20f)
     val pendingGoldTint = Color(0.97f, 0.90f, 0.60f)
+    val promptGold = Color(0.60f, 0.45f, 0.20f)
+    val promptGoldAccent = Color(0.72f, 0.55f, 0.25f)
 }
-
-/**
- * How every not-yet-built action looks this round: shown with its iOS styling, dimmed, not
- * tappable, and announced as disabled by TalkBack.
- */
-fun Modifier.notYetAvailable(description: String? = null): Modifier =
-    alpha(0.5f).semantics {
-        disabled()
-        role = Role.Button
-        description?.let { contentDescription = it }
-    }
 
 /**
  * Port of iOS AvatarRing: the photo in a burnt-orange ring, initials when there's no photo or
@@ -129,7 +128,10 @@ fun InitialsCircle(name: String, fontSize: TextUnit, modifier: Modifier = Modifi
     }
 }
 
-/** Port of iOS MessageBubble: mine on the right in burnt orange, theirs on the left on a card. */
+/**
+ * Port of iOS MessageBubble: mine on the right in burnt orange, theirs on the left on a card.
+ * [time] is the sent time, or "Sending…" while the server hasn't accepted it yet.
+ */
 @Composable
 fun MessageBubble(message: Message, isMine: Boolean, time: String) {
     val colors = AtxTheme.colors
@@ -202,25 +204,38 @@ fun DateHeaderChip(label: String) {
 }
 
 /**
- * The iOS input bar ("+" plan shortcut, text field, send button), shown but disabled: Android
- * can't send yet, so the field says so instead of iOS's "Message..." placeholder.
+ * Port of the iOS input row: the "+" propose-a-plan shortcut (shown when [onProposePlan] is
+ * set) and MessageInputBar ("Message..." field, up to 5 lines, and the send button, orange when
+ * there's something to send).
  */
 @Composable
-fun DisabledInputBar(showPlanShortcut: Boolean, modifier: Modifier = Modifier) {
+fun MessageInputBar(
+    text: String,
+    canSend: Boolean,
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onFocused: () -> Unit,
+    onProposePlan: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
     val colors = AtxTheme.colors
     Row(
         modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (showPlanShortcut) {
+        if (onProposePlan != null) {
+            val propose = stringResource(R.string.thread_propose_plan)
             CircleIcon(
                 icon = R.drawable.ic_msg_calendar_plus,
                 size = 36.dp,
                 iconSize = 18.dp,
                 background = colors.appPrimary.copy(alpha = 0.18f),
                 tint = colors.appPrimary,
-                modifier = Modifier.notYetAvailable(stringResource(R.string.thread_propose_plan)),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = propose, onClick = onProposePlan)
+                    .semantics { contentDescription = propose },
             )
         }
         Row(
@@ -228,31 +243,70 @@ fun DisabledInputBar(showPlanShortcut: Boolean, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                stringResource(R.string.thread_sending_coming_soon),
-                style = atxText(16.sp),
-                color = colors.secondaryText,
+            val placeholder = stringResource(R.string.thread_message_placeholder)
+            BasicTextField(
+                value = text,
+                onValueChange = onTextChange,
+                textStyle = atxText(16.sp).copy(color = colors.primaryText),
+                cursorBrush = SolidColor(colors.appPrimary),
+                minLines = 1,
+                maxLines = 5,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier
                     .weight(1f)
-                    .background(colors.cardBackground, RoundedCornerShape(20.dp))
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                    .semantics { disabled() },
-            )
-            // iOS's send button when there's nothing to send: a plain gray circle.
-            val send = stringResource(R.string.thread_send)
-            CircleIcon(
-                icon = R.drawable.ic_msg_arrow_up,
-                size = 40.dp,
-                iconSize = 20.dp,
-                background = colors.border,
-                tint = Color.White,
-                modifier = Modifier.semantics {
-                    disabled()
-                    role = Role.Button
-                    contentDescription = send
+                    .onFocusChanged { if (it.isFocused) onFocused() }
+                    .semantics { contentDescription = placeholder },
+                decorationBox = { field ->
+                    Box(
+                        Modifier
+                            .background(colors.cardBackground, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                    ) {
+                        if (text.isEmpty()) Text(placeholder, style = atxText(16.sp), color = colors.secondaryText)
+                        field()
+                    }
                 },
             )
+            val send = stringResource(R.string.thread_send)
+            Box(
+                Modifier
+                    .size(40.dp)
+                    .shadow(if (canSend) 6.dp else 0.dp, CircleShape, spotColor = colors.appPrimary.copy(alpha = 0.3f))
+                    .background(if (canSend) colors.appPrimary else colors.border, CircleShape)
+                    .clip(CircleShape)
+                    .clickable(enabled = canSend, role = Role.Button, onClickLabel = send, onClick = onSend)
+                    .semantics { contentDescription = send },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painterResource(R.drawable.ic_msg_arrow_up), null, tint = Color.White, modifier = Modifier.size(20.dp))
+            }
         }
+    }
+}
+
+/**
+ * Android-only: iOS never shows its send error (spec §11.3). A thin banner above the input bar,
+ * dismissed by tapping it.
+ */
+@Composable
+fun ThreadErrorBanner(message: String, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = AtxTheme.colors
+    val dismiss = stringResource(R.string.thread_dismiss)
+    Row(
+        modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(colors.danger.copy(alpha = 0.12f))
+            .clickable(role = Role.Button, onClickLabel = dismiss, onClick = onDismiss)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(painterResource(R.drawable.ic_error), null, tint = colors.danger, modifier = Modifier.size(18.dp))
+        Text(message, style = atxText(14.sp), color = colors.primaryText, modifier = Modifier.weight(1f))
+        Icon(painterResource(R.drawable.ic_close_circle), null, tint = colors.textMuted, modifier = Modifier.size(18.dp))
     }
 }
 

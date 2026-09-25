@@ -17,4 +17,20 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        // A rotation restarts the activity without the app ever leaving the foreground.
+        if (!restartingForConfigChange) (application as AtxFriendsApp).container.onAppForeground()
+        restartingForConfigChange = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        restartingForConfigChange = isChangingConfigurations
+    }
+
+    private companion object {
+        var restartingForConfigChange = false
+    }
 }

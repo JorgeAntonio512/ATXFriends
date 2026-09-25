@@ -19,6 +19,15 @@ class NoWholeDocumentWritesTest {
         Regex("""\.toObjects?\s*\(""") to "toObject() reflection mapping — decode with the model's fromFirestore()",
     )
 
+    /**
+     * The one reviewed exception (file path, exact code line): `WriteBatch.createDocument` in
+     * NewDocument.kt, which only targets a fresh auto-ID or a deterministic ID just found missing.
+     */
+    private val allowed = setOf(
+        "com/georgeappdev/atxfriends/data/firestore/NewDocument.kt" to
+            "fun WriteBatch.createDocument(ref: DocumentReference, doc: NewDocument): WriteBatch = this.set(ref, doc.fields)",
+    )
+
     @Test
     fun appCodeNeverOverwritesWholeDocuments() {
         val sourceRoot = File("src/main/java")
@@ -32,6 +41,7 @@ class NoWholeDocumentWritesTest {
                     val trimmed = line.trimStart()
                     if (trimmed.startsWith("*") || trimmed.startsWith("/*")) return@mapIndexedNotNull null
                     val code = line.substringBefore("//")
+                    if ((file.relativeTo(sourceRoot).invariantSeparatorsPath to line.trim()) in allowed) return@mapIndexedNotNull null
                     forbidden.firstOrNull { (regex, _) -> regex.containsMatchIn(code) }
                         ?.let { (_, why) -> "${file.relativeTo(sourceRoot)}:${i + 1}: $why\n    ${line.trim()}" }
                 }

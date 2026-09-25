@@ -15,6 +15,8 @@
     <string name="messages_row_say_hi">Say hi</string>
     <string name="messages_row_plan">Plan: %1$s</string>
     <string name="messages_profile_photo">%1$s, profile photo</string>
+    <!-- TalkBack state for the Messages tab while its red unread dot shows (iOS has no label). -->
+    <string name="tab_badge_unread">Unread messages</string>
 
     <!-- Thread -->
     <string name="thread_back">Back</string>
@@ -26,9 +28,15 @@
     <string name="thread_propose_plan">Propose a plan</string>
     <string name="thread_propose_plan_for">Propose a plan for %1$s</string>
     <string name="thread_say_hi_before">Say hi to %1$s before you head out.</string>
-    <!-- Android-only: shown in place of iOS's "Message..." placeholder until sending is built. -->
-    <string name="thread_sending_coming_soon">Sending coming soon</string>
+    <string name="thread_message_placeholder">Message...</string>
     <string name="thread_send">Send</string>
+    <!-- Android-only: shown under a message the server hasn't accepted yet. -->
+    <string name="thread_sending">Sending…</string>
+    <!-- Android-only: iOS sets a send error it never shows (spec §11.3). -->
+    <string name="thread_send_failed">Couldn\'t send your message. It\'s back in the box so you can try again.</string>
+    <!-- Android-only: iOS lets these fail silently against the 5000-character rule. -->
+    <string name="thread_message_too_long">Messages can be up to 5,000 characters. This one is %1$,d.</string>
+    <string name="thread_dismiss">Dismiss</string>
 
     <!-- Pinned confirmed-plan card -->
     <string name="plan_confirmed">Plan confirmed</string>
@@ -41,8 +49,51 @@
     <string name="plan_add_to_calendar_a11y">Add to calendar</string>
     <string name="plan_show_details">Show plan details</string>
     <string name="plan_waiting_for">Waiting for %1$s</string>
+    <string name="plan_added_to_calendar">Added to Calendar</string>
+    <!-- Android-only: the phone has no app to open these with. -->
+    <string name="plan_no_maps_app">No maps app on this phone can open directions.</string>
+    <string name="plan_no_calendar_app">No calendar app on this phone can add this plan.</string>
+    <string name="plan_reschedule">Reschedule</string>
+    <string name="plan_cancel_plan">Cancel plan</string>
+    <string name="plan_reschedule_accept_hint">Moves the plan to the new time</string>
+    <string name="plan_reschedule_decline_hint">Keeps the original time</string>
     <string name="plan_accept">Accept</string>
     <string name="plan_decline">Decline</string>
+
+    <!-- Plan changes: iOS's alert title; iOS's own wording for the reschedule answers. iOS
+         shows nothing when accept/decline/cancel/reschedule-request fail; Android does. -->
+    <string name="plan_error_title">Couldn\'t Update Plan</string>
+    <string name="plan_error_accept">Couldn\'t accept this plan. Check your connection and try again.</string>
+    <string name="plan_error_decline">Couldn\'t decline this plan. Check your connection and try again.</string>
+    <string name="plan_error_accept_reschedule">Couldn\'t accept the new time. Check your connection and try again.</string>
+    <string name="plan_error_decline_reschedule">Couldn\'t decline the new time. Check your connection and try again.</string>
+    <string name="plan_error_cancel">Couldn\'t cancel this plan. Check your connection and try again.</string>
+    <string name="plan_error_reschedule">Couldn\'t suggest a new time. Check your connection and try again.</string>
+
+    <!-- Reschedule sheet (iOS ReschedulePlanSheet; the code's subtitle, not the spec's older one) -->
+    <string name="reschedule_title">Suggest a new time</string>
+    <string name="reschedule_subtitle">Your current time stays until your friend accepts.</string>
+    <string name="reschedule_submit">Suggest New Time</string>
+    <!-- Android-only: iOS's picker can't reach a past time; Android's can, so it says so. -->
+    <string name="reschedule_time_passed">Pick a time that hasn\'t passed yet.</string>
+
+    <!-- Cancel plan alert and the upcoming-plans sheet -->
+    <string name="cancel_plan_title">Cancel this plan?</string>
+    <string name="cancel_plan_message">This will cancel your plan with %1$s. You can always propose a new one.</string>
+    <string name="cancel_plan_message_row">Cancel your %1$s plan with %2$s?</string>
+    <string name="cancel_plan_confirm">Cancel Plan</string>
+    <string name="cancel_plan_keep">Keep</string>
+    <string name="upcoming_plans_title">More upcoming plans</string>
+    <string name="action_done">Done</string>
+
+    <!-- Show-up prompt card (iOS ShowUpPromptCard) -->
+    <string name="showup_title">How did it go?</string>
+    <string name="showup_passed">Your %1$s hangout has passed.</string>
+    <string name="showup_question">Did %1$s show up?</string>
+    <string name="showup_no">Didn\'t show</string>
+    <string name="showup_yes">They showed up!</string>
+    <string name="showup_error_title">Couldn\'t Record Report</string>
+    <string name="showup_error_message">Couldn\'t save your report. Check your connection and try again.</string>
 
     <!-- Plan proposal card -->
     <string name="plan_proposal">Plan Proposal</string>

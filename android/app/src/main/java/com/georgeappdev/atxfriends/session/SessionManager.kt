@@ -9,13 +9,17 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /** Which top-level screen the app shows (the Android equivalent of iOS RootView's routing). */
@@ -47,6 +51,7 @@ class SessionManager(
         this(auth.currentUser, users::fetchUser, auth::signOut, scope)
 
     private val retryTick = MutableStateFlow(0)
+    private val profileEdits = MutableSharedFlow<UserProfile>(extraBufferCapacity = 16)
 
     val state: StateFlow<SessionState> =
         combine(currentUser, retryTick) { user, _ -> user }
@@ -54,7 +59,11 @@ class SessionManager(
                 if (user == null) flowOf<SessionState>(SessionState.SignedOut)
                 else flow<SessionState> {
                     emit(SessionState.Loading)
-                    emit(loadProfile(user))
+                    val loaded = loadProfile(user)
+                    emit(loaded)
+                    if (loaded is SessionState.Ready) {
+                        emitAll(profileEdits.filter { it.id == user.uid }.map { SessionState.Ready(user, it) })
+                    }
                 }
             }
             .stateIn(scope, SharingStarted.Eagerly, SessionState.Loading)
@@ -64,6 +73,18 @@ class SessionManager(
     }
 
     fun signOut() = signOutAction()
+
+    /**
+     * Replaces the signed-in user's profile in place after a successful write (e.g. from
+     * Settings), so every tab sees the change without a reload. Ignored for any other user.
+     */
+    fun profileChanged(profile: UserProfile) {
+        profileEdits.tryEmit(profile)
+    }
+
+    /** The signed-in user's profile, when ready. */
+    val currentProfile: UserProfile?
+        get() = (state.value as? SessionState.Ready)?.profile
 
     private suspend fun loadProfile(user: AuthUser): SessionState = try {
         when (val doc = fetchUser(user.uid)) {

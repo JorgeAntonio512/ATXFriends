@@ -49,7 +49,7 @@ import com.georgeappdev.atxfriends.ui.components.atxText
 import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 import java.time.Instant
 
-/** Port of iOS MessagesListView. Read-only this round. */
+/** Port of iOS MessagesListView. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesScreen(viewModel: MessagesViewModel = viewModel(factory = MessagesViewModel.Factory)) {

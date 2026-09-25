@@ -1,6 +1,7 @@
 package com.georgeappdev.atxfriends.ui.today
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,11 +21,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.disabled
-import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,9 +49,12 @@ private fun Modifier.todayCard(): Modifier {
         .padding(16.dp)
 }
 
-/** Port of iOS TodayPlanCard. "I'm in" is shown but disabled until claiming is built. */
+/**
+ * Port of iOS TodayPlanCard. "I'm in" claims the plan; while [isClaiming] it shows "Joining…"
+ * with a spinner and ignores further taps. Your own posts say "Your post" instead.
+ */
 @Composable
-fun TodayPlanCard(plan: TodayPlanUi, timeBadge: String, modifier: Modifier = Modifier) {
+fun TodayPlanCard(plan: TodayPlanUi, timeBadge: String, isClaiming: Boolean, onClaim: () -> Unit, modifier: Modifier = Modifier) {
     val colors = AtxTheme.colors
     Column(modifier.todayCard(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.Top) {
@@ -99,58 +102,37 @@ fun TodayPlanCard(plan: TodayPlanUi, timeBadge: String, modifier: Modifier = Mod
             if (plan.isOwnPlan) {
                 Text(stringResource(R.string.today_your_post), style = atxText(13.sp, FontWeight.Medium), color = colors.textFaint)
             } else {
-                PillButton(R.drawable.ic_thumb_up, stringResource(R.string.today_im_in), withShadow = true)
+                ClaimButton(isClaiming, onClaim)
             }
         }
     }
 }
 
-/**
- * Port of iOS GhostSlotCardView in its `.solid` (Today) style. "Post it" is shown but disabled
- * until posting is built.
- */
+/** The filled orange "I'm in" pill; "Joining…" with a spinner while the claim runs. */
 @Composable
-fun GhostSlotCard(titleLine: String, activityName: String, accessibilityLabel: String, modifier: Modifier = Modifier) {
-    val colors = AtxTheme.colors
-    Column(
-        modifier
-            .todayCard()
-            .clearAndSetSemantics {
-                contentDescription = accessibilityLabel
-                role = Role.Button
-                disabled()
-            },
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(titleLine, style = atxText(16.sp, FontWeight.Bold), color = colors.primaryText)
-        Text(stringResource(R.string.today_ghost_activity, activityName), style = atxText(14.sp, FontWeight.SemiBold), color = colors.appPrimary)
-        Row(Modifier.fillMaxWidth()) {
-            Spacer(Modifier.weight(1f))
-            PillButton(R.drawable.ic_add, stringResource(R.string.today_post_it), withShadow = false)
-        }
-    }
-}
-
-/** The filled orange pill ("I'm in" / "Post it"), drawn in the iOS style but not clickable yet. */
-@Composable
-private fun PillButton(icon: Int, label: String, withShadow: Boolean) {
+private fun ClaimButton(isClaiming: Boolean, onClaim: () -> Unit) {
     val colors = AtxTheme.colors
     val shape = RoundedCornerShape(12.dp)
-    val shadow = if (withShadow) {
-        Modifier.shadow(6.dp, shape, ambientColor = colors.appPrimary.copy(alpha = 0.3f), spotColor = colors.appPrimary.copy(alpha = 0.3f))
-    } else {
-        Modifier
-    }
     Row(
-        shadow
+        Modifier
+            .shadow(6.dp, shape, ambientColor = colors.appPrimary.copy(alpha = 0.3f), spotColor = colors.appPrimary.copy(alpha = 0.3f))
             .clip(shape)
             .background(colors.appPrimary)
-            .semantics { role = Role.Button; disabled() }
+            .clickable(role = Role.Button) { if (!isClaiming) onClaim() }
             .padding(horizontal = 20.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(painterResource(icon), contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-        Text(label, style = atxText(15.sp, FontWeight.SemiBold), color = Color.White)
+        if (isClaiming) {
+            CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
+        } else {
+            Icon(painterResource(R.drawable.ic_thumb_up), contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+        }
+        Text(
+            stringResource(if (isClaiming) R.string.today_joining else R.string.today_im_in),
+            style = atxText(15.sp, FontWeight.SemiBold),
+            color = Color.White,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
     }
 }

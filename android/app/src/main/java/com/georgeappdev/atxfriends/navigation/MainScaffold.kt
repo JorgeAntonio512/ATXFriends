@@ -3,8 +3,12 @@ package com.georgeappdev.atxfriends.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -12,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.georgeappdev.atxfriends.ui.components.AtxTabBar
+import com.georgeappdev.atxfriends.ui.messages.UnreadBadgeViewModel
 
 @Composable
 fun MainScaffold(navController: NavHostController = rememberNavController()) {
@@ -20,16 +25,23 @@ fun MainScaffold(navController: NavHostController = rememberNavController()) {
     val selectedTab = AppTab.entries.firstOrNull { tab ->
         hierarchy?.any { it.hasRoute(tab.graph::class) } == true
     } ?: AppTab.MATCHES
+    val unreadBadge: UnreadBadgeViewModel = viewModel(factory = UnreadBadgeViewModel.Factory)
+    val showsMessagesDot by unreadBadge.showsMessagesDot.collectAsStateWithLifecycle()
 
-    Scaffold(
-        bottomBar = {
-            AtxTabBar(
-                selectedTab = selectedTab,
-                onTabSelected = { navController.navigateToTab(it) },
-            )
-        },
-    ) { innerPadding ->
-        AppNavHost(navController, Modifier.padding(innerPadding))
+    val tabNavigator = remember(navController) { TabNavigator { navController.navigateToTab(it) } }
+
+    CompositionLocalProvider(LocalTabNavigator provides tabNavigator) {
+        Scaffold(
+            bottomBar = {
+                AtxTabBar(
+                    selectedTab = selectedTab,
+                    onTabSelected = { navController.navigateToTab(it) },
+                    badgedTabs = if (showsMessagesDot) setOf(AppTab.MESSAGES) else emptySet(),
+                )
+            },
+        ) { innerPadding ->
+            AppNavHost(navController, Modifier.padding(innerPadding))
+        }
     }
 }
 

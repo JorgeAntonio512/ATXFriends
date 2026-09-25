@@ -7,6 +7,7 @@ package com.georgeappdev.atxfriends.data.firestore
  */
 object Collections {
     const val USERS = "users"
+    const val ACTIVITIES = "activities"
     const val MATCHES = "matches"
     const val MESSAGES = "messages"
     const val PLANS = "plans"
@@ -60,6 +61,15 @@ object ActivityFields {
     const val IS_PRIMARY = "isPrimary"
 }
 
+/** `activities/{activityID}` — the shared activity catalog (FirestoreService.addActivity). */
+object ActivityDocFields {
+    const val NAME = "name"
+    const val IS_USER_ADDED = "isUserAdded"
+    const val CREATED_AT = "createdAt"
+    const val CATEGORY = "category"
+    const val NEEDS_REVIEW = "needsReview"
+}
+
 /** `matches/{matchID}`. */
 object MatchFields {
     const val USER1_ID = "user1ID"
@@ -72,6 +82,7 @@ object MatchFields {
     const val OVERLAPPING_ACTIVITY_NAMES = "overlappingActivityNames"
     const val OVERLAPPING_DAY_SLOTS = "overlappingDaySlots"
     const val OVERLAPPING_CATEGORY_NAMES = "overlappingCategoryNames"
+    const val IS_BLOCKED = "isBlocked"
 }
 
 /** `messages/{messageID}`. */

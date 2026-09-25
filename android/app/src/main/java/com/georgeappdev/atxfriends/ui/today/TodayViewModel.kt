@@ -11,11 +11,13 @@ import com.georgeappdev.atxfriends.data.model.TodayPlan
 import com.georgeappdev.atxfriends.data.model.UserProfile
 import com.georgeappdev.atxfriends.data.repository.UserDoc
 import com.georgeappdev.atxfriends.domain.matching.showUpMeter
+import com.georgeappdev.atxfriends.navigation.ThreadRequest
 import com.georgeappdev.atxfriends.domain.openslots.ActivitySuggestionTier
 import com.georgeappdev.atxfriends.domain.openslots.OpenSlot
 import com.georgeappdev.atxfriends.domain.openslots.OpenSlotGenerator
 import com.georgeappdev.atxfriends.domain.openslots.RankedOpenSlot
 import com.georgeappdev.atxfriends.domain.today.OpenSlotsHeader
+import com.georgeappdev.atxfriends.domain.today.TodayClaim
 import com.georgeappdev.atxfriends.domain.today.TodayFeed
 import com.georgeappdev.atxfriends.session.SessionState
 import kotlinx.coroutines.CancellationException
@@ -58,15 +60,23 @@ data class TodayUiState(
     val isClaimedBannerVisible: Boolean = false,
     /** Detail for "Could not load plans: …"; null when no error is showing. */
     val loadError: String? = null,
+    /** "Posted!" after posting a plan; hides itself after 2 seconds. */
+    val showPostedToast: Boolean = false,
+    /** Plans whose "I'm in" is saving ("Joining…"). */
+    val claimingIDs: Set<String> = emptySet(),
+    /** A failed claim's message for the "Something went wrong" alert (iOS errorMessage). */
+    val actionError: String? = null,
+    /** Set after a successful claim: the screen opens this thread, then calls [TodayViewModel.onThreadOpened]. */
+    val threadToOpen: ThreadRequest? = null,
     /** The clock the time labels are computed against; advances while the screen is visible. */
     val now: Instant = Instant.EPOCH,
     val zone: ZoneId = ZoneId.systemDefault(),
 )
 
 /**
- * Port of iOS TodayViewModel, read-only: nothing here posts or claims plans.
- * Like iOS, each appearance runs a one-time load and then attaches the realtime listener;
- * leaving the screen removes the listener.
+ * Port of iOS TodayViewModel. Like iOS, each appearance runs a one-time load and then attaches
+ * the realtime listener; leaving the screen removes the listener. Posting happens in the plan
+ * composer, which hands the new plan back through [onPosted].
  */
 class TodayViewModel(
     private val myID: String,
@@ -75,6 +85,8 @@ class TodayViewModel(
     private val fetchUser: suspend (uid: String) -> UserDoc,
     private val clock: () -> Instant = Instant::now,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
+    /** TodayClaim.claim for [TodayPlan] by the given claimer; returns the match ID. */
+    private val claimPlan: suspend (plan: TodayPlan, claimerID: String) -> String = { _, _ -> error("Claiming isn't available") },
 ) : ViewModel() {
 
     private data class PosterInfo(val displayName: String, val showUpMeter: String)
@@ -91,6 +103,7 @@ class TodayViewModel(
     private var visibleJob: Job? = null
     private var refreshJob: Job? = null
     private var bannerJob: Job? = null
+    private var toastJob: Job? = null
 
     /** iOS `.task`: load, then attach the listener; plus the clock that re-checks expiry. */
     fun onAppear() {
@@ -126,6 +139,51 @@ class TodayViewModel(
     }
 
     fun dismissError() = _state.update { it.copy(loadError = null) }
+
+    /**
+     * iOS `claimPlan`: claim atomically, drop the card, then open the new thread with the
+     * poster. Ignores taps on your own post or on a plan already being claimed. On failure the
+     * button resets and the error shows (e.g. "someone got there first").
+     */
+    fun claim(planID: String) {
+        val plan = openPlans.firstOrNull { it.id == planID } ?: return
+        if (myID.isEmpty() || plan.creatorID == myID || planID in _state.value.claimingIDs) return
+        _state.update { it.copy(claimingIDs = it.claimingIDs + planID) }
+        viewModelScope.launch {
+            try {
+                val matchID = claimPlan(plan, myID)
+                openPlans = openPlans.filterNot { it.id == planID }
+                val name = posterInfo[plan.creatorID]?.displayName.orEmpty()
+                _state.update { it.copy(threadToOpen = ThreadRequest(matchID, plan.creatorID, name)) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(actionError = e.localizedMessage ?: e.toString()) }
+            } finally {
+                _state.update { it.copy(claimingIDs = it.claimingIDs - planID) }
+                publish()
+            }
+        }
+    }
+
+    fun dismissActionError() = _state.update { it.copy(actionError = null) }
+
+    fun onThreadOpened() = _state.update { it.copy(threadToOpen = null) }
+
+    /**
+     * The composer posted [plan]: show it right away (the listener confirms it on the next
+     * snapshot) and flash "Posted!" for 2 seconds, as iOS does.
+     */
+    fun onPosted(plan: TodayPlan) {
+        if (openPlans.none { it.id == plan.id }) openPlans = (openPlans + plan).sortedBy { it.scheduledTime }
+        publish()
+        _state.update { it.copy(showPostedToast = true) }
+        toastJob?.cancel()
+        toastJob = viewModelScope.launch {
+            delay(TOAST_MILLIS)
+            _state.update { it.copy(showPostedToast = false) }
+        }
+    }
 
     private suspend fun load() {
         _state.update { it.copy(isLoading = true) }
@@ -247,6 +305,8 @@ class TodayViewModel(
         const val TICK_MILLIS = 60_000L
         /** iOS dismisses the claimed banner 3.5 seconds after it appears. */
         const val BANNER_MILLIS = 3_500L
+        /** iOS hides the "Posted!" toast 2 seconds after it appears. */
+        const val TOAST_MILLIS = 2_000L
 
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -257,6 +317,9 @@ class TodayViewModel(
                     fetchOpenPlans = container.todayPlans::fetchOpenPlans,
                     openPlansUpdates = container.todayPlans::openPlans,
                     fetchUser = container.users::fetchUser,
+                    claimPlan = { plan, claimerID ->
+                        TodayClaim.claim(container.todayPlans, plan.id, claimerID, plan.creatorID, plan.activity, plan.scheduledTime)
+                    },
                 )
             }
         }
