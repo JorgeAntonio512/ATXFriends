@@ -248,7 +248,7 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
                 pendingThreadRoute = PendingThreadRoute(matchID: matchID, fallbackToMatchesTab: true)
             }
 
-        case "newMessage", "planRequest", "planConfirmed":
+        case "newMessage", "planRequest", "planConfirmed", "planRescheduleRequested", "planRescheduleDeclined":
             if let matchID {
                 pendingThreadRoute = PendingThreadRoute(matchID: matchID, fallbackToMatchesTab: false)
             }

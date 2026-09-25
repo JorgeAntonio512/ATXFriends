@@ -263,7 +263,7 @@ final class TodayPlanService {
             createdAt: createdTS.dateValue(),
             updatedAt: updatedTS.dateValue(),
             creatorReportedClaimer: data["creatorReportedClaimer"] as? Bool,
-            claimerReportedCreator: data["claimerReportedClaimer"] as? Bool
+            claimerReportedCreator: data["claimerReportedCreator"] as? Bool
         )
     }
 

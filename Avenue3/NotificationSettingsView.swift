@@ -23,6 +23,7 @@ struct NotificationSettingsView: View {
     @State private var newMessagesEnabled = true
     @State private var planRequestsEnabled = true
     @State private var planConfirmationsEnabled = true
+    // No toggle (Groups feature removed); kept so saves preserve the stored value.
     @State private var groupUpdatesEnabled = true
     
     var body: some View {
@@ -207,20 +208,6 @@ struct NotificationSettingsView: View {
                                     title: "Plan Confirmations",
                                     description: "When a plan is confirmed",
                                     isEnabled: $planConfirmationsEnabled,
-                                    canToggle: notificationManager.notificationPermissionStatus == .authorized,
-                                    onChange: { newValue in
-                                        savePreferences()
-                                    }
-                                )
-                                
-                                Divider()
-                                    .padding(.leading, 64)
-                                
-                                InteractiveNotificationToggleRow(
-                                    icon: "person.3.fill",
-                                    title: "Group Updates",
-                                    description: "Group join requests and membership changes",
-                                    isEnabled: $groupUpdatesEnabled,
                                     canToggle: notificationManager.notificationPermissionStatus == .authorized,
                                     onChange: { newValue in
                                         savePreferences()

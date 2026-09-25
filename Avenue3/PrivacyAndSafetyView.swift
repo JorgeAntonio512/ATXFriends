@@ -1543,7 +1543,7 @@ struct ExportDataView: View {
                             ExportDataRow(
                                 icon: "person.fill",
                                 title: "Profile Information",
-                                description: "Your name, friendship mode, and preferences"
+                                description: "Your name, account creation date, and search radius"
                             )
                             
                             Divider()

@@ -25,6 +25,7 @@ import {
   query,
   where,
   serverTimestamp,
+  deleteField,
 } from 'firebase/firestore';
 
 let passed = 0;
@@ -173,6 +174,127 @@ async function main() {
   await check('plans: receiver can update (e.g. confirm)', async () => {
     await seed((db) => setDoc(doc(db, 'plans/p3'), validPlan()));
     await assertSucceeds(updateDoc(doc(bob, 'plans/p3'), { status: 'confirmed', confirmedDate: new Date() }));
+  });
+
+  // ---- Reschedule requests (counterProposedBy) ----
+  const originalDate = new Date('2030-06-01T15:00:00Z');
+  const newDate = new Date('2030-06-02T15:00:00Z');
+  const confirmedPlan = () => ({ ...validPlan(), status: 'confirmed', confirmedDate: originalDate });
+  const counterPlan = (requester = 'alice') => ({
+    ...confirmedPlan(), status: 'counter', counterProposedDates: [newDate], counterProposedBy: requester,
+  });
+
+  await check('plans: participant can request a reschedule of a confirmed plan', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r1'), confirmedPlan()));
+    await assertSucceeds(updateDoc(doc(alice, 'plans/r1'), {
+      status: 'counter', counterProposedDates: [newDate], counterProposedBy: 'alice', updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: reschedule request must name the requester as counterProposedBy', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r2'), confirmedPlan()));
+    await assertFails(updateDoc(doc(alice, 'plans/r2'), {
+      status: 'counter', counterProposedDates: [newDate], counterProposedBy: 'bob', updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: cannot request a second reschedule while one is pending', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r3'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(bob, 'plans/r3'), {
+      counterProposedDates: [new Date('2030-06-03T15:00:00Z')], counterProposedBy: 'bob', updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: other person can accept a reschedule (confirmed at the new time)', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r4'), counterPlan('alice')));
+    await assertSucceeds(updateDoc(doc(bob, 'plans/r4'), {
+      status: 'confirmed', confirmedDate: newDate,
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: other person can decline a reschedule (stays at the original time)', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r5'), counterPlan('alice')));
+    await assertSucceeds(updateDoc(doc(bob, 'plans/r5'), {
+      status: 'confirmed',
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: requester cannot accept their own reschedule request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r6'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(alice, 'plans/r6'), {
+      status: 'confirmed', confirmedDate: newDate,
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: requester cannot decline their own reschedule request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r7'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(alice, 'plans/r7'), {
+      status: 'confirmed',
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: resolving must clear the request fields', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r8'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(bob, 'plans/r8'), { status: 'confirmed', updatedAt: new Date() }));
+  });
+
+  await check('plans: accept cannot set an arbitrary new date', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r9'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(bob, 'plans/r9'), {
+      status: 'confirmed', confirmedDate: new Date('2031-01-01T00:00:00Z'),
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: requester can still cancel a plan with a pending request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r10'), counterPlan('alice')));
+    await assertSucceeds(updateDoc(doc(alice, 'plans/r10'), { status: 'cancelled', updatedAt: new Date() }));
+  });
+
+  await check('plans: outsider cannot write a reschedule request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r11'), confirmedPlan()));
+    await assertFails(updateDoc(doc(carol, 'plans/r11'), {
+      status: 'counter', counterProposedDates: [newDate], counterProposedBy: 'carol', updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: outsider cannot accept a reschedule request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r12'), counterPlan('alice')));
+    await assertFails(updateDoc(doc(carol, 'plans/r12'), {
+      status: 'confirmed', confirmedDate: newDate,
+      counterProposedDates: deleteField(), counterProposedBy: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: legacy counter plan (no counterProposedBy) can be accepted by either person', async () => {
+    const legacy = { ...confirmedPlan(), status: 'counter', counterProposedDates: [newDate] };
+    await seed((db) => setDoc(doc(db, 'plans/r13'), legacy));
+    await assertSucceeds(updateDoc(doc(alice, 'plans/r13'), {
+      status: 'confirmed', confirmedDate: newDate, counterProposedDates: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: legacy counter plan with no confirmedDate can be declined back to the original time', async () => {
+    const legacy = { ...validPlan(), status: 'counter', counterProposedDates: [newDate] };
+    await seed((db) => setDoc(doc(db, 'plans/r14'), legacy));
+    const proposed = legacy.proposedDates[0];
+    await assertSucceeds(updateDoc(doc(bob, 'plans/r14'), {
+      status: 'confirmed', confirmedDate: proposed, counterProposedDates: deleteField(), updatedAt: new Date(),
+    }));
+  });
+
+  await check('plans: marking a pending-reschedule plan viewed still works', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r15'), counterPlan('alice')));
+    await assertSucceeds(updateDoc(doc(bob, 'plans/r15'), { isViewed: true }));
+  });
+
+  await check('plans: cannot set counterProposedBy outside a reschedule request', async () => {
+    await seed((db) => setDoc(doc(db, 'plans/r16'), confirmedPlan()));
+    await assertFails(updateDoc(doc(alice, 'plans/r16'), { counterProposedBy: 'alice' }));
   });
 
   await check('plans: stranger cannot get a plan directly', async () => {

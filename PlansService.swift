@@ -99,6 +99,8 @@ final class PlansService {
     /// Real-time listener that delivers all confirmed, unexpired upcoming plans for a match,
     /// sorted soonest first, plus the full set of confirmed plan IDs for that match (including
     /// past ones) so callers can tell whether any given plan is confirmed without a second query.
+    /// "Confirmed" includes plans with a pending reschedule request (status counter) — the
+    /// original time still stands until the other person accepts.
     /// Delivers empty results when none exist. Filters by matchID only (no composite index
     /// needed) then narrows client-side.
     func listenToConfirmedPlan(
@@ -117,10 +119,10 @@ final class PlansService {
                 let plans = snapshot?.documents
                     .compactMap { self.firestoreDataToPlan(id: $0.documentID, data: $0.data()) } ?? []
                 print("📌 PlansService.listenToConfirmedPlan: \(plans.count) total plans for match \(matchID)")
-                let confirmedPlans = plans.filter { $0.status == .confirmed }
+                let confirmedPlans = plans.filter { $0.isConfirmedOrReschedulePending }
                 let upcoming = confirmedPlans
-                    .filter { ($0.confirmedDate ?? .distantPast) > Date() }
-                    .sorted { ($0.confirmedDate ?? .distantFuture) < ($1.confirmedDate ?? .distantFuture) }
+                    .filter { $0.isUpcoming() }
+                    .sorted { ($0.standingDate ?? .distantFuture) < ($1.standingDate ?? .distantFuture) }
                 let allConfirmedIDs = Set(confirmedPlans.map(\.id))
                 print("📌 PlansService.listenToConfirmedPlan: \(upcoming.count) confirmed upcoming plan(s), \(allConfirmedIDs.count) confirmed total")
                 completion(upcoming, allConfirmedIDs)
@@ -187,15 +189,58 @@ final class PlansService {
             ])
     }
     
-    /// Counter-proposes new dates
+    /// Requests a reschedule of a confirmed plan. The original confirmedDate is left intact
+    /// until the other person accepts; counterProposedBy records who asked.
     func counterPropose(planID: String, newDates: [Date]) async throws {
+        guard let requesterID = Auth.auth().currentUser?.uid else {
+            throw NSError(
+                domain: "PlansService",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "User must be authenticated"]
+            )
+        }
         try await db.collection(plansCollection)
             .document(planID)
             .updateData([
                 "status": PlanStatus.counterProposed.rawValue,
                 "counterProposedDates": newDates.map { Timestamp(date: $0) },
+                "counterProposedBy": requesterID,
                 "updatedAt": Timestamp(date: Date())
             ])
+    }
+
+    /// Accepts a pending reschedule: the plan is confirmed at the suggested time and the
+    /// request is cleared.
+    func acceptReschedule(_ plan: Plan) async throws {
+        guard let newDate = plan.pendingRescheduleDate else { return }
+        try await db.collection(plansCollection)
+            .document(plan.id)
+            .updateData([
+                "status": PlanStatus.confirmed.rawValue,
+                "confirmedDate": Timestamp(date: newDate),
+                "counterProposedDates": FieldValue.delete(),
+                "counterProposedBy": FieldValue.delete(),
+                "updatedAt": Timestamp(date: Date())
+            ])
+    }
+
+    /// Declines a pending reschedule: the plan goes back to confirmed at its original time
+    /// and the request is cleared. Never cancels the plan.
+    func declineReschedule(_ plan: Plan) async throws {
+        var data: [String: Any] = [
+            "status": PlanStatus.confirmed.rawValue,
+            "counterProposedDates": FieldValue.delete(),
+            "counterProposedBy": FieldValue.delete(),
+            "updatedAt": Timestamp(date: Date())
+        ]
+        // Legacy counter plans may never have had a confirmedDate; restore the original
+        // proposed time so the plan comes back confirmed with a date.
+        if plan.confirmedDate == nil, let original = plan.proposedDates.first {
+            data["confirmedDate"] = Timestamp(date: original)
+        }
+        try await db.collection(plansCollection)
+            .document(plan.id)
+            .updateData(data)
     }
     
     /// Declines a plan
@@ -332,6 +377,10 @@ final class PlansService {
         if let counterDates = plan.counterProposedDates {
             data["counterProposedDates"] = counterDates.map { Timestamp(date: $0) }
         }
+
+        if let counterProposedBy = plan.counterProposedBy {
+            data["counterProposedBy"] = counterProposedBy
+        }
         
         return data
     }
@@ -378,6 +427,7 @@ final class PlansService {
         } else {
             counterProposedDates = nil
         }
+        let counterProposedBy = data["counterProposedBy"] as? String
         
         return Plan(
             id: id,
@@ -394,7 +444,8 @@ final class PlansService {
             confirmedDate: confirmedDate,
             createdAt: createdAtTimestamp.dateValue(),
             updatedAt: updatedAtTimestamp.dateValue(),
-            counterProposedDates: counterProposedDates
+            counterProposedDates: counterProposedDates,
+            counterProposedBy: counterProposedBy
         )
     }
 }

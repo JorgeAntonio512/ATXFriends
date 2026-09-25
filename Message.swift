@@ -7,34 +7,6 @@
 
 import Foundation
 
-// MARK: - Firestore MessageThread
-
-/// Codable version of MessageThread for Firestore operations
-struct FirestoreMessageThread: Identifiable, Codable {
-    let id: String
-    let matchId: String
-    let participantIds: [String]
-    var lastMessageText: String?
-    var lastMessageSenderId: String?
-    var lastMessageTimestamp: Date?
-    var unreadCount: [String: Int] // userId: count
-    var createdAt: Date
-    var updatedAt: Date
-}
-
-// MARK: - Firestore Message
-
-/// Codable version of Message for Firestore operations
-struct FirestoreMessage: Identifiable, Codable {
-    let id: String
-    let threadId: String
-    let senderId: String
-    let text: String
-    let sentAt: Date
-    var isRead: Bool
-    var readBy: [String] // Array of user IDs who have read this message
-}
-
 // MARK: - Date Extension for Time Ago
 
 extension Date {

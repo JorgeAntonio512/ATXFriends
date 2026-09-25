@@ -82,14 +82,11 @@ struct Message: Identifiable, Codable {
 
 /// Represents a message thread with another user
 struct MessageThread: Identifiable, Hashable {
-    /// Unique identifier (match ID or eventID)
+    /// Unique identifier (match ID)
     let id: String
     
-    /// The match (optional for event threads)
+    /// The match
     let match: Match?
-    
-    /// The event (optional for match threads)
-    let event: Event?
     
     /// The other user in the conversation
     let otherUser: User
@@ -101,7 +98,6 @@ struct MessageThread: Identifiable, Hashable {
     var unreadCount: Int
 
     /// Next confirmed upcoming plan for this thread, if any.
-    /// Nil for event threads — event threads don't carry plan proposals.
     var upcomingPlan: Plan?
 
     /// Simpatico compatibility score (0–100), or nil if either person hasn't
@@ -112,11 +108,6 @@ struct MessageThread: Identifiable, Hashable {
     /// Show-up reliability string for the other user (e.g. "100% (1/1)" or "New").
     var showUpMeter: String
 
-    /// Whether this is an event-based thread
-    var isEventThread: Bool {
-        event != nil
-    }
-    
     /// Helper to get the other user's first photo URL
     var otherUserPhotoURL: String? {
         otherUser.photoURLs.first
@@ -125,7 +116,6 @@ struct MessageThread: Identifiable, Hashable {
     init(
         id: String,
         match: Match? = nil,
-        event: Event? = nil,
         otherUser: User,
         lastMessage: Message? = nil,
         unreadCount: Int = 0,
@@ -135,7 +125,6 @@ struct MessageThread: Identifiable, Hashable {
     ) {
         self.id = id
         self.match = match
-        self.event = event
         self.otherUser = otherUser
         self.lastMessage = lastMessage
         self.unreadCount = unreadCount

@@ -54,6 +54,11 @@ struct Plan: Identifiable, Codable {
     
     /// If the receiver counter-proposes, store their proposed dates here
     var counterProposedDates: [Date]?
+
+    /// User who requested the pending reschedule (status == .counterProposed). Written
+    /// together with the counter status and counterProposedDates; cleared on accept/decline.
+    /// Nil on legacy counter plans created before this field existed.
+    var counterProposedBy: String?
     
     init(
         id: String = UUID().uuidString,
@@ -70,7 +75,8 @@ struct Plan: Identifiable, Codable {
         confirmedDate: Date? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        counterProposedDates: [Date]? = nil
+        counterProposedDates: [Date]? = nil,
+        counterProposedBy: String? = nil
     ) {
         self.id = id
         self.matchID = matchID
@@ -87,6 +93,7 @@ struct Plan: Identifiable, Codable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.counterProposedDates = counterProposedDates
+        self.counterProposedBy = counterProposedBy
     }
     
     /// Returns whether this user is the proposer
@@ -99,6 +106,43 @@ struct Plan: Identifiable, Codable {
         return receiverID == userID
     }
     
+    // MARK: - Reschedule
+
+    /// True for plans that are on: confirmed, or confirmed with a reschedule request pending.
+    /// While a request is pending the original confirmedDate still stands.
+    var isConfirmedOrReschedulePending: Bool {
+        status == .confirmed || status == .counterProposed
+    }
+
+    /// The suggested new time while a reschedule request is pending; nil otherwise.
+    var pendingRescheduleDate: Date? {
+        status == .counterProposed ? counterProposedDates?.first : nil
+    }
+
+    /// The time the plan currently stands at — confirmedDate, falling back to the
+    /// original proposed date for legacy counter plans that never had one.
+    var standingDate: Date? {
+        confirmedDate ?? (status == .counterProposed ? proposedDates.first : nil)
+    }
+
+    /// Whether the plan still belongs in "upcoming" lists. A plan with a pending
+    /// reschedule stays upcoming if either its standing time or the suggested time is ahead.
+    func isUpcoming(now: Date = Date()) -> Bool {
+        guard isConfirmedOrReschedulePending else { return false }
+        if let date = standingDate, date > now { return true }
+        if let date = pendingRescheduleDate, date > now { return true }
+        return false
+    }
+
+    /// Whether this user may accept or decline the pending reschedule request.
+    /// Only the non-requester can answer; legacy requests with no counterProposedBy
+    /// can be answered by either participant so they can get unstuck.
+    func canRespondToReschedule(userID: String) -> Bool {
+        guard status == .counterProposed, userID == proposerID || userID == receiverID else { return false }
+        guard let requester = counterProposedBy else { return true }
+        return requester != userID
+    }
+
     /// Returns the other user's ID
     func otherUserID(for userID: String) -> String {
         if userID == proposerID {

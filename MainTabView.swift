@@ -24,63 +24,6 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
-// MARK: - Custom Group Tab Icon
-
-/// Custom 3-person icon drawn with SF Symbols layering
-struct GroupTabIcon: View {
-    var body: some View {
-        HStack(spacing: -5) {
-            Image(systemName: "person.fill")
-                .font(.system(size: 11))
-            Image(systemName: "person.fill")
-                .font(.system(size: 16))   // center person is tallest
-            Image(systemName: "person.fill")
-                .font(.system(size: 11))
-        }
-        .frame(width: 28, height: 24)
-    }
-}
-
-// MARK: - Simpatico Placeholder View
-
-private struct SimpaticoPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color.appBackground,
-                    Color.appBackground
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                ZStack {
-                    Circle()
-                        .fill(Color.appPrimary.opacity(0.2))
-                        .frame(width: 120, height: 120)
-
-                    Image(systemName: "face.smiling.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(Color.appPrimary)
-                }
-
-                VStack(spacing: 12) {
-                    Text("Simpatico")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.appPrimaryText)
-
-                    Text("Coming soon")
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(Color.appSecondaryText)
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Tab Enum
 
 enum Tab: Int, CaseIterable {
@@ -431,114 +374,6 @@ struct CustomTabItem<CustomIcon: View>: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-}
-
-
-
-
-// MARK: - Matches Tab
-
-struct MatchesTabView: View {
-    @StateObject private var viewModel = MatchesViewModel()
-    @State private var selectedMatch: Match?
-    @State private var showMatchProfile = false
-    
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                // Warm gradient background
-                LinearGradient(
-                    colors: [
-                        Color.appBackground,
-                        Color.appBackground
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-
-                if viewModel.isLoading || viewModel.isCreatingMatches {
-                    // Loading state
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .tint(Color.appPrimary)
-                            .scaleEffect(1.2)
-
-                        Text(viewModel.isCreatingMatches ? "Finding matches..." : "Loading matches...")
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(Color.appSecondaryText)
-                    }
-                } else if viewModel.pendingMatches.isEmpty {
-                    // Empty state
-                    NoMatchesYetView()
-                } else {
-                    // Matches list
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.pendingMatches, id: \.id) { match in
-                                if let user = viewModel.getUser(for: match) {
-                                    MatchCard(
-                                        match: match,
-                                        user: user,
-                                        currentUser: viewModel.currentUser,
-                                        onYay: {
-                                            Task {
-                                                _ = await viewModel.sayYay(to: match)
-                                            }
-                                        },
-                                        onNay: {
-                                            Task {
-                                                _ = await viewModel.sayNay(to: match)
-                                            }
-                                        },
-                                        onTap: {
-                                            selectedMatch = match
-                                            showMatchProfile = true
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 20)
-                    }
-                    .refreshable {
-                        await viewModel.refresh()
-                    }
-                }
-            }
-            .navigationTitle("Matches")
-            .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showMatchProfile) {
-                if let match = selectedMatch,
-                   let user = viewModel.getUser(for: match) {
-                    UserProfileView(
-                        user: user,
-                        currentUser: viewModel.currentUser
-                    )
-                }
-            }
-        }
-        .task {
-            await viewModel.loadCurrentUser()
-            await viewModel.createPotentialMatches()
-            await viewModel.loadMatches()
-        }
-        .overlay {
-            if viewModel.showNotificationPrompt {
-                NotificationPermissionPromptView(
-                    onEnable: {
-                        Task {
-                            await viewModel.requestNotificationPermission()
-                        }
-                    },
-                    onDismiss: {
-                        viewModel.dismissNotificationPrompt()
-                    }
-                )
-            }
-        }
     }
 }
 
@@ -1186,37 +1021,6 @@ struct SettingsTabView: View {
 
 // MARK: - Supporting Views
 
-/// Info row for matches tab
-struct MatchInfoRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(Color.appPrimary)
-                .frame(width: 32)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color.appTextStrong)
-
-                Text(description)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundColor(Color.appSecondaryText)
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(Color.appCardBackground.opacity(0.5))
-        .cornerRadius(12)
-    }
-}
-
 /// Card container for settings sections
 struct SettingsCard<Content: View>: View {
     let title: String
@@ -1325,10 +1129,6 @@ struct SettingsRowLabel: View {
 
 #Preview("Main Tab View") {
     MainTabView()
-}
-
-#Preview("Matches Tab") {
-    MatchesTabView()
 }
 
 #Preview("Settings Tab") {

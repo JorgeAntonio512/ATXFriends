@@ -6,6 +6,7 @@
 import CoreLocation
 import EventKit
 import EventKitUI
+import SwiftUI
 import UIKit
 
 /// A calendar a confirmed plan can be added to.
@@ -158,8 +159,8 @@ enum AddedToCalendarStore {
 }
 
 /// Shared logic for adding a confirmed `Plan` to a calendar provider (Apple EventKit or
-/// Google Calendar). Reused by the Messages-thread pinned-plan banner (`PinnedPlanCard`
-/// in MessageThreadView) and `PlanDetailView` so the two entry points can't drift apart.
+/// Google Calendar). Used by the Messages-thread pinned-plan banner (`PinnedPlanCard`
+/// in MessageThreadView) and `GroupPlanDetailView` (Upcoming).
 @Observable
 final class PlanCalendarActionHandler {
     private let eventKitManager = EventKitPermissionManager()
@@ -301,5 +302,44 @@ final class PlanCalendarActionHandler {
             return nil
         }
         return rootViewController
+    }
+}
+
+// MARK: - Event Edit View
+
+/// Wraps the system EKEventEditViewController (the standard iOS "New Event" sheet)
+/// so the user can review and tweak the event before explicitly tapping "Add".
+struct EventEditView: UIViewControllerRepresentable {
+    let event: EKEvent
+    let eventStore: EKEventStore
+    let onComplete: (EKEventEditViewAction) -> Void
+
+    func makeUIViewController(context: Context) -> EKEventEditViewController {
+        let controller = EKEventEditViewController()
+        controller.event = event
+        controller.eventStore = eventStore
+        controller.editViewDelegate = context.coordinator
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: EKEventEditViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onComplete: onComplete)
+    }
+
+    final class Coordinator: NSObject, EKEventEditViewDelegate {
+        let onComplete: (EKEventEditViewAction) -> Void
+
+        init(onComplete: @escaping (EKEventEditViewAction) -> Void) {
+            self.onComplete = onComplete
+        }
+
+        func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
+            // Dismissal is driven by the SwiftUI `.sheet` binding (onComplete clears
+            // eventToAdd), not by calling dismiss() on this embedded controller directly —
+            // mirrors Apple's own EventKitUI + SwiftUI sample pattern.
+            onComplete(action)
+        }
     }
 }

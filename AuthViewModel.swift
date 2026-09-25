@@ -308,7 +308,11 @@ final class AuthViewModel {
         
         do {
             try authService.signOut()
-            
+
+            // End any Google session (Google login or Google Calendar connection) so it
+            // doesn't survive app sign-out. Safe no-op if Google was never used.
+            GoogleSignInHelper().signOut()
+
             // Clear local state
             currentUserID = nil
             authState = .unauthenticated

@@ -126,10 +126,62 @@ service cloud.firestore {
                          'activity', 'proposedDates', 'status', 'createdAt', 'updatedAt'
                        ]);
 
-      // Proposer or receiver can update (confirm, counter-propose, decline, cancel, mark viewed)
+      // Proposer or receiver can update (confirm, decline, cancel, mark viewed, and the
+      // reschedule-request flow below). Nobody else can.
       allow update: if isSignedIn() &&
                        (resource.data.proposerID == request.auth.uid ||
-                        resource.data.receiverID == request.auth.uid);
+                        resource.data.receiverID == request.auth.uid) &&
+                       planRescheduleUpdateIsValid();
+
+      // Reschedule requests: a confirmed plan moves to "counter" with counterProposedBy
+      // (the requester) and counterProposedDates (the suggested time), keeping its original
+      // confirmedDate. Only the other person may resolve it back to "confirmed" — at the
+      // suggested time (accept) or the original time (decline) — clearing both request
+      // fields. Legacy counter plans with no counterProposedBy may be resolved by either
+      // participant. Either participant may cancel a plan with a pending request.
+      function planRescheduleUpdateIsValid() {
+        let before = resource.data;
+        let after = request.resource.data;
+        let wasCounter = before.status == 'counter';
+        let isCounter = after.status == 'counter';
+        return (!wasCounter && !isCounter && planNoRescheduleFieldChange())
+            || (!wasCounter && isCounter && planRescheduleRequestIsValid())
+            || (wasCounter && isCounter
+                && !after.diff(before).affectedKeys()
+                     .hasAny(['counterProposedBy', 'counterProposedDates', 'confirmedDate']))
+            || (wasCounter && after.status == 'cancelled')
+            || (wasCounter && after.status == 'confirmed' && planRescheduleResolutionIsValid());
+      }
+
+      // counterProposedBy may only be written by a reschedule request or its resolution.
+      function planNoRescheduleFieldChange() {
+        return !request.resource.data.diff(resource.data).affectedKeys()
+                 .hasAny(['counterProposedBy']);
+      }
+
+      function planRescheduleRequestIsValid() {
+        let before = resource.data;
+        let after = request.resource.data;
+        return before.status == 'confirmed'
+            && after.get('counterProposedBy', null) == request.auth.uid
+            && after.get('counterProposedDates', []) is list
+            && after.get('counterProposedDates', []).size() == 1
+            && after.get('confirmedDate', null) == before.get('confirmedDate', null);
+      }
+
+      function planRescheduleResolutionIsValid() {
+        let before = resource.data;
+        let after = request.resource.data;
+        let requester = before.get('counterProposedBy', null);
+        let newDate = after.get('confirmedDate', null);
+        let originalDate = before.get('confirmedDate', null);
+        return (requester == null || requester != request.auth.uid)
+            && !after.keys().hasAny(['counterProposedBy', 'counterProposedDates'])
+            && newDate != null
+            && (newDate == originalDate
+                || newDate == before.get('counterProposedDates', [null])[0]
+                || (originalDate == null && newDate == before.proposedDates[0]));
+      }
 
       // Plans are never hard-deleted; status changes handle lifecycle
       allow delete: if false;

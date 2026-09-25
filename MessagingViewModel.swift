@@ -61,29 +61,9 @@ final class MessagingViewModel {
     
     // MARK: - Computed Properties
     
-    /// All threads (regular + event)
+    /// All threads
     var allThreads: [MessageThread] {
         messageThreads
-    }
-    
-    /// Regular DM threads (non-event)
-    var regularThreads: [MessageThread] {
-        let regular = messageThreads.filter { !$0.isEventThread }
-        print("🔍 DEBUG: regularThreads count: \(regular.count)")
-        for thread in regular {
-            print("   - Regular thread: \(thread.otherUser.displayName), event: \(thread.event?.name ?? "nil"), match: \(thread.match?.id ?? "nil")")
-        }
-        return regular
-    }
-    
-    /// Event-based threads
-    var eventThreads: [MessageThread] {
-        let events = messageThreads.filter { $0.isEventThread }
-        print("🔍 DEBUG: eventThreads count: \(events.count)")
-        for thread in events {
-            print("   - Event thread: \(thread.otherUser.displayName), event: \(thread.event?.name ?? "nil"), match: \(thread.match?.id ?? "nil")")
-        }
-        return events
     }
     
     // MARK: - Services
@@ -149,11 +129,12 @@ final class MessagingViewModel {
                 // Get unread count
                 let unreadCount = (try? await messagingService.getUnreadCount(matchID: match.id, for: currentUserID)) ?? 0
 
-                // Fetch next confirmed upcoming plan for this match
+                // Fetch next confirmed upcoming plan for this match (including one with a
+                // pending reschedule request — its original time still stands)
                 let matchPlans = try? await PlansService.shared.fetchPlans(forMatch: match.id)
                 let upcomingPlan = matchPlans?
-                    .filter { $0.status == .confirmed && ($0.confirmedDate ?? .distantPast) > Date() }
-                    .min { ($0.confirmedDate ?? .distantFuture) < ($1.confirmedDate ?? .distantFuture) }
+                    .filter { $0.isUpcoming() }
+                    .min { ($0.standingDate ?? .distantFuture) < ($1.standingDate ?? .distantFuture) }
 
                 // Live-computed from both questionnaires; nil until both users finish all 18.
                 let simpaticoScore = try? await SimpaticoService.shared.fetchScore(
@@ -172,53 +153,6 @@ final class MessagingViewModel {
                     showUpMeter: showUpMeter
                 )
 
-                threads.append(thread)
-            }
-            
-            // 2. Fetch event DM threads
-            let eventThreads = try await messagingService.fetchEventThreads(for: currentUserID)
-            
-            // 3. For each event thread, build MessageThread objects
-            for eventThreadInfo in eventThreads {
-                // Get the other user
-                guard let firebaseUser = try? await firestoreService.fetchUser(userID: eventThreadInfo.otherUserID) else {
-                    print("⚠️ Failed to fetch user: \(eventThreadInfo.otherUserID)")
-                    continue
-                }
-                
-                let otherUser = firebaseUser.toUser()
-                
-                // Try to get event details, but create a minimal Event if not found
-                let event: Event
-                if let fetchedEvent = try? await firestoreService.fetchEvent(eventID: eventThreadInfo.eventID) {
-                    event = fetchedEvent
-                    print("✅ DEBUG: Fetched event '\(event.name)' for thread with \(otherUser.displayName)")
-                } else {
-                    // Create a minimal Event object with the ID
-                    // The event name will be fetched when opening the thread if needed
-                    print("⚠️ Could not fetch event \(eventThreadInfo.eventID), creating minimal Event")
-                    event = Event(
-                        id: eventThreadInfo.eventID,
-                        name: eventThreadInfo.eventID, // Fallback to ID as name
-                        heroImageURL: "",
-                        weekends: []
-                    )
-                }
-                
-                // Build thread ID (event-prefixed)
-                let threadID = eventThreadInfo.threadID
-                
-                let thread = MessageThread(
-                    id: threadID,
-                    match: nil,
-                    event: event,
-                    otherUser: otherUser,
-                    lastMessage: eventThreadInfo.lastMessage,
-                    unreadCount: eventThreadInfo.unreadCount
-                )
-                
-                print("✅ DEBUG: Created event thread - ID: \(thread.id), isEventThread: \(thread.isEventThread), event: \(thread.event?.name ?? "nil")")
-                
                 threads.append(thread)
             }
             
@@ -245,9 +179,6 @@ final class MessagingViewModel {
                 print("   Thread ID: \(thread.id)")
                 print("      - Other user: \(thread.otherUser.displayName)")
                 print("      - Has match: \(thread.match != nil)")
-                print("      - Has event: \(thread.event != nil)")
-                print("      - Event name: \(thread.event?.name ?? "nil")")
-                print("      - isEventThread: \(thread.isEventThread)")
                 print("      ---")
             }
             
@@ -270,13 +201,6 @@ final class MessagingViewModel {
         print("🔵 DEBUG: MessagingViewModel.loadMessages called")
         print("🔵 DEBUG: matchID parameter: \(matchID)")
         print("🔵 DEBUG: ========================================")
-        
-        // Check if this looks like it should be an event DM
-        if matchID.hasPrefix("event_") {
-            print("⚠️ WARNING: matchID starts with 'event_' - this might be wrong!")
-            print("⚠️ WARNING: Event DMs should use loadMessagesForEvent() instead")
-            print("⚠️ WARNING: This listener will query: whereField('matchID', isEqualTo: '\(matchID)')")
-        }
         
         isLoading = true
         
@@ -307,48 +231,6 @@ final class MessagingViewModel {
         } catch {
             errorMessage = "Failed to load messages: \(error.localizedDescription)"
             print("🔴 DEBUG: Error loading messages: \(error)")
-            isLoading = false
-        }
-    }
-    
-    /// Loads messages for a specific event and other user, sets up real-time listening
-    @MainActor
-    func loadMessagesForEvent(eventID: String, otherUserID: String) async {
-        guard let currentUserID = authService.currentUserID else {
-            errorMessage = "No user is signed in."
-            return
-        }
-        
-        print("🔵 DEBUG: loadMessagesForEvent called for eventID: \(eventID), otherUserID: \(otherUserID)")
-        isLoading = true
-        
-        do {
-            // Fetch initial messages for this event thread
-            messages = try await messagingService.fetchMessagesForEvent(eventID: eventID, otherUserID: otherUserID, currentUserID: currentUserID)
-            print("🔵 DEBUG: Fetched \(messages.count) initial event messages")
-            
-            // Mark all as read
-            try? await messagingService.markEventMessagesAsRead(eventID: eventID, otherUserID: otherUserID, for: currentUserID)
-            
-            // Set up real-time listener
-            messageListener?.remove()
-            print("🔵 DEBUG: Setting up Firestore listener for event thread")
-            messageListener = messagingService.listenToEventMessages(eventID: eventID, otherUserID: otherUserID, currentUserID: currentUserID) { [weak self] (newMessages: [Message]) in
-                Task { @MainActor in
-                    print("🟢 DEBUG: Event listener fired! Received \(newMessages.count) messages")
-                    self?.messages = newMessages
-                    print("🟢 DEBUG: Messages array updated. Current count: \(self?.messages.count ?? 0)")
-                    
-                    // Mark new messages as read
-                    try? await self?.messagingService.markEventMessagesAsRead(eventID: eventID, otherUserID: otherUserID, for: currentUserID)
-                }
-            }
-            
-            isLoading = false
-            print("🔵 DEBUG: loadMessagesForEvent completed. Listener is active.")
-        } catch {
-            errorMessage = "Failed to load event messages: \(error.localizedDescription)"
-            print("🔴 DEBUG: Error loading event messages: \(error)")
             isLoading = false
         }
     }
@@ -384,45 +266,6 @@ final class MessagingViewModel {
             // Message will appear via real-time listener
         } catch {
             errorMessage = "Failed to send message: \(error.localizedDescription)"
-            draftMessage = messageText // Restore message on error
-        }
-    }
-    
-    /// Sends an event-based message
-    @MainActor
-    func sendEventMessage(matchID: String, eventID: String, receiverID: String) async {
-        guard let senderID = authService.currentUserID else {
-            errorMessage = "No user is signed in."
-            return
-        }
-        
-        guard !draftMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return
-        }
-        
-        let messageText = draftMessage.trimmingCharacters(in: .whitespacesAndNewlines)
-        draftMessage = "" // Clear immediately for better UX
-        
-        isSendingMessage = true
-        defer { isSendingMessage = false }
-        
-        print("🔵 DEBUG: sendEventMessage called")
-        print("🔵 DEBUG: matchID: \(matchID) (event-prefixed thread ID)")
-        print("🔵 DEBUG: eventID: \(eventID) (actual event ID)")
-        print("🔵 DEBUG: receiverID: \(receiverID)")
-        
-        do {
-            try await messagingService.sendMessage(
-                text: messageText,
-                matchID: matchID, // Event-prefixed thread ID (e.g., "event_ACL2025_user1_user2")
-                eventID: eventID, // Actual event ID (e.g., "ACL2025")
-                senderID: senderID,
-                receiverID: receiverID
-            )
-            
-            // Message will appear via real-time listener
-        } catch {
-            errorMessage = "Failed to send event message: \(error.localizedDescription)"
             draftMessage = messageText // Restore message on error
         }
     }
@@ -513,6 +356,34 @@ final class MessagingViewModel {
         }
     }
     
+    // MARK: - Reschedule Requests
+
+    /// Non-nil when accepting/declining a reschedule fails; triggers an alert in MessageThreadView.
+    var rescheduleError: String? = nil
+
+    /// Accepts the pending reschedule request on `plan` (the listener then delivers the
+    /// plan confirmed at the new time).
+    @MainActor
+    func acceptReschedule(_ plan: Plan) async {
+        do {
+            try await PlansService.shared.acceptReschedule(plan)
+        } catch {
+            rescheduleError = "Couldn't accept the new time. Check your connection and try again."
+            print("❌ MessagingViewModel: acceptReschedule failed: \(error)")
+        }
+    }
+
+    /// Declines the pending reschedule request on `plan`; the plan stays at its original time.
+    @MainActor
+    func declineReschedule(_ plan: Plan) async {
+        do {
+            try await PlansService.shared.declineReschedule(plan)
+        } catch {
+            rescheduleError = "Couldn't decline the new time. Check your connection and try again."
+            print("❌ MessagingViewModel: declineReschedule failed: \(error)")
+        }
+    }
+
     // MARK: - Show-Up Report
 
     /// Fetches the other participant's show-up meter for the open thread.

@@ -58,8 +58,8 @@ struct MessageThreadView: View {
         FirebaseAuthService.shared.currentUserID ?? ""
     }
 
-    /// The header avatar and empty-state photo only open a profile for regular match threads —
-    /// event threads carry no Match, so there's nothing to build a MatchWithUser from.
+    /// The header avatar and empty-state photo only open a profile when the thread has a
+    /// Match — without one there's nothing to build a MatchWithUser from.
     private var canViewOtherUserProfile: Bool {
         thread.match != nil
     }
@@ -69,25 +69,20 @@ struct MessageThreadView: View {
         self.viewModel = viewModel
         print("🟢 DEBUG: MessageThreadView init called for user: \(thread.otherUser.displayName)")
         print("🔍 DEBUG: Thread ID: \(thread.id)")
-        print("🔍 DEBUG: Is Event Thread: \(thread.isEventThread)")
         if let match = thread.match {
             print("🔍 DEBUG: Match ID: \(match.id)")
         }
-        if let event = thread.event {
-            print("⚠️ WARNING: MessageThreadView being used for EVENT thread! Event ID: \(event.id)")
-            print("⚠️ WARNING: This should use EventMessageThreadView instead!")
-        }
     }
     
-    /// The soonest confirmed upcoming plan. Re-checks the date client-side as
-    /// a safety net against stale Firestore cache hits.
+    /// The soonest confirmed upcoming plan (including one with a pending reschedule request).
+    /// Re-checks the date client-side as a safety net against stale Firestore cache hits.
     private var activePinnedPlan: Plan? {
-        viewModel.confirmedPlans.first(where: { ($0.confirmedDate ?? .distantPast) > Date() })
+        viewModel.confirmedPlans.first(where: { $0.isUpcoming() })
     }
 
     /// All confirmed upcoming plans beyond the pinned one — shown in the overflow sheet.
     private var overflowPlans: [Plan] {
-        let upcoming = viewModel.confirmedPlans.filter { ($0.confirmedDate ?? .distantPast) > Date() }
+        let upcoming = viewModel.confirmedPlans.filter { $0.isUpcoming() }
         guard upcoming.count > 1 else { return [] }
         return Array(upcoming.dropFirst())
     }
@@ -111,8 +106,8 @@ struct MessageThreadView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Pinned confirmed-plan card — hidden for event threads and when no plan exists
-                    if !thread.isEventThread, let plan = activePinnedPlan {
+                    // Pinned confirmed-plan card — hidden when no plan exists
+                    if let plan = activePinnedPlan {
                         PinnedPlanCard(
                             plan: plan,
                             overflowCount: overflowPlans.count,
@@ -120,9 +115,12 @@ struct MessageThreadView: View {
                             otherUserPhotoURL: thread.otherUser.photoURLs.first,
                             currentUserPhotoURL: viewModel.currentUserPhotoURL,
                             addedProviders: calendarHandler.addedProviders,
+                            currentUserID: currentUserID,
                             isExpanded: $isPlanCardExpanded,
                             onReschedule: { showReschedule = true },
                             onCancel: { showCancelAlert = true },
+                            onAcceptReschedule: { Task { await viewModel.acceptReschedule(plan) } },
+                            onDeclineReschedule: { Task { await viewModel.declineReschedule(plan) } },
                             onShowAll: { showAllPlans = true },
                             onAddToCalendar: { provider in
                                 calendarHandler.tap(
@@ -139,7 +137,7 @@ struct MessageThreadView: View {
 
                     // Show-up prompt — appears once the plan time has passed and
                     // the current user hasn't submitted a report yet.
-                    if !thread.isEventThread, let todayPlan = viewModel.pendingShowUpPlan {
+                    if let todayPlan = viewModel.pendingShowUpPlan {
                         ShowUpPromptCard(
                             otherUserName: thread.otherUser.displayName,
                             activityName: todayPlan.activity.name,
@@ -168,8 +166,7 @@ struct MessageThreadView: View {
                                 
                                 // Messages
                                 if visibleMessages.isEmpty {
-                                    if !thread.isEventThread,
-                                       let plan = activePinnedPlan,
+                                    if let plan = activePinnedPlan,
                                        let confirmedDate = plan.confirmedDate {
                                         // Confirmed-plan empty state — a plan exists but no
                                         // chat messages yet.
@@ -238,8 +235,8 @@ struct MessageThreadView: View {
 
                     // Input bar
                     HStack(alignment: .center, spacing: 8) {
-                        // "+" propose-a-plan shortcut (only for regular match threads)
-                        if !thread.isEventThread, thread.match != nil {
+                        // "+" propose-a-plan shortcut (only for match threads)
+                        if thread.match != nil {
                             Button {
                                 proposePlanPrefillActivity = nil
                                 showProposePlan = true
@@ -261,21 +258,14 @@ struct MessageThreadView: View {
                             isSending: viewModel.isSendingMessage,
                             onSend: {
                                 Task {
-                                    if thread.isEventThread, let event = thread.event, let match = thread.match {
-                                        print("📤 DEBUG: Sending EVENT message")
-                                        await viewModel.sendEventMessage(
-                                            matchID: match.id,
-                                            eventID: event.id,
-                                            receiverID: thread.otherUser.id
-                                        )
-                                    } else if let match = thread.match {
+                                    if let match = thread.match {
                                         print("📤 DEBUG: Sending REGULAR message for match: \(match.id)")
                                         await viewModel.sendMessage(
                                             matchID: match.id,
                                             receiverID: thread.otherUser.id
                                         )
                                     } else {
-                                        print("❌ ERROR: Thread has neither event nor match!")
+                                        print("❌ ERROR: Thread has no match!")
                                     }
                                 }
                             }
@@ -336,18 +326,15 @@ struct MessageThreadView: View {
             guard let match = thread.match else {
                 print("❌ ERROR: MessageThreadView.task - No match found in thread!")
                 print("❌ ERROR: Thread ID: \(thread.id)")
-                print("❌ ERROR: Is Event Thread: \(thread.isEventThread)")
                 return
             }
             print("🟢 DEBUG: .task modifier executing for match: \(match.id)")
             await viewModel.loadMessages(for: match.id)
             print("🟢 DEBUG: loadMessages completed")
-            if !thread.isEventThread {
-                viewModel.listenToConfirmedPlan(forMatch: match.id)
-                await viewModel.loadPendingShowUpReport(otherUserID: thread.otherUser.id)
-                await viewModel.loadOtherUserShowUpMeter(otherUserID: thread.otherUser.id)
-                await viewModel.loadCurrentUserPhoto()
-            }
+            viewModel.listenToConfirmedPlan(forMatch: match.id)
+            await viewModel.loadPendingShowUpReport(otherUserID: thread.otherUser.id)
+            await viewModel.loadOtherUserShowUpMeter(otherUserID: thread.otherUser.id)
+            await viewModel.loadCurrentUserPhoto()
         }
         .onAppear {
             print("🟢 DEBUG: MessageThreadView onAppear called")
@@ -380,12 +367,16 @@ struct MessageThreadView: View {
             }
         }
         .sheet(isPresented: $showReschedule) {
-            if let plan = viewModel.pinnedPlan {
+            if let plan = viewModel.pinnedPlan, plan.status == .confirmed {
                 ReschedulePlanSheet(plan: plan)
             }
         }
         .sheet(isPresented: $showAllPlans) {
-            UpcomingPlansSheet(viewModel: viewModel, otherUserName: thread.otherUser.displayName)
+            UpcomingPlansSheet(
+                viewModel: viewModel,
+                otherUserName: thread.otherUser.displayName,
+                currentUserID: currentUserID
+            )
         }
         .sheet(isPresented: $showOtherUserProfile, onDismiss: {
             if pendingProposePlanAfterProfileDismiss {
@@ -462,6 +453,14 @@ struct MessageThreadView: View {
         } message: {
             Text("This will cancel your plan with \(thread.otherUser.displayName). You can always propose a new one.")
         }
+        .alert("Couldn't Update Plan", isPresented: Binding(
+            get: { viewModel.rescheduleError != nil },
+            set: { if !$0 { viewModel.rescheduleError = nil } }
+        )) {
+            Button("OK") { viewModel.rescheduleError = nil }
+        } message: {
+            Text(viewModel.rescheduleError ?? "")
+        }
         .alert("Couldn't Record Report", isPresented: Binding(
             get: { viewModel.showUpReportError != nil },
             set: { if !$0 { viewModel.showUpReportError = nil } }
@@ -502,9 +501,6 @@ struct MessageThreadView: View {
     // MARK: - No-Messages-Yet Empty State
 
     private var emptyStateSubtitle: String {
-        if thread.isEventThread, let event = thread.event {
-            return "You're both going to \(event.name). Say hello!"
-        }
         return "You matched. Say hi, or skip straight to a plan."
     }
 
@@ -539,7 +535,7 @@ struct MessageThreadView: View {
                     .lineSpacing(4)
             }
 
-            if !thread.isEventThread, let match = thread.match, !match.overlappingActivityNames.isEmpty {
+            if let match = thread.match, !match.overlappingActivityNames.isEmpty {
                 VStack(spacing: 10) {
                     Text("You both like")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -553,7 +549,7 @@ struct MessageThreadView: View {
                 }
             }
 
-            if !thread.isEventThread, thread.match != nil {
+            if thread.match != nil {
                 Button {
                     proposePlanPrefillActivity = nil
                     showProposePlan = true
@@ -604,9 +600,12 @@ struct PinnedPlanCard: View {
     let otherUserPhotoURL: String?
     let currentUserPhotoURL: String?
     let addedProviders: Set<CalendarProvider>
+    let currentUserID: String
     @Binding var isExpanded: Bool
     let onReschedule: () -> Void
     let onCancel: () -> Void
+    let onAcceptReschedule: () -> Void
+    let onDeclineReschedule: () -> Void
     let onShowAll: () -> Void
     let onAddToCalendar: (CalendarProvider) -> Void
 
@@ -637,6 +636,16 @@ struct PinnedPlanCard: View {
                         .font(.system(size: 15, design: .rounded))
                         .foregroundColor(Color.appSecondaryText)
                 }
+            }
+
+            if plan.status == .counterProposed {
+                RescheduleRequestView(
+                    plan: plan,
+                    currentUserID: currentUserID,
+                    otherUserDisplayName: otherUserDisplayName,
+                    onAccept: onAcceptReschedule,
+                    onDecline: onDeclineReschedule
+                )
             }
 
             peopleRow
@@ -679,8 +688,11 @@ struct PinnedPlanCard: View {
             Spacer()
 
             Menu {
-                Button(action: onReschedule) {
-                    Label("Reschedule", systemImage: "arrow.clockwise")
+                // One reschedule request at a time — hidden for both people while one is pending.
+                if plan.status == .confirmed {
+                    Button(action: onReschedule) {
+                        Label("Reschedule", systemImage: "arrow.clockwise")
+                    }
                 }
                 Button(role: .destructive, action: onCancel) {
                     Label("Cancel plan", systemImage: "xmark")
@@ -931,6 +943,9 @@ struct PinnedPlanCard: View {
     }
 
     private var collapsedSubtitle: String {
+        if plan.status == .counterProposed {
+            return "\(plan.activity.name) · New time suggested"
+        }
         if let name = plan.locationName, !name.isEmpty {
             return "\(plan.activity.name) · \(name)"
         } else if let location = plan.location, !location.isEmpty {
@@ -942,12 +957,12 @@ struct PinnedPlanCard: View {
     // MARK: - Headline / Countdown
 
     private func headlineText(now: Date) -> String {
-        guard let date = plan.confirmedDate else { return plan.activity.name }
+        guard let date = plan.standingDate else { return plan.activity.name }
         return "\(planDayWord(for: date)) · \(timeString(date))"
     }
 
     private func sublineText(now: Date) -> String {
-        guard let date = plan.confirmedDate else { return plan.activity.name }
+        guard let date = plan.standingDate else { return plan.activity.name }
         if let suffix = countdownSuffix(for: date, now: now) {
             return "\(plan.activity.name) · \(suffix)"
         }
@@ -1207,7 +1222,7 @@ struct ReschedulePlanSheet: View {
                             Text("Suggest a new time")
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .foregroundColor(Color.appPrimaryText)
-                            Text("Your friend will need to re-confirm.")
+                            Text("Your current time stays until your friend accepts.")
                                 .font(.system(size: 14, design: .rounded))
                                 .foregroundColor(Color.appSecondaryText)
                         }
@@ -1278,6 +1293,114 @@ struct ReschedulePlanSheet: View {
     }
 }
 
+// MARK: - Reschedule Request
+
+/// The pending-reschedule line shown on a confirmed plan: who suggested which new time,
+/// plus Accept / Decline for the person who can answer, or "Waiting for …" for the requester.
+/// The plan's original time is shown by the parent and still stands until accepted.
+struct RescheduleRequestView: View {
+    let plan: Plan
+    let currentUserID: String
+    let otherUserDisplayName: String
+    let onAccept: () -> Void
+    let onDecline: () -> Void
+
+    @State private var isActing = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "arrow.clockwise.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color.appPendingGold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(suggestionText)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color.appPrimaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if !plan.canRespondToReschedule(userID: currentUserID) {
+                        Text("Waiting for \(otherUserDisplayName)")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundColor(Color.appSecondaryText)
+                    }
+                }
+            }
+            .accessibilityElement(children: .combine)
+
+            if plan.canRespondToReschedule(userID: currentUserID) {
+                HStack(spacing: 10) {
+                    Button {
+                        act(onDecline)
+                    } label: {
+                        Text("Decline")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color.appDeclinedRed)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(Color.appDeclinedRed.opacity(0.10))
+                            .cornerRadius(10)
+                    }
+                    .accessibilityHint("Keeps the original time")
+
+                    Button {
+                        act(onAccept)
+                    } label: {
+                        Text("Accept")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(Color.appPrimary)
+                            .cornerRadius(10)
+                    }
+                    .accessibilityHint("Moves the plan to the new time")
+                }
+                .buttonStyle(.plain)
+                .disabled(isActing)
+            }
+        }
+        .padding(12)
+        .background(Color.appPendingGoldTint.opacity(0.35))
+        .cornerRadius(12)
+    }
+
+    private var suggestionText: String {
+        var when = "a new time"
+        if let date = plan.pendingRescheduleDate { when = Self.formatted(date) }
+        switch plan.counterProposedBy {
+        case nil:
+            return "A new time was suggested: \(when)."
+        case currentUserID:
+            return "You suggested \(when)."
+        default:
+            return "\(otherUserDisplayName) suggested \(when)."
+        }
+    }
+
+    /// Disables both buttons after one tap; the listener swaps this view out once the
+    /// write lands. Re-enables after a few seconds in case the write failed.
+    private func act(_ action: () -> Void) {
+        isActing = true
+        action()
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            isActing = false
+        }
+    }
+
+    /// "Sunday, 3:00 PM" within the next week, otherwise "Sun, Oct 5, 3:00 PM".
+    static func formatted(_ date: Date) -> String {
+        let cal = Calendar.current
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if cal.isDateInToday(date) { return "Today, \(time)" }
+        if cal.isDateInTomorrow(date) { return "Tomorrow, \(time)" }
+        let df = DateFormatter()
+        let daysAway = cal.dateComponents([.day], from: cal.startOfDay(for: Date()), to: cal.startOfDay(for: date)).day ?? 0
+        df.dateFormat = (0..<7).contains(daysAway) ? "EEEE" : "EEE, MMM d"
+        return "\(df.string(from: date)), \(time)"
+    }
+}
+
 // MARK: - Upcoming Plans Sheet
 
 /// Sheet listing all confirmed upcoming plans beyond the pinned (soonest) one.
@@ -1286,11 +1409,12 @@ struct UpcomingPlansSheet: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: MessagingViewModel
     let otherUserName: String
+    let currentUserID: String
 
     @State private var showCancelAlertFor: Plan? = nil
 
     private var plans: [Plan] {
-        let upcoming = viewModel.confirmedPlans.filter { ($0.confirmedDate ?? .distantPast) > Date() }
+        let upcoming = viewModel.confirmedPlans.filter { $0.isUpcoming() }
         guard upcoming.count > 1 else { return [] }
         return Array(upcoming.dropFirst())
     }
@@ -1304,9 +1428,14 @@ struct UpcomingPlansSheet: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(plans) { plan in
-                            UpcomingPlanRow(plan: plan) {
-                                showCancelAlertFor = plan
-                            }
+                            UpcomingPlanRow(
+                                plan: plan,
+                                currentUserID: currentUserID,
+                                otherUserName: otherUserName,
+                                onCancel: { showCancelAlertFor = plan },
+                                onAcceptReschedule: { Task { await viewModel.acceptReschedule(plan) } },
+                                onDeclineReschedule: { Task { await viewModel.declineReschedule(plan) } }
+                            )
                         }
                     }
                     .padding(.horizontal, 20)
@@ -1350,7 +1479,11 @@ struct UpcomingPlansSheet: View {
 
 struct UpcomingPlanRow: View {
     let plan: Plan
+    let currentUserID: String
+    let otherUserName: String
     let onCancel: () -> Void
+    let onAcceptReschedule: () -> Void
+    let onDeclineReschedule: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -1371,7 +1504,7 @@ struct UpcomingPlanRow: View {
                 .buttonStyle(.plain)
             }
 
-            if let date = plan.confirmedDate {
+            if let date = plan.standingDate {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 11))
@@ -1391,6 +1524,16 @@ struct UpcomingPlanRow: View {
                         .font(.system(size: 13, design: .rounded))
                         .foregroundColor(Color.appSecondaryText)
                 }
+            }
+
+            if plan.status == .counterProposed {
+                RescheduleRequestView(
+                    plan: plan,
+                    currentUserID: currentUserID,
+                    otherUserDisplayName: otherUserName,
+                    onAccept: onAcceptReschedule,
+                    onDecline: onDeclineReschedule
+                )
             }
         }
         .padding(14)

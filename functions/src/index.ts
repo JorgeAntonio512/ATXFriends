@@ -301,6 +301,15 @@ export const applyShowUpReport = functions.firestore
   });
 
 // ─── 4. Plan Confirmed ────────────────────────────────────────────────────────
+//
+// Fires on any change into "confirmed". Three cases:
+//   - pending -> confirmed: the receiver accepted the proposal; notify the proposer.
+//   - counter -> confirmed with counterProposedBy set: the other person answered a
+//     reschedule request; notify the requester. If confirmedDate changed they accepted
+//     ("Plan Confirmed!" at the new time), otherwise they declined and the plan stays
+//     at its original time.
+//   - counter -> confirmed with no counterProposedBy (legacy plans from before that
+//     field existed): keep the old inference — the proposer confirmed, notify the receiver.
 
 export const onPlanConfirmed = functions.firestore
   .document("plans/{planId}")
@@ -314,11 +323,52 @@ export const onPlanConfirmed = functions.firestore
     const receiverId = after.receiverID as string;
     const activityName = (after.activity?.name as string) ?? "your hangout";
     const matchID = (after.matchID as string) ?? "";
+    const planId = context.params.planId as string;
+
+    const requesterId = before.status === PLAN_STATUS_COUNTER_PROPOSED
+      ? (before.counterProposedBy as string | undefined)
+      : undefined;
+
+    if (requesterId === proposerId || requesterId === receiverId) {
+      const responderId = requesterId === proposerId ? receiverId : proposerId;
+      const originalDate = before.confirmedDate as admin.firestore.Timestamp | undefined;
+      const newDate = after.confirmedDate as admin.firestore.Timestamp | undefined;
+      const dateChanged = !(originalDate && newDate && originalDate.isEqual(newDate));
+
+      const requesterData = await getUserData(requesterId);
+      if (!requesterData?.fcmTokens.length) return;
+      if (requesterData.prefs.planConfirmations === false) return;
+      if (isBlocked(requesterData.blockedUsers, responderId)) return;
+
+      const responderData = await getUserData(responderId);
+      const responderName = responderData?.displayName ?? "Someone";
+
+      if (dateChanged) {
+        const when = newDate ? ` for ${formatPlanTime(newDate)}` : "";
+        await sendNotification(
+          requesterId,
+          requesterData.fcmTokens,
+          "Plan Confirmed! ✅",
+          `${responderName} confirmed your ${activityName} plan${when}. It's on!`,
+          { type: "planConfirmed", planId, matchID }
+        );
+      } else {
+        const when = originalDate ? formatPlanTime(originalDate) : "the original time";
+        await sendNotification(
+          requesterId,
+          requesterData.fcmTokens,
+          "New Time Declined",
+          `${responderName} can't make the new time — your plan stays on ${when}.`,
+          { type: "planRescheduleDeclined", planId, matchID }
+        );
+      }
+      return;
+    }
 
     // No auth context on a Firestore trigger, so infer who just confirmed from
     // the prior status: "pending" -> receiver accepted the proposer's dates;
-    // PLAN_STATUS_COUNTER_PROPOSED ("counter") -> proposer accepted the
-    // receiver's counter-dates.
+    // legacy PLAN_STATUS_COUNTER_PROPOSED ("counter") with no counterProposedBy ->
+    // proposer accepted the receiver's counter-dates.
     const confirmerId = before.status === PLAN_STATUS_COUNTER_PROPOSED ? proposerId : receiverId;
     const notifyId = confirmerId === proposerId ? receiverId : proposerId;
 
@@ -334,6 +384,63 @@ export const onPlanConfirmed = functions.firestore
       notifyData.fcmTokens,
       "Plan Confirmed! ✅",
       `${confirmerData?.displayName ?? "Someone"} confirmed your ${activityName} plan. It's on!`,
-      { type: "planConfirmed", planId: context.params.planId, matchID }
+      { type: "planConfirmed", planId, matchID }
     );
   });
+
+// ─── 6. Plan Reschedule Requested ─────────────────────────────────────────────
+//
+// Fires when a confirmed plan moves to "counter": someone suggested a new time.
+// counterProposedBy is the requester; the other participant is notified.
+// Gated by the same preference as new plan requests.
+
+export const onPlanRescheduleRequested = functions.firestore
+  .document("plans/{planId}")
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+
+    if (before.status === PLAN_STATUS_COUNTER_PROPOSED || after.status !== PLAN_STATUS_COUNTER_PROPOSED) return;
+
+    const proposerId = after.proposerID as string;
+    const receiverId = after.receiverID as string;
+    const requesterId = after.counterProposedBy as string | undefined;
+    if (requesterId !== proposerId && requesterId !== receiverId) {
+      console.log(`⚠️ Skipped reschedule push for plan ${context.params.planId}: no valid counterProposedBy`);
+      return;
+    }
+
+    const notifyId = requesterId === proposerId ? receiverId : proposerId;
+    const activityName = (after.activity?.name as string) ?? "your hangout";
+    const matchID = (after.matchID as string) ?? "";
+
+    const notifyData = await getUserData(notifyId);
+    if (!notifyData?.fcmTokens.length) return;
+    if (notifyData.prefs.planRequests === false) return;
+    if (isBlocked(notifyData.blockedUsers, requesterId)) return;
+
+    const requesterData = await getUserData(requesterId);
+
+    await sendNotification(
+      notifyId,
+      notifyData.fcmTokens,
+      "New Time Suggested 🗓️",
+      `${requesterData?.displayName ?? "Someone"} suggested a new time for ${activityName}.`,
+      { type: "planRescheduleRequested", planId: context.params.planId, matchID }
+    );
+  });
+
+// ─── Helper: format a plan time for push copy ─────────────────────────────────
+//
+// Cloud Functions run in UTC; the app is Austin-only at launch, so render plan
+// times in Central time, e.g. "Sunday, Oct 5 at 3:00 PM".
+function formatPlanTime(ts: admin.firestore.Timestamp): string {
+  const date = ts.toDate();
+  const day = date.toLocaleDateString("en-US", {
+    timeZone: "America/Chicago", weekday: "long", month: "short", day: "numeric",
+  });
+  const time = date.toLocaleTimeString("en-US", {
+    timeZone: "America/Chicago", hour: "numeric", minute: "2-digit",
+  });
+  return `${day} at ${time}`;
+}

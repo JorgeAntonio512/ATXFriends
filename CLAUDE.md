@@ -4,12 +4,9 @@
 
 Avenue3 is a warm, wholesome, family-friendly iOS app that helps people in Austin, TX build **meaningful friendships** — not romantic connections. This is explicitly NOT a dating app. There are no "likes," no swiping for romance, no hookup culture. Think neighborhood block party, not Tinder.
 
-The app supports three friendship modes:
-1. **Individual** — a single person looking for friends
-2. **Couple (no kids)** — a couple looking for other couples or individuals to hang out with
-3. **Couple with kids** — a family looking for other families or individuals
+The app is **individuals-only**: every profile is one person looking for friends. (An earlier Individual / Couple / Couple with Kids "friendship mode" was deliberately removed and does not exist in the code.)
 
-Users can switch modes later. The mode affects how their profile is presented and how they are matched.
+**Reference for how the live app behaves:** `docs/android-parity-spec.md`. When this file and the spec disagree, trust the spec (and the code).
 
 ---
 
@@ -42,13 +39,13 @@ Users can switch modes later. The mode affects how their profile is presented an
 
 ---
 
-## The 3-by-3 Profile System
+## The Profile System
 
-Every user builds their profile around three sets of three:
+Every user builds their profile around three pieces:
 
-1. **3 Photos** — profile pictures (no filters required, just real people)
-2. **3 Activities** — their top three things they love to do (e.g. hiking, board games, tacos)
-3. **3 Day/Slot combos** — their top three preferred times to hang out, each combo being a day of the week + a time slot (e.g. Monday Night, Saturday Wake Up, Sunday Owl Hours)
+1. **Photos** — exactly 3 profile pictures (no filters required, just real people)
+2. **Activities** — 3 "Main" activities plus up to 7 "Extra" activities (3–10 total, exactly 3 flagged Main) (e.g. hiking, board games, tacos)
+3. **Day/Slot combos** — at least 3, no maximum; each combo is a day of the week + a time slot (e.g. Monday Night, Saturday Wake Up, Sunday Owl Hours)
 
 Activities and day/slot combos drive the matching algorithm.
 
@@ -75,7 +72,7 @@ There are 5 named time slots. Each covers a distinct part of the day:
 | 🌙 Night | 9:00pm – 2:00am |
 | 🦉 Owl Hours | 2:00am – 7:00am |
 
-Users pick **3 day/slot combos** from 7 days × 5 slots (e.g. Monday Night, Saturday Wake Up, Sunday Owl Hours).
+Users pick **at least 3 day/slot combos** (no maximum) from 7 days × 5 slots (e.g. Monday Night, Saturday Wake Up, Sunday Owl Hours).
 
 ---
 
@@ -92,12 +89,16 @@ Users pick **3 day/slot combos** from 7 days × 5 slots (e.g. Monday Night, Satu
 ## App Views / Screens (High Level)
 
 1. **Onboarding / Auth** — Sign up or sign in (Firebase Auth)
-2. **Mode Selection** — Choose Individual, Couple, or Couple with Kids (changeable later in settings)
-3. **Profile Setup** — Upload 3 photos, pick 3 activities, pick 3 times
-4. **Home / Discover** — Browse nearby users (within radius)
-5. **Matches View** — Pending Yay/Nay decisions
-6. **Messaging View** — In-app text messaging for mutual matches
-7. **Settings** — Edit mode, adjust radius, edit profile
+2. **Profile Setup** — Upload 3 photos, pick 3 Main + up to 7 Extra activities, pick at least 3 times
+
+The main app is a custom tab bar with exactly **six tabs**, left to right (no Plans tab, no Home/Discover tab):
+
+1. **Matches** — Pending Yay/Nay decisions
+2. **Today** — Open slots and plans in the next 24 hours
+3. **Upcoming** — Multi-invitee plans (`GroupPlan`)
+4. **Simpatico** — Compatibility questions
+5. **Messages** — In-app text messaging for mutual matches (1-on-1 plan proposals live here)
+6. **Settings** — Adjust radius, edit profile, notifications, privacy & safety
 
 ---
 

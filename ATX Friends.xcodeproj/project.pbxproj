@@ -13,30 +13,16 @@
 		18345AC22FB7A03E00CF18FF /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 18345AC12FB7A03E00CF18FF /* GoogleSignInSwift */; };
 		18345ACE2FBAA7BD00CF18FF /* Plan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345ACD2FBAA7BC00CF18FF /* Plan.swift */; };
 		18345AD02FBAA7DE00CF18FF /* PlansService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345ACF2FBAA7DE00CF18FF /* PlansService.swift */; };
-		18345AD22FBAA7FC00CF18FF /* PlansViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AD12FBAA7FC00CF18FF /* PlansViewModel.swift */; };
-		18345AD62FBAA8CA00CF18FF /* PlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AD52FBAA8CA00CF18FF /* PlanDetailView.swift */; };
 		18345AE02FBD347400CF18FF /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345ADF2FBD347400CF18FF /* EditProfileView.swift */; };
 		18345AE22FBD349900CF18FF /* PhotosSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AE12FBD349900CF18FF /* PhotosSettingsView.swift */; };
 		18345AE42FBD34CB00CF18FF /* ActivitiesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AE32FBD34CB00CF18FF /* ActivitiesSettingsView.swift */; };
 		18345AE62FBD34FB00CF18FF /* AvailabilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AE52FBD34FB00CF18FF /* AvailabilitySettingsView.swift */; };
 		18345AEA2FBD354800CF18FF /* SearchRadiusSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18345AE92FBD354800CF18FF /* SearchRadiusSettingsView.swift */; };
 		1834BA2F2FD0F1B300F3ABF4 /* GeoHashUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */; };
-		1834BA312FD0F1BA00F3ABF4 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA302FD0F1BA00F3ABF4 /* Group.swift */; };
-		1834BA332FD0F1BE00F3ABF4 /* GroupMember.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */; };
 		1834BA3F2FD0F2DF00F3ABF4 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */; };
-		1834BA492FD1D9E300F3ABF4 /* MemberRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */; };
-		1834BA4B2FD1D9F500F3ABF4 /* PendingRequestRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */; };
-		1834BA552FD4137200F3ABF4 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA542FD4137200F3ABF4 /* Event.swift */; };
-		1834BA572FD4139500F3ABF4 /* EventsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */; };
-		1834BA592FD413A800F3ABF4 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA582FD413A800F3ABF4 /* EventsView.swift */; };
-		1834BA5B2FD413E200F3ABF4 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA5A2FD413E200F3ABF4 /* EventDetailView.swift */; };
 		1834BA5F2FD4973200F3ABF4 /* MessageModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA5E2FD4973100F3ABF4 /* MessageModels.swift */; };
-		1834BA612FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA602FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift */; };
-		1834BA632FD4978900F3ABF4 /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA622FD4978900F3ABF4 /* MessagesView.swift */; };
-		1834BA652FD497AF00F3ABF4 /* EventMessageThreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA642FD497AF00F3ABF4 /* EventMessageThreadView.swift */; };
 		1834BA672FD497FD00F3ABF4 /* EVENT_DMS_IMPLEMENTATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 1834BA662FD497FD00F3ABF4 /* EVENT_DMS_IMPLEMENTATION.md */; };
 		1834BA692FD4981E00F3ABF4 /* EVENT_DMS_CHECKLIST.md in Resources */ = {isa = PBXBuildFile; fileRef = 1834BA682FD4981E00F3ABF4 /* EVENT_DMS_CHECKLIST.md */; };
-		1834BA6B2FD4983A00F3ABF4 /* EventDMHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1834BA6A2FD4983A00F3ABF4 /* EventDMHelper.swift */; };
 		1834BA6D2FD4D69D00F3ABF4 /* DEBUG_EVENT_DMS_ANALYSIS.md in Resources */ = {isa = PBXBuildFile; fileRef = 1834BA6C2FD4D69D00F3ABF4 /* DEBUG_EVENT_DMS_ANALYSIS.md */; };
 		1834BA6F2FD4E30D00F3ABF4 /* EVENT_DM_FIX_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 1834BA6E2FD4E30D00F3ABF4 /* EVENT_DM_FIX_SUMMARY.md */; };
 		1834BA712FD4E33100F3ABF4 /* COMPILER_ERRORS_NOTE.md in Resources */ = {isa = PBXBuildFile; fileRef = 1834BA702FD4E33100F3ABF4 /* COMPILER_ERRORS_NOTE.md */; };
@@ -57,7 +43,6 @@
 		18A7750F2FAB0A710045B6D3 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A7750E2FAB0A710045B6D3 /* FirestoreService.swift */; };
 		18A775132FAB0BDA0045B6D3 /* FirebaseStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775122FAB0BDA0045B6D3 /* FirebaseStorageService.swift */; };
 		18A775152FAB0C000045B6D3 /* MatchingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775142FAB0C000045B6D3 /* MatchingService.swift */; };
-		18A775192FAB0C650045B6D3 /* MatchingServiceExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775182FAB0C650045B6D3 /* MatchingServiceExamples.swift */; };
 		18A775232FABF4130045B6D3 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775222FABF4130045B6D3 /* AuthViewModel.swift */; };
 		18A775252FABF43C0045B6D3 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775242FABF43C0045B6D3 /* ProfileViewModel.swift */; };
 		18A775272FABF4640045B6D3 /* MatchesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775262FABF4640045B6D3 /* MatchesViewModel.swift */; };
@@ -84,14 +69,12 @@
 		18A775682FAC06360045B6D3 /* LaunchScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A775672FAC06360045B6D3 /* LaunchScreenView.swift */; };
 		18A7757E2FAC11070045B6D3 /* MatchingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A7751C2FABEF330045B6D3 /* MatchingServiceTests.swift */; };
 		18A775802FAC14CA0045B6D3 /* DayOfWeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A7757F2FAC14CA0045B6D3 /* DayOfWeek.swift */; };
-		18E738E32FAD4AE30002E8B7 /* PlansView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E738E22FAD4AE20002E8B7 /* PlansView.swift */; };
 		18F096AB2FC3D5F200630A9A /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 18F096AA2FC3D5F200630A9A /* FirebaseMessaging */; };
 		18F096AF2FC3E08100630A9A /* NOTIFICATION_SETTINGS_CHANGES.md in Resources */ = {isa = PBXBuildFile; fileRef = 18F096AE2FC3E08100630A9A /* NOTIFICATION_SETTINGS_CHANGES.md */; };
 		18F096B32FC3E75900630A9A /* NOTIFICATION_PROMPT_STYLING.md in Resources */ = {isa = PBXBuildFile; fileRef = 18F096B22FC3E75900630A9A /* NOTIFICATION_PROMPT_STYLING.md */; };
 		18F096B52FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F096B42FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift */; };
 		6801F0B6305EAEF200E19C84 /* LocationSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B5305EAEF200E19C84 /* LocationSearchViewModel.swift */; };
 		6801F0B8305F4D5A00E19C84 /* PlanLocationField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */; };
-		6801F0BA305F6DB300E19C84 /* SharedActivityPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */; };
 		6823A29230597F2E00388E7E /* LocationPermissionNeededView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6823A29130597F2E00388E7E /* LocationPermissionNeededView.swift */; };
 		6892C928306106B800BFC363 /* GroupPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C927306106B800BFC363 /* GroupPlan.swift */; };
 		6892C92A306106CA00BFC363 /* GroupPlansService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6892C929306106CA00BFC363 /* GroupPlansService.swift */; };
@@ -141,30 +124,16 @@
 		18345ABA2FB7971400CF18FF /* AppleSignInHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInHelper.swift; sourceTree = "<group>"; };
 		18345ACD2FBAA7BC00CF18FF /* Plan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plan.swift; sourceTree = "<group>"; };
 		18345ACF2FBAA7DE00CF18FF /* PlansService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlansService.swift; sourceTree = "<group>"; };
-		18345AD12FBAA7FC00CF18FF /* PlansViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlansViewModel.swift; sourceTree = "<group>"; };
-		18345AD52FBAA8CA00CF18FF /* PlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanDetailView.swift; sourceTree = "<group>"; };
 		18345ADF2FBD347400CF18FF /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		18345AE12FBD349900CF18FF /* PhotosSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosSettingsView.swift; sourceTree = "<group>"; };
 		18345AE32FBD34CB00CF18FF /* ActivitiesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesSettingsView.swift; sourceTree = "<group>"; };
 		18345AE52FBD34FB00CF18FF /* AvailabilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailabilitySettingsView.swift; sourceTree = "<group>"; };
 		18345AE92FBD354800CF18FF /* SearchRadiusSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRadiusSettingsView.swift; sourceTree = "<group>"; };
 		1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoHashUtility.swift; sourceTree = "<group>"; };
-		1834BA302FD0F1BA00F3ABF4 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
-		1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMember.swift; sourceTree = "<group>"; };
 		1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
-		1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberRowView.swift; sourceTree = "<group>"; };
-		1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingRequestRowView.swift; sourceTree = "<group>"; };
-		1834BA542FD4137200F3ABF4 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
-		1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsViewModel.swift; sourceTree = "<group>"; };
-		1834BA582FD413A800F3ABF4 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
-		1834BA5A2FD413E200F3ABF4 /* EventDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
 		1834BA5E2FD4973100F3ABF4 /* MessageModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageModels.swift; sourceTree = "<group>"; };
-		1834BA602FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedMessagingViewModel.swift; sourceTree = "<group>"; };
-		1834BA622FD4978900F3ABF4 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
-		1834BA642FD497AF00F3ABF4 /* EventMessageThreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventMessageThreadView.swift; sourceTree = "<group>"; };
 		1834BA662FD497FD00F3ABF4 /* EVENT_DMS_IMPLEMENTATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = EVENT_DMS_IMPLEMENTATION.md; sourceTree = "<group>"; };
 		1834BA682FD4981E00F3ABF4 /* EVENT_DMS_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = EVENT_DMS_CHECKLIST.md; sourceTree = "<group>"; };
-		1834BA6A2FD4983A00F3ABF4 /* EventDMHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDMHelper.swift; sourceTree = "<group>"; };
 		1834BA6C2FD4D69D00F3ABF4 /* DEBUG_EVENT_DMS_ANALYSIS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DEBUG_EVENT_DMS_ANALYSIS.md; sourceTree = "<group>"; };
 		1834BA6E2FD4E30D00F3ABF4 /* EVENT_DM_FIX_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = EVENT_DM_FIX_SUMMARY.md; sourceTree = "<group>"; };
 		1834BA702FD4E33100F3ABF4 /* COMPILER_ERRORS_NOTE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = COMPILER_ERRORS_NOTE.md; sourceTree = "<group>"; };
@@ -182,7 +151,6 @@
 		18A7750E2FAB0A710045B6D3 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
 		18A775122FAB0BDA0045B6D3 /* FirebaseStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseStorageService.swift; sourceTree = "<group>"; };
 		18A775142FAB0C000045B6D3 /* MatchingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingService.swift; sourceTree = "<group>"; };
-		18A775182FAB0C650045B6D3 /* MatchingServiceExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingServiceExamples.swift; sourceTree = "<group>"; };
 		18A7751C2FABEF330045B6D3 /* MatchingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingServiceTests.swift; sourceTree = "<group>"; };
 		18A775222FABF4130045B6D3 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		18A775242FABF43C0045B6D3 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
@@ -211,14 +179,12 @@
 		18A775752FAC10E60045B6D3 /* ATX FriendsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ATX FriendsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		18A7757F2FAC14CA0045B6D3 /* DayOfWeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayOfWeek.swift; sourceTree = "<group>"; };
 		18AA0A942FAAF22F006DF038 /* ATX Friends.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ATX Friends.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		18E738E22FAD4AE20002E8B7 /* PlansView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlansView.swift; sourceTree = "<group>"; };
 		18F096AC2FC3DC4100630A9A /* NOTIFICATION_PERMISSION_USAGE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = NOTIFICATION_PERMISSION_USAGE.md; sourceTree = "<group>"; };
 		18F096AE2FC3E08100630A9A /* NOTIFICATION_SETTINGS_CHANGES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = NOTIFICATION_SETTINGS_CHANGES.md; sourceTree = "<group>"; };
 		18F096B22FC3E75900630A9A /* NOTIFICATION_PROMPT_STYLING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = NOTIFICATION_PROMPT_STYLING.md; sourceTree = "<group>"; };
 		18F096B42FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyAndSafetyViewModel.swift; sourceTree = "<group>"; };
 		6801F0B5305EAEF200E19C84 /* LocationSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchViewModel.swift; sourceTree = "<group>"; };
 		6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanLocationField.swift; sourceTree = "<group>"; };
-		6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedActivityPicker.swift; sourceTree = "<group>"; };
 		6823A29130597F2E00388E7E /* LocationPermissionNeededView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionNeededView.swift; sourceTree = "<group>"; };
 		6892C927306106B800BFC363 /* GroupPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlan.swift; sourceTree = "<group>"; };
 		6892C929306106CA00BFC363 /* GroupPlansService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupPlansService.swift; sourceTree = "<group>"; };
@@ -374,7 +340,6 @@
 				18A7750E2FAB0A710045B6D3 /* FirestoreService.swift */,
 				18A775122FAB0BDA0045B6D3 /* FirebaseStorageService.swift */,
 				18A775142FAB0C000045B6D3 /* MatchingService.swift */,
-				18A775182FAB0C650045B6D3 /* MatchingServiceExamples.swift */,
 				18A7751C2FABEF330045B6D3 /* MatchingServiceTests.swift */,
 				18A775222FABF4130045B6D3 /* AuthViewModel.swift */,
 				18A775242FABF43C0045B6D3 /* ProfileViewModel.swift */,
@@ -401,12 +366,9 @@
 				18A775602FAC01CD0045B6D3 /* UserProfileView.swift */,
 				18A775672FAC06360045B6D3 /* LaunchScreenView.swift */,
 				18A7757F2FAC14CA0045B6D3 /* DayOfWeek.swift */,
-				18E738E22FAD4AE20002E8B7 /* PlansView.swift */,
 				18345ABA2FB7971400CF18FF /* AppleSignInHelper.swift */,
 				18345ACD2FBAA7BC00CF18FF /* Plan.swift */,
 				18345ACF2FBAA7DE00CF18FF /* PlansService.swift */,
-				18345AD12FBAA7FC00CF18FF /* PlansViewModel.swift */,
-				18345AD52FBAA8CA00CF18FF /* PlanDetailView.swift */,
 				18345ADF2FBD347400CF18FF /* EditProfileView.swift */,
 				18345AE12FBD349900CF18FF /* PhotosSettingsView.swift */,
 				18345AE32FBD34CB00CF18FF /* ActivitiesSettingsView.swift */,
@@ -420,22 +382,10 @@
 				18229EF12FC535BD0089620E /* LAYOUT_AUDIT_FIXES.md */,
 				18229EF32FC536000089620E /* ADAPTIVE_SIZING_GUIDE.md */,
 				1834BA2E2FD0F1B300F3ABF4 /* GeoHashUtility.swift */,
-				1834BA302FD0F1BA00F3ABF4 /* Group.swift */,
-				1834BA322FD0F1BE00F3ABF4 /* GroupMember.swift */,
 				1834BA3E2FD0F2DF00F3ABF4 /* FlowLayout.swift */,
-				1834BA482FD1D9E300F3ABF4 /* MemberRowView.swift */,
-				1834BA4A2FD1D9F400F3ABF4 /* PendingRequestRowView.swift */,
-				1834BA542FD4137200F3ABF4 /* Event.swift */,
-				1834BA562FD4139500F3ABF4 /* EventsViewModel.swift */,
-				1834BA582FD413A800F3ABF4 /* EventsView.swift */,
-				1834BA5A2FD413E200F3ABF4 /* EventDetailView.swift */,
 				1834BA5E2FD4973100F3ABF4 /* MessageModels.swift */,
-				1834BA602FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift */,
-				1834BA622FD4978900F3ABF4 /* MessagesView.swift */,
-				1834BA642FD497AF00F3ABF4 /* EventMessageThreadView.swift */,
 				1834BA662FD497FD00F3ABF4 /* EVENT_DMS_IMPLEMENTATION.md */,
 				1834BA682FD4981E00F3ABF4 /* EVENT_DMS_CHECKLIST.md */,
-				1834BA6A2FD4983A00F3ABF4 /* EventDMHelper.swift */,
 				1834BA6C2FD4D69D00F3ABF4 /* DEBUG_EVENT_DMS_ANALYSIS.md */,
 				1834BA6E2FD4E30D00F3ABF4 /* EVENT_DM_FIX_SUMMARY.md */,
 				1834BA702FD4E33100F3ABF4 /* COMPILER_ERRORS_NOTE.md */,
@@ -457,7 +407,6 @@
 				68EBC98F305BD5F7001DAD15 /* PlanCalendarActionHandler.swift */,
 				6801F0B5305EAEF200E19C84 /* LocationSearchViewModel.swift */,
 				6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */,
-				6801F0B9305F6DB300E19C84 /* SharedActivityPicker.swift */,
 				6892C927306106B800BFC363 /* GroupPlan.swift */,
 				6892C929306106CA00BFC363 /* GroupPlansService.swift */,
 				6892C92B306106D600BFC363 /* GroupPlansViewModel.swift */,
@@ -633,7 +582,6 @@
 				18A775432FABFAB80045B6D3 /* ActivityPickerView.swift in Sources */,
 				6801F0B8305F4D5A00E19C84 /* PlanLocationField.swift in Sources */,
 				6892C92C306106D600BFC363 /* GroupPlansViewModel.swift in Sources */,
-				18345AD22FBAA7FC00CF18FF /* PlansViewModel.swift in Sources */,
 				6823A29230597F2E00388E7E /* LocationPermissionNeededView.swift in Sources */,
 				6892C92A306106CA00BFC363 /* GroupPlansService.swift in Sources */,
 				18A7750D2FAB0A490045B6D3 /* FirebaseAuthService.swift in Sources */,
@@ -644,7 +592,6 @@
 				6892C928306106B800BFC363 /* GroupPlan.swift in Sources */,
 				18A774FA2FAB075C0045B6D3 /* DaySlotCombo.swift in Sources */,
 				68950C6B30647357004AE41D /* LocationRepairService.swift in Sources */,
-				1834BA552FD4137200F3ABF4 /* Event.swift in Sources */,
 				18A775002FAB077E0045B6D3 /* Match.swift in Sources */,
 				1834BA3F2FD0F2DF00F3ABF4 /* FlowLayout.swift in Sources */,
 				68EBC990305BD5F7001DAD15 /* PlanCalendarActionHandler.swift in Sources */,
@@ -652,16 +599,11 @@
 				18A775272FABF4640045B6D3 /* MatchesViewModel.swift in Sources */,
 				18A775022FAB07860045B6D3 /* ModelConfiguration.swift in Sources */,
 				1834BA752FD4E44100F3ABF4 /* MessageInputBar.swift in Sources */,
-				6801F0BA305F6DB300E19C84 /* SharedActivityPicker.swift in Sources */,
-				1834BA6B2FD4983A00F3ABF4 /* EventDMHelper.swift in Sources */,
 				18A7754D2FABFE590045B6D3 /* MatchDetailView.swift in Sources */,
-				1834BA4B2FD1D9F500F3ABF4 /* PendingRequestRowView.swift in Sources */,
 				68CCEDE7304058A900640AB1 /* SimpaticoService.swift in Sources */,
 				68CCEDE8304058A900640AB1 /* SimpaticoModels.swift in Sources */,
 				68CCEDE9304058A900640AB1 /* SimpaticoView.swift in Sources */,
 				68CCEDEA304058A900640AB1 /* SimpaticoViewModel.swift in Sources */,
-				1834BA612FD4976400F3ABF4 /* EnhancedMessagingViewModel.swift in Sources */,
-				1834BA5B2FD413E200F3ABF4 /* EventDetailView.swift in Sources */,
 				18345AD02FBAA7DE00CF18FF /* PlansService.swift in Sources */,
 				68A9270830651DD6005C1547 /* DistanceDisplay.swift in Sources */,
 				68A925D43064CDCA005C1547 /* OpenSlotGenerator.swift in Sources */,
@@ -671,14 +613,10 @@
 				18A775412FABFA860045B6D3 /* PhotoPickerView.swift in Sources */,
 				68A3DF863040B8F3006BB37B /* ProposePlanSheet.swift in Sources */,
 				18345AE62FBD34FB00CF18FF /* AvailabilitySettingsView.swift in Sources */,
-				1834BA332FD0F1BE00F3ABF4 /* GroupMember.swift in Sources */,
 				6892C9303061095F00BFC363 /* GroupPlanDetailView.swift in Sources */,
-				1834BA632FD4978900F3ABF4 /* MessagesView.swift in Sources */,
 				1834BA5F2FD4973200F3ABF4 /* MessageModels.swift in Sources */,
 				18345ABB2FB7971400CF18FF /* AppleSignInHelper.swift in Sources */,
 				6801F0B6305EAEF200E19C84 /* LocationSearchViewModel.swift in Sources */,
-				1834BA312FD0F1BA00F3ABF4 /* Group.swift in Sources */,
-				18345AD62FBAA8CA00CF18FF /* PlanDetailView.swift in Sources */,
 				18A775572FABFFD20045B6D3 /* MessagesListView.swift in Sources */,
 				68CFB7F73035138200B2078C /* TodayPlanService.swift in Sources */,
 				18A775392FABF8D80045B6D3 /* MainTabView.swift in Sources */,
@@ -686,7 +624,6 @@
 				68A9270A30655AEE005C1547 /* AvatarRing.swift in Sources */,
 				18A775372FABF8A30045B6D3 /* RootView.swift in Sources */,
 				68A925D63064D3DA005C1547 /* GhostSlotCardView.swift in Sources */,
-				18E738E32FAD4AE30002E8B7 /* PlansView.swift in Sources */,
 				18A774F82FAB07550045B6D3 /* TimeSlot.swift in Sources */,
 				18A775452FABFADE0045B6D3 /* TimeSlotPickerView.swift in Sources */,
 				18A7752D2FABF6D30045B6D3 /* OnboardingView.swift in Sources */,
@@ -697,7 +634,6 @@
 				18A775532FABFF9B0045B6D3 /* MessagingService.swift in Sources */,
 				1834BA2F2FD0F1B300F3ABF4 /* GeoHashUtility.swift in Sources */,
 				18345ACE2FBAA7BD00CF18FF /* Plan.swift in Sources */,
-				1834BA492FD1D9E300F3ABF4 /* MemberRowView.swift in Sources */,
 				1834BA732FD4E44100F3ABF4 /* MessageBubble.swift in Sources */,
 				18A775232FABF4130045B6D3 /* AuthViewModel.swift in Sources */,
 				18A775552FABFFB20045B6D3 /* MessagingViewModel.swift in Sources */,
@@ -708,7 +644,6 @@
 				18A775802FAC14CA0045B6D3 /* DayOfWeek.swift in Sources */,
 				18A775252FABF43C0045B6D3 /* ProfileViewModel.swift in Sources */,
 				18A7752F2FABF6F50045B6D3 /* SignUpView.swift in Sources */,
-				1834BA592FD413A800F3ABF4 /* EventsView.swift in Sources */,
 				68A925D23064C40C005C1547 /* ShareLocationSettingsView.swift in Sources */,
 				68A925D03064C367005C1547 /* LocationSharingManager.swift in Sources */,
 				6892C92E3061092000BFC363 /* UpcomingView.swift in Sources */,
@@ -718,9 +653,6 @@
 				68A3C088304D91AE00C9FDEF /* AppColors.swift in Sources */,
 				18345AEA2FBD354800CF18FF /* SearchRadiusSettingsView.swift in Sources */,
 				18345AE02FBD347400CF18FF /* EditProfileView.swift in Sources */,
-				1834BA652FD497AF00F3ABF4 /* EventMessageThreadView.swift in Sources */,
-				18A775192FAB0C650045B6D3 /* MatchingServiceExamples.swift in Sources */,
-				1834BA572FD4139500F3ABF4 /* EventsViewModel.swift in Sources */,
 				18A775132FAB0BDA0045B6D3 /* FirebaseStorageService.swift in Sources */,
 				18A774FE2FAB07700045B6D3 /* User.swift in Sources */,
 				18345AE42FBD34CB00CF18FF /* ActivitiesSettingsView.swift in Sources */,
