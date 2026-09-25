@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Messages tab (iOS MessagesListView, MessageThreadView, PlanProposalCard). Kept in its own
+     file so parallel feature rounds don't collide in strings.xml. -->
+<resources>
+    <!-- Conversation list -->
+    <string name="messages_title">Messages</string>
+    <string name="messages_loading">Loading messages...</string>
+    <string name="messages_empty_title">No conversations yet</string>
+    <string name="messages_empty_body">Match with someone, then propose a plan to start chatting.</string>
+    <string name="messages_say_hi">Say hi 👋</string>
+    <!-- Android-only: iOS silently falls back to the empty state when loading fails. -->
+    <string name="messages_load_error">Couldn\'t load your conversations. Check your connection and try again.</string>
+    <string name="messages_row_unread">Unread</string>
+    <string name="messages_row_last_message">Last message: %1$s</string>
+    <string name="messages_row_say_hi">Say hi</string>
+    <string name="messages_row_plan">Plan: %1$s</string>
+    <string name="messages_profile_photo">%1$s, profile photo</string>
+
+    <!-- Thread -->
+    <string name="thread_back">Back</string>
+    <string name="thread_view_profile">View %1$s\'s profile</string>
+    <!-- Android-only: iOS never shows a loading or error state for message history (spec §11.3). -->
+    <string name="thread_load_error">Couldn\'t load messages. Check your connection and try again.</string>
+    <string name="thread_matched_subtitle">You matched. Say hi, or skip straight to a plan.</string>
+    <string name="thread_you_both_like">You both like</string>
+    <string name="thread_propose_plan">Propose a plan</string>
+    <string name="thread_propose_plan_for">Propose a plan for %1$s</string>
+    <string name="thread_say_hi_before">Say hi to %1$s before you head out.</string>
+    <!-- Android-only: shown in place of iOS's "Message..." placeholder until sending is built. -->
+    <string name="thread_sending_coming_soon">Sending coming soon</string>
+    <string name="thread_send">Send</string>
+
+    <!-- Pinned confirmed-plan card -->
+    <string name="plan_confirmed">Plan confirmed</string>
+    <string name="plan_more_count">+%1$d more</string>
+    <string name="plan_more_options">More plan options</string>
+    <string name="plan_you_and">You &amp; %1$s</string>
+    <string name="plan_you_initial">Y</string>
+    <string name="plan_get_directions">Get directions</string>
+    <string name="plan_add_to_calendar">Add to Calendar</string>
+    <string name="plan_add_to_calendar_a11y">Add to calendar</string>
+    <string name="plan_show_details">Show plan details</string>
+    <string name="plan_waiting_for">Waiting for %1$s</string>
+    <string name="plan_accept">Accept</string>
+    <string name="plan_decline">Decline</string>
+
+    <!-- Plan proposal card -->
+    <string name="plan_proposal">Plan Proposal</string>
+    <string name="plan_status_pending">Pending</string>
+    <string name="plan_status_confirmed">Confirmed</string>
+    <string name="plan_status_declined">Declined</string>
+    <string name="plan_status_cancelled">Cancelled</string>
+    <string name="plan_status_counter">Counter</string>
+</resources>

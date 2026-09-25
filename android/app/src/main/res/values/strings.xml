@@ -10,4 +10,129 @@
 
     <string name="debug_firebase_project">Firebase: %1$s</string>
     <string name="debug_firebase_unavailable">unavailable</string>
+
+    <!-- Welcome (iOS OnboardingView) -->
+    <string name="welcome_tagline">Find Your People</string>
+    <string name="welcome_subtitle">Build meaningful friendships\nin Austin, TX</string>
+    <string name="welcome_feature_friendship">Not a dating app — genuine friendships only</string>
+    <string name="welcome_feature_matching">Match based on activities &amp; availability</string>
+    <string name="welcome_feature_neighbors">Connect with neighbors in Austin</string>
+
+    <!-- Sign in (iOS SignInView) -->
+    <string name="action_sign_in">Sign In</string>
+    <string name="action_back">Back</string>
+    <string name="sign_in_title">Welcome Back</string>
+    <string name="sign_in_subtitle">Sign in to continue</string>
+    <string name="field_email">Email</string>
+    <string name="field_email_placeholder">you@example.com</string>
+    <string name="field_password">Password</string>
+    <string name="field_password_placeholder">Enter your password</string>
+    <string name="forgot_password">Forgot Password?</string>
+
+    <!-- Forgot password (iOS ForgotPasswordSheet) -->
+    <string name="reset_title">Reset Password</string>
+    <string name="reset_body">Enter your email and we\'ll send you instructions to reset your password.</string>
+    <string name="reset_send">Send Reset Email</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="reset_success_title">Password Reset Email Sent</string>
+    <string name="reset_success_body">Check your email for instructions to reset your password.</string>
+    <string name="action_ok">OK</string>
+
+    <!-- Auth errors (iOS AuthErrorMessage.swift + AuthViewModel.swift) -->
+    <string name="auth_error_incorrect_credentials">Email or password is incorrect.</string>
+    <string name="auth_error_invalid_email">That doesn\'t look like a valid email address.</string>
+    <string name="auth_error_network">Can\'t connect right now. Check your internet and try again.</string>
+    <string name="auth_error_too_many_requests">Too many attempts. Wait a few minutes and try again.</string>
+    <string name="auth_error_user_disabled">This account has been disabled.</string>
+    <string name="auth_error_generic">Something went wrong. Please try again.</string>
+    <string name="auth_error_empty_password">Please enter your password.</string>
+    <string name="auth_reset_error_invalid_email">Please enter a valid email address.</string>
+    <string name="auth_reset_error_failed">Failed to send password reset email. Please try again.</string>
+
+    <!-- Sign out (iOS Settings) -->
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_out_confirm">Are you sure you want to sign out?</string>
+
+    <!-- Matches (iOS MatchesView) -->
+    <string name="matches_title">Matches</string>
+    <string name="matches_loading">Finding your matches...</string>
+    <string name="matches_pending_title">Pending Matches</string>
+    <string name="matches_pending_subtitle">Say Yay to connect</string>
+    <string name="matches_connected_title">Connected</string>
+    <string name="matches_connected_subtitle">You\'ve both said Yay</string>
+    <string name="matches_shared_interests">Shared Interests</string>
+    <string name="matches_category_label">You both like %1$s</string>
+    <string name="matches_free_same_time">Free at the same time</string>
+    <string name="matches_nay">Nay</string>
+    <string name="matches_yay">Yay</string>
+    <string name="matches_more_activities">%1$s +%2$d more</string>
+    <string name="matches_simpatico_score">%1$d%%</string>
+    <string name="matches_empty_title">No Matches Yet</string>
+    <string name="matches_empty_body">We\'re looking for people who share\nyour interests and availability.\nCheck back soon!</string>
+    <string name="matches_how_title">How Matching Works</string>
+    <string name="matches_how_body">We automatically find people nearby who share at least one activity AND one time slot with you.</string>
+    <string name="matches_plan_button">Propose a plan</string>
+    <string name="matches_message_button">Message</string>
+    <!-- Android-only: iOS sets an error but never shows it. -->
+    <string name="matches_load_error">Couldn\'t load your matches. Pull down to try again.</string>
+
+    <!-- Match detail (iOS MatchDetailView) -->
+    <string name="match_detail_free_same_time">Free at the Same Time</string>
+    <string name="match_detail_say_yay">Say Yay</string>
+    <string name="match_detail_say_nay">Say Nay</string>
+    <string name="match_detail_connected_title">You\'re Connected!</string>
+    <string name="match_detail_connected_body">You both said Yay. Start a conversation!</string>
+    <string name="match_detail_send_message">Send Message</string>
+    <string name="match_detail_propose_plan">Propose a Plan</string>
+    <string name="match_detail_yay_title">Say Yay?</string>
+    <string name="match_detail_yay_message">This will let %1$s know you\'re interested in being friends.</string>
+    <string name="match_detail_yay_confirm">Yes, Yay!</string>
+    <string name="match_detail_nay_title">Say Nay?</string>
+    <string name="match_detail_nay_message">This match will be removed. %1$s won\'t be notified.</string>
+    <string name="match_detail_nay_confirm">Yes, Nay</string>
+    <string name="action_close">Close</string>
+
+    <!-- Mutual-match celebration (iOS MatchesView celebrationOverlay) -->
+    <string name="celebration_emoji">🎉</string>
+    <string name="celebration_title">You\'re connected!</string>
+    <string name="celebration_body">Go say hi 👋</string>
+    <string name="celebration_open">Open</string>
+    <string name="celebration_later">Maybe later</string>
+
+    <!-- Android-only: iOS sets an error on a failed decision but never shows it. -->
+    <string name="matches_decision_error">Couldn\'t save your answer. Please try again.</string>
+    <string name="photo_description">Photo %1$d of %2$d</string>
+
+    <!-- Android-only session states (no iOS equivalent yet) -->
+    <string name="account_unfinished_title">Your account isn\'t finished</string>
+    <string name="account_unfinished_body">This account hasn\'t finished signing up. For now, please complete signup in the ATX Friends app on iPhone.</string>
+    <string name="action_try_again">Try Again</string>
+
+    <!-- Simpatico (iOS SimpaticoView / SimpaticoViewModel) -->
+    <string name="simpatico_intro_title">Before you begin</string>
+    <string name="simpatico_intro_title_upgrade">Simpatico got an upgrade</string>
+    <string name="simpatico_intro_body">A few quick questions about what you\'re actually like to hang out with. Once you and a connected friend have both answered enough, a compatibility score shows up next to their name in Messages.</string>
+    <string name="simpatico_intro_body_upgrade">It\'s quicker, and it helps find friends who actually fit — not just people who rated the same virtues \"very important.\"</string>
+    <string name="simpatico_intro_fact_questions">12 quick questions. Every one is skippable — skip anything you\'re not sure about.</string>
+    <string name="simpatico_intro_fact_time">Takes just a few minutes.</string>
+    <string name="simpatico_intro_fact_saves">Your progress saves after every answer. Leave anytime and pick up right where you left off.</string>
+    <string name="simpatico_start">Start</string>
+    <string name="simpatico_question_progress">Question %1$d of %2$d</string>
+    <string name="simpatico_your_answer">Your answer</string>
+    <string name="simpatico_good_with">I\'m good with friends who say…</string>
+    <string name="simpatico_doesnt_matter">Doesn\'t matter to you</string>
+    <string name="simpatico_how_much">How much does this matter?</string>
+    <string name="simpatico_importance_little">A little</string>
+    <string name="simpatico_importance_somewhat">Somewhat</string>
+    <string name="simpatico_importance_very">Very</string>
+    <string name="simpatico_skip">Skip</string>
+    <string name="simpatico_next">Next</string>
+    <string name="simpatico_finish">Finish</string>
+    <string name="simpatico_all_done">All done!</string>
+    <string name="simpatico_answered_count">You answered %1$d of %2$d</string>
+    <string name="simpatico_complete_body">Once a friend finishes their questionnaire too, your Simpatico score appears next to their name in Messages.</string>
+    <string name="simpatico_edit_answers">Edit answers</string>
+    <string name="simpatico_error_load">Couldn\'t load your answers. Please try again.</string>
+    <string name="simpatico_error_save">Couldn\'t save. Please try again.</string>
+    <string name="simpatico_error_finish">Couldn\'t finish. Please try again.</string>
 </resources>

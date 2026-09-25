@@ -1,0 +1,23 @@
+<resources>
+    <!-- Today (iOS TodayView / TodayViewModel). Kept in its own file so parallel feature rounds don't collide in strings.xml. -->
+    <string name="today_title">Today</string>
+    <string name="today_loading">Loading plans…</string>
+    <string name="today_filter_all">All</string>
+    <string name="today_empty_filtered">No %1$s plans today</string>
+    <string name="today_empty">Nobody\'s posted yet. Be the first one.</string>
+    <string name="today_claimed_banner">Someone claimed your %1$s plan! 🎉</string>
+    <string name="today_poster_unknown">…</string>
+    <string name="today_dot">·</string>
+    <string name="today_im_in">I\'m in</string>
+    <string name="today_your_post">Your post</string>
+    <string name="today_header_or_post_your_own">Or post your own</string>
+    <string name="today_header_free_next_day">Free in the next day?</string>
+    <string name="today_header_your_open_slots">Your open slots</string>
+    <string name="today_ghost_activity">%1$s?</string>
+    <string name="today_post_it">Post it</string>
+    <string name="today_ghost_a11y">Post a plan: %1$s, %2$s.</string>
+    <string name="today_start_from_scratch">Or start from scratch</string>
+    <string name="today_new_plan">New plan</string>
+    <string name="today_error_title">Something went wrong</string>
+    <string name="today_load_error">Could not load plans: %1$s</string>
+</resources>

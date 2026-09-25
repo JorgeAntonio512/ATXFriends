@@ -120,8 +120,17 @@ A native Android port lives in `android/` (Kotlin, Jetpack Compose, Material 3, 
 - **Behavior source of truth:** `docs/android-parity-spec.md`. Android must match the live iOS app as described there.
 - **Package / applicationId:** `com.georgeappdev.atxfriends` (permanent — never change it)
 - **Build:** `cd android && ./gradlew assembleDebug` (unit tests: `./gradlew test`). Needs JDK 17–21; if the system Java is newer, use Android Studio's bundled JDK: `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
-- **Layout:** `android/app/src/main/java/com/georgeappdev/atxfriends/` — `navigation/` (six tabs, one nested nav graph per tab), `ui/theme/` (iOS color tokens, type, shapes), `ui/components/`, and one package per feature screen. Dependency versions live in `android/gradle/libs.versions.toml`.
+- **Layout:** `android/app/src/main/java/com/georgeappdev/atxfriends/` — `data/` (Firestore field names, models, read-only repositories, auth), `session/` (signed-in/out routing state), `navigation/` (six tabs, one nested nav graph per tab), `ui/theme/` (iOS color tokens, type, shapes), `ui/components/`, and one `ui/` package per feature screen. Repositories are created once in `AtxFriendsApp`'s `AppContainer`. Dependency versions live in `android/gradle/libs.versions.toml`.
 - `android/app/google-services.json` is committed to the private repo only (excluded by `.publicignore`).
+
+### Shared database rules (Android must never break iPhone users)
+
+iOS and Android read and write the same Firestore documents.
+
+- **Never overwrite a whole document.** Change existing documents only through `DocumentUpdate` → `DocumentReference.update()`, listing just the fields being changed. Never use `set()` (with or without `SetOptions`), never convert a model to a map and save it, and never use `toObject()`. Replacing a document silently deletes fields iOS uses that Android doesn't know about. Models have no "to map" method and repositories expose no "save object" call on purpose; `NoWholeDocumentWritesTest` fails the build if `.set(`, `SetOptions`, or `toObject` appears in app code.
+- **Field names and enum raw values match iOS exactly** (`data/firestore/FirestoreFields.kt`, `data/model/FirestoreEnums.kt`). Never rename one to be "more Kotlin"; `FieldNamesMatchIosTest` pins them.
+- **Reading never crashes.** Decode through `DocReader` / each model's `fromFirestore()`. A doc missing a field iOS requires decodes to `null` (skipped, as on iOS); optional fields get iOS's defaults; unrecognized enum strings become `UNKNOWN`, which can never be written back.
+- **Dates** are read from and written as Firestore `Timestamp`s, the same form iOS uses.
 
 ---
 

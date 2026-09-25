@@ -1,0 +1,1126 @@
+{
+  "description": "Shared Simpatico answer key. iOS (Avenue3Tests/SimpaticoSharedVectorsTests.swift) and Android (SimpaticoSharedVectorsTest.kt) both score every case with their real scoring code and must produce `expected` exactly (null = no score, badge hidden). Scoring rules: parity spec §5.2.",
+  "cases": [
+    {
+      "name": "perfect_match",
+      "note": "Five shared questions, identical answers, each accepts only their own answer.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": 100
+    },
+    {
+      "name": "asymmetric_one_sided",
+      "note": "A accepts every answer B gave (A=1.0); B accepts A's answer on 1 of 5 equal-weight questions (B=0.2). sqrt(0.2)=0.447 -> 45: the geometric mean keeps a one-sided match below 50.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors",
+            "explore"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "loose"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "daytime"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized",
+            "quietDay"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "explore",
+          "acceptable": [
+            "explore",
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "smallCrew",
+          "acceptable": [
+            "smallCrew"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "loose",
+          "acceptable": [
+            "loose"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "daytime",
+          "acceptable": [
+            "daytime"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "quietDay",
+          "acceptable": [
+            "quietDay"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": 45
+    },
+    {
+      "name": "everyone_doesnt_matter",
+      "note": "Both mark every option acceptable on every question, with importances set anyway: all weights are 0, so each satisfaction is 1.0 even though the answers differ.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors",
+            "explore",
+            "chill",
+            "goOut"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew",
+            "bigGroup"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "loose",
+            "spontaneous"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "daytime",
+            "evening",
+            "lateNight"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized",
+            "quietDay",
+            "wiped"
+          ],
+          "importance": "very"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light",
+            "mix",
+            "deep"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "goOut",
+          "acceptable": [
+            "outdoors",
+            "explore",
+            "chill",
+            "goOut"
+          ],
+          "importance": "somewhat"
+        },
+        "hangSize": {
+          "answer": "bigGroup",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew",
+            "bigGroup"
+          ],
+          "importance": "somewhat"
+        },
+        "planning": {
+          "answer": "spontaneous",
+          "acceptable": [
+            "planner",
+            "loose",
+            "spontaneous"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "lateNight",
+          "acceptable": [
+            "earlyMorning",
+            "daytime",
+            "evening",
+            "lateNight"
+          ],
+          "importance": "somewhat"
+        },
+        "socialBattery": {
+          "answer": "wiped",
+          "acceptable": [
+            "energized",
+            "quietDay",
+            "wiped"
+          ],
+          "importance": "somewhat"
+        },
+        "convoDepth": {
+          "answer": "deep",
+          "acceptable": [
+            "light",
+            "mix",
+            "deep"
+          ],
+          "importance": "somewhat"
+        }
+      },
+      "expected": 100
+    },
+    {
+      "name": "four_shared_is_null",
+      "note": "Each answered 6 questions but only 4 overlap: fewer than 5 shared, so no score.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light"
+          ],
+          "importance": "very"
+        },
+        "drinking": {
+          "answer": "regularly",
+          "acceptable": [
+            "regularly"
+          ],
+          "importance": "very"
+        },
+        "nightOutCost": {
+          "answer": "under20",
+          "acceptable": [
+            "under20"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": null
+    },
+    {
+      "name": "exactly_five_shared",
+      "note": "Exactly 5 shared questions with mixed importances and two mismatches.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "little"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "somewhat"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "somewhat"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "daytime",
+          "acceptable": [
+            "daytime"
+          ],
+          "importance": "somewhat"
+        },
+        "socialBattery": {
+          "answer": "quietDay",
+          "acceptable": [
+            "quietDay"
+          ],
+          "importance": "somewhat"
+        }
+      },
+      "expected": 64
+    },
+    {
+      "name": "rounding_half_up",
+      "note": "8 equal 'little' questions, 5 satisfied each way: sqrt(5/8 * 5/8) * 100 = 62.5 exactly, which must round UP to 63 (Swift .rounded(); a half-to-even round would give 62).",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "little"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "little"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "little"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "little"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "little"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light"
+          ],
+          "importance": "little"
+        },
+        "texting": {
+          "answer": "daily",
+          "acceptable": [
+            "daily"
+          ],
+          "importance": "little"
+        },
+        "humor": {
+          "answer": "dry",
+          "acceptable": [
+            "dry"
+          ],
+          "importance": "little"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "little"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "little"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "little"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "little"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "little"
+        },
+        "convoDepth": {
+          "answer": "mix",
+          "acceptable": [
+            "mix"
+          ],
+          "importance": "little"
+        },
+        "texting": {
+          "answer": "fewTimesWeek",
+          "acceptable": [
+            "fewTimesWeek"
+          ],
+          "importance": "little"
+        },
+        "humor": {
+          "answer": "silly",
+          "acceptable": [
+            "silly"
+          ],
+          "importance": "little"
+        }
+      },
+      "expected": 63
+    },
+    {
+      "name": "one_side_doesnt_matter",
+      "note": "A marks everything acceptable (A=1.0); B is satisfied on half of 6 equal-weight questions (B=0.5): sqrt(0.5) -> 71.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors",
+            "explore",
+            "chill",
+            "goOut"
+          ]
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew",
+            "bigGroup"
+          ]
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "loose",
+            "spontaneous"
+          ]
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "daytime",
+            "evening",
+            "lateNight"
+          ]
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized",
+            "quietDay",
+            "wiped"
+          ]
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light",
+            "mix",
+            "deep"
+          ]
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "smallCrew"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "daytime"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "wiped",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "very"
+        },
+        "convoDepth": {
+          "answer": "deep",
+          "acceptable": [
+            "mix"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": 71
+    },
+    {
+      "name": "no_importance_means_zero_weight",
+      "note": "A leaves importance empty on every question (weight 0 even though not every option is acceptable), so A=1.0; B is never satisfied (B=0.0) -> 0.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors",
+            "explore"
+          ]
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew"
+          ]
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "loose"
+          ]
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "daytime"
+          ]
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized",
+            "quietDay"
+          ]
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "chill",
+          "acceptable": [
+            "chill"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "bigGroup",
+          "acceptable": [
+            "bigGroup"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "spontaneous",
+          "acceptable": [
+            "spontaneous"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "evening",
+          "acceptable": [
+            "evening"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "wiped",
+          "acceptable": [
+            "wiped"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": 0
+    },
+    {
+      "name": "unknown_question_counts_toward_five",
+      "note": "5 shared IDs, one of which isn't in the question bank: it still counts toward the minimum of 5 but adds no weight, so the 4 real, fully satisfied questions score 100.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "retiredQuestion": {
+          "answer": "x",
+          "acceptable": [
+            "x"
+          ],
+          "importance": "very"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "very"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "very"
+        },
+        "retiredQuestion": {
+          "answer": "y",
+          "acceptable": [
+            "y"
+          ],
+          "importance": "very"
+        }
+      },
+      "expected": 100
+    },
+    {
+      "name": "all_twelve_mixed",
+      "note": "All 12 questions shared, mixed importances, some 'doesn't matter' answers and partial overlaps.",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors",
+            "explore",
+            "chill",
+            "goOut"
+          ],
+          "importance": "very"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "smallCrew"
+          ],
+          "importance": "somewhat"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "loose"
+          ],
+          "importance": "little"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "daytime",
+            "evening",
+            "lateNight"
+          ],
+          "importance": "very"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized",
+            "quietDay"
+          ],
+          "importance": "somewhat"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "light",
+            "mix"
+          ],
+          "importance": "little"
+        },
+        "texting": {
+          "answer": "daily",
+          "acceptable": [
+            "daily",
+            "fewTimesWeek",
+            "plansOnly"
+          ],
+          "importance": "very"
+        },
+        "humor": {
+          "answer": "dry",
+          "acceptable": [
+            "dry",
+            "silly"
+          ],
+          "importance": "somewhat"
+        },
+        "drinking": {
+          "answer": "regularly",
+          "acceptable": [
+            "regularly",
+            "socially"
+          ],
+          "importance": "little"
+        },
+        "nightOutCost": {
+          "answer": "under20",
+          "acceptable": [
+            "under20",
+            "20to50",
+            "over50",
+            "whatever"
+          ],
+          "importance": "very"
+        },
+        "punctuality": {
+          "answer": "early",
+          "acceptable": [
+            "early",
+            "tenMin"
+          ],
+          "importance": "somewhat"
+        },
+        "schedule": {
+          "answer": "nineToFive",
+          "acceptable": [
+            "nineToFive",
+            "shifts"
+          ],
+          "importance": "little"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "explore",
+          "acceptable": [
+            "explore"
+          ],
+          "importance": "little"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne",
+            "bigGroup"
+          ],
+          "importance": "very"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner",
+            "spontaneous"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning",
+            "lateNight"
+          ],
+          "importance": "little"
+        },
+        "socialBattery": {
+          "answer": "quietDay",
+          "acceptable": [
+            "energized",
+            "wiped"
+          ],
+          "importance": "very"
+        },
+        "convoDepth": {
+          "answer": "light",
+          "acceptable": [
+            "mix"
+          ],
+          "importance": "somewhat"
+        },
+        "texting": {
+          "answer": "daily",
+          "acceptable": [
+            "daily",
+            "plansOnly"
+          ],
+          "importance": "little"
+        },
+        "humor": {
+          "answer": "dry",
+          "acceptable": [
+            "dry",
+            "wholesome"
+          ],
+          "importance": "very"
+        },
+        "drinking": {
+          "answer": "socially",
+          "acceptable": [
+            "regularly",
+            "never"
+          ],
+          "importance": "somewhat"
+        },
+        "nightOutCost": {
+          "answer": "under20",
+          "acceptable": [
+            "under20",
+            "whatever"
+          ],
+          "importance": "little"
+        },
+        "punctuality": {
+          "answer": "early",
+          "acceptable": [
+            "tenMin"
+          ],
+          "importance": "very"
+        },
+        "schedule": {
+          "answer": "nineToFive",
+          "acceptable": [
+            "nineToFive",
+            "parent"
+          ],
+          "importance": "somewhat"
+        }
+      },
+      "expected": 87
+    },
+    {
+      "name": "zero_score",
+      "note": "Neither accepts the other's answer on any question: 0 (a real score, not null).",
+      "a": {
+        "saturday": {
+          "answer": "outdoors",
+          "acceptable": [
+            "outdoors"
+          ],
+          "importance": "somewhat"
+        },
+        "hangSize": {
+          "answer": "oneOnOne",
+          "acceptable": [
+            "oneOnOne"
+          ],
+          "importance": "somewhat"
+        },
+        "planning": {
+          "answer": "planner",
+          "acceptable": [
+            "planner"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "earlyMorning",
+          "acceptable": [
+            "earlyMorning"
+          ],
+          "importance": "somewhat"
+        },
+        "socialBattery": {
+          "answer": "energized",
+          "acceptable": [
+            "energized"
+          ],
+          "importance": "somewhat"
+        }
+      },
+      "b": {
+        "saturday": {
+          "answer": "explore",
+          "acceptable": [
+            "explore"
+          ],
+          "importance": "somewhat"
+        },
+        "hangSize": {
+          "answer": "smallCrew",
+          "acceptable": [
+            "smallCrew"
+          ],
+          "importance": "somewhat"
+        },
+        "planning": {
+          "answer": "loose",
+          "acceptable": [
+            "loose"
+          ],
+          "importance": "somewhat"
+        },
+        "bestTime": {
+          "answer": "daytime",
+          "acceptable": [
+            "daytime"
+          ],
+          "importance": "somewhat"
+        },
+        "socialBattery": {
+          "answer": "quietDay",
+          "acceptable": [
+            "quietDay"
+          ],
+          "importance": "somewhat"
+        }
+      },
+      "expected": 0
+    }
+  ]
+}
