@@ -237,6 +237,18 @@ struct MatchesView: View {
         .task {
             await loadMatches()
         }
+        // "Stay Connected!" — asks for notification permission once, right after the first
+        // mutual match (MatchesViewModel sets this; see FIRST_MATCH_NOTIFICATION_REQUEST.md).
+        .overlay {
+            if viewModel.showNotificationPrompt {
+                NotificationPermissionPromptView(
+                    onEnable: { Task { await viewModel.requestNotificationPermission() } },
+                    onDismiss: { viewModel.dismissNotificationPrompt() }
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.showNotificationPrompt)
         .onAppear {
             if hasAppeared {
                 Task { await viewModel.refreshMatchedUsers() }

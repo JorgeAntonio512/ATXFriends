@@ -105,10 +105,9 @@ struct Avenue3App: App {
 
                 print("✅ User signed in - FCM token will be stored for: \(userID)")
             } else {
-                // User signed out - remove FCM token
-                if let userID = currentUserID {
-                    await notificationManager.removeFCMToken(for: userID)
-                }
+                // User signed out. This device's FCM token was already taken off the account
+                // before sign-out (AuthViewModel.signOut → unregisterBeforeSignOut); removing
+                // it here, after sign-out, is rejected by the owner-only users rule.
                 currentUserID = nil
                 notificationManager.setCurrentUser(nil)
                 UnreadState.shared.stopListening()                  // ← ADD THIS

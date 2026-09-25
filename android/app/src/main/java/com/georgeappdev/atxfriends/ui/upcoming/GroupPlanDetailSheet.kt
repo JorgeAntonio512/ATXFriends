@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -291,7 +291,7 @@ private fun CalendarButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .heightIn(min = 50.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(colors.appPrimary)
             .clickable(role = Role.Button, onClick = onClick),
@@ -339,7 +339,7 @@ private fun ActionButton(
     Box(
         modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .heightIn(min = 50.dp)
             .clip(shape)
             .background(background)
             .then(if (border != null) Modifier.border(borderWidth, border, shape) else Modifier)

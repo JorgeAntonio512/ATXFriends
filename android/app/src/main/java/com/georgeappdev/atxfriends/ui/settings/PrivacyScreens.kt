@@ -25,6 +25,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -237,6 +238,7 @@ private fun PeopleSection(
                             style = atxText(15.sp, FontWeight.SemiBold),
                             color = Color.White,
                             modifier = Modifier
+                                .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(colors.appPrimary)
                                 .clickable(enabled = enabled, role = Role.Button) { onTap(person, i) }

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.georgeappdev.atxfriends.R
+import com.georgeappdev.atxfriends.push.StayConnectedPrompt
 import com.georgeappdev.atxfriends.ui.components.atxText
 import com.georgeappdev.atxfriends.ui.plans.ComposerMode
 import com.georgeappdev.atxfriends.ui.plans.ComposerRequest
@@ -123,6 +124,12 @@ fun MatchesScreen(viewModel: MatchesViewModel = viewModel(factory = MatchesViewM
             onLater = viewModel::dismissCelebration,
         )
     }
+
+    StayConnectedPrompt(
+        requested = state.offerNotifications,
+        canShow = state.celebration == null,
+        onHandled = viewModel::notificationOfferHandled,
+    )
 
     if (state.decisionFailed) {
         AlertDialog(

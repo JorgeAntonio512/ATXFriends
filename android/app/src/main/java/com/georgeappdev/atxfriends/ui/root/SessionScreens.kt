@@ -1,6 +1,8 @@
 package com.georgeappdev.atxfriends.ui.root
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +75,12 @@ private fun MessageScreen(title: String?, body: String, actions: @Composable () 
             .padding(horizontal = 32.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Centered as before; scrolls only when a large font makes it taller than the screen.
+        Column(
+            Modifier.verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             AtxLogoMark(icon = R.drawable.ic_people, size = 80.dp, iconSize = 36.dp)
             if (title != null) {
                 Text(title, style = atxText(24.sp, FontWeight.Bold), color = colors.primaryText, textAlign = TextAlign.Center)

@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import com.georgeappdev.atxfriends.push.OpenThreadTracker
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -115,6 +116,11 @@ fun MessageThreadDialog(thread: MessageThread, myID: String, myPhotoURL: String?
             }
         }
         DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
+        // While this conversation is on screen, pushes about it aren't shown (iOS currentlyOpenMatchID).
+        DisposableEffect(thread.id) {
+            OpenThreadTracker.opened(thread.id)
+            onDispose { OpenThreadTracker.closed(thread.id) }
+        }
         val container = app.container
         CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
             val viewModel: MessageThreadViewModel = viewModel(
@@ -392,8 +398,8 @@ private fun ThreadTopBar(thread: MessageThread, onBack: () -> Unit, onAvatar: ()
         Box(
             Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 4.dp)
-                .size(44.dp)
+                .padding(end = 2.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .clickable(role = Role.Button, onClickLabel = viewProfile, onClick = onAvatar)
                 .semantics(mergeDescendants = true) { contentDescription = viewProfile },

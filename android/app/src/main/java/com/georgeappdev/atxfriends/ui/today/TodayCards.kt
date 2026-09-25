@@ -74,7 +74,8 @@ fun TodayPlanCard(plan: TodayPlanUi, timeBadge: String, isClaiming: Boolean, onC
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             IconLabel(
                 R.drawable.ic_person_circle, plan.posterName ?: stringResource(R.string.today_poster_unknown),
-                13.dp, colors.appPrimary, 13.sp, FontWeight.Medium, colors.textBody, spacing = 5.dp,
+                13.dp, colors.appPrimary, 13.sp, FontWeight.Medium, colors.textBody,
+                modifier = Modifier.weight(1f, fill = false), spacing = 5.dp,
             )
             Text(stringResource(R.string.today_dot), style = atxText(13.sp), color = colors.textSubtle)
             IconLabel(R.drawable.ic_verified, plan.showUpMeter, 11.dp, colors.appPrimary, 12.sp, FontWeight.SemiBold, colors.appPrimary, spacing = 5.dp)

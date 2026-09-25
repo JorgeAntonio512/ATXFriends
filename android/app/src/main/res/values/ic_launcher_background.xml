@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- iOS app icon background: UT Burnt Orange (appPrimary). -->
+    <color name="ic_launcher_background">#BF5700</color>
+</resources>

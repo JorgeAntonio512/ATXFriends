@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -124,18 +125,24 @@ fun MatchDetailSheet(
                 if (match.isMutual) ConnectedBlock(onProposePlan)
             }
 
-            // Close button, top right (iOS xmark.circle.fill).
-            Icon(
-                painterResource(R.drawable.ic_close_circle),
-                contentDescription = stringResource(R.string.action_close),
-                tint = colors.textMuted,
-                modifier = Modifier
+            // Close button, top right (iOS xmark.circle.fill). The 32dp glyph sits where it
+            // always has (16dp from the top, 20dp from the end) inside a 48dp touch target.
+            Box(
+                Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 20.dp)
-                    .size(32.dp)
+                    .padding(top = 8.dp, end = 12.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .clickable(role = Role.Button, onClick = onDismiss),
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_close_circle),
+                    contentDescription = stringResource(R.string.action_close),
+                    tint = colors.textMuted,
+                    modifier = Modifier.size(32.dp),
+                )
+            }
         }
     }
 
@@ -211,19 +218,24 @@ private fun FullScreenPhotos(match: MatchUi, startIndex: Int, onDismiss: () -> U
                 )
             }
             PageDots(pager, Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp))
-            Icon(
-                painterResource(R.drawable.ic_close_circle),
-                contentDescription = stringResource(R.string.action_close),
-                tint = Color.White,
-                modifier = Modifier
+            // The 36dp glyph stays 16dp from the top and 20dp from the end, inside a 48dp touch target.
+            Box(
+                Modifier
                     .align(Alignment.TopEnd)
                     .statusBarsPadding()
-                    .padding(top = 16.dp, end = 20.dp)
-                    .size(36.dp)
-                    .shadow(4.dp, CircleShape)
+                    .padding(top = 10.dp, end = 14.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .clickable(role = Role.Button, onClick = onDismiss),
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_close_circle),
+                    contentDescription = stringResource(R.string.action_close),
+                    tint = Color.White,
+                    modifier = Modifier.size(36.dp).shadow(4.dp, CircleShape),
+                )
+            }
         }
     }
 }
@@ -313,7 +325,7 @@ private fun DetailButton(
         outlined -> colors.appPrimary
         else -> colors.textMuted
     }
-    var modifier = Modifier.fillMaxWidth().height(56.dp)
+    var modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
     if (filled) {
         modifier = modifier.shadow(12.dp, shape, ambientColor = colors.appNavy.copy(alpha = 0.3f), spotColor = colors.appNavy.copy(alpha = 0.3f))
     }

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -15,6 +17,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.georgeappdev.atxfriends.AtxFriendsApp
 import com.georgeappdev.atxfriends.ui.components.AtxTabBar
 import com.georgeappdev.atxfriends.ui.messages.UnreadBadgeViewModel
 
@@ -29,6 +32,17 @@ fun MainScaffold(navController: NavHostController = rememberNavController()) {
     val showsMessagesDot by unreadBadge.showsMessagesDot.collectAsStateWithLifecycle()
 
     val tabNavigator = remember(navController) { TabNavigator { navController.navigateToTab(it) } }
+
+    // A tapped push (cold or warm start): open that conversation in Messages, like iOS MainTabView.
+    val container = (LocalContext.current.applicationContext as AtxFriendsApp).container
+    LaunchedEffect(container) {
+        container.pushRoutes.pending.collect { route ->
+            if (route == null) return@collect
+            container.pushRoutes.consume()
+            container.threadRequests.request(ThreadRequest(route.matchID, "", "", route.fallbackToMatchesTab))
+            navController.navigateToTab(AppTab.MESSAGES)
+        }
+    }
 
     CompositionLocalProvider(LocalTabNavigator provides tabNavigator) {
         Scaffold(

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.georgeappdev.atxfriends.R
@@ -73,8 +74,14 @@ fun PlanProposalCard(
                     modifier = Modifier.size(15.dp),
                 )
                 Spacer(Modifier.size(6.dp))
-                Text(stringResource(R.string.plan_proposal), style = atxText(13.sp, FontWeight.SemiBold), color = colors.appPrimary)
-                Spacer(Modifier.weight(1f))
+                // Weight on the title (not a spacer) so at large font sizes it wraps instead of
+                // pushing the status pill out of the card.
+                Text(
+                    stringResource(R.string.plan_proposal),
+                    style = atxText(13.sp, FontWeight.SemiBold),
+                    color = colors.appPrimary,
+                    modifier = Modifier.weight(1f),
+                )
                 if (state is ProposalCardState.Loaded) StatusPill(state.plan.status)
             }
 
@@ -125,7 +132,7 @@ fun PlanProposalCard(
 
 @Composable
 private fun SummaryText(text: String, maxLines: Int) {
-    Text(text, style = atxText(14.sp), color = AtxTheme.colors.secondaryText, maxLines = maxLines)
+    Text(text, style = atxText(14.sp), color = AtxTheme.colors.secondaryText, maxLines = maxLines, overflow = TextOverflow.Ellipsis)
 }
 
 /**

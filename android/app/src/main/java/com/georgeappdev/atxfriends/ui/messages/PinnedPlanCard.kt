@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -304,7 +305,7 @@ private fun LocationSection(plan: Plan, onDirections: () -> Unit) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(118.dp)
+                .heightIn(min = 118.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(colors.appPrimary.copy(alpha = 0.12f))
                 .clickable(role = Role.Button, onClickLabel = directions, onClick = onDirections),
@@ -365,7 +366,7 @@ private fun ButtonsRow(plan: Plan, addedToCalendar: Boolean, onDirections: () ->
             Row(
                 Modifier
                     .weight(1f)
-                    .height(50.dp)
+                    .heightIn(min = 50.dp)
                     .clip(shape)
                     .background(colors.appPrimary)
                     .clickable(role = Role.Button, onClick = onDirections),
@@ -390,7 +391,7 @@ private fun ButtonsRow(plan: Plan, addedToCalendar: Boolean, onDirections: () ->
             Row(
                 Modifier
                     .weight(1f)
-                    .height(50.dp)
+                    .heightIn(min = 50.dp)
                     .clip(shape)
                     .background(colors.appPrimary)
                     .clickable(role = Role.Button, onClick = onAddToCalendar),

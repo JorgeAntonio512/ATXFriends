@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification channels (Android settings → Apps → ATX Friends → Notifications).
+         One per iOS notification toggle; descriptions reuse the toggle subtitles. -->
+    <string name="push_channel_new_matches">New matches</string>
+    <string name="push_channel_messages">Messages</string>
+    <string name="push_channel_plan_requests">Plan requests</string>
+    <string name="push_channel_plan_confirmations">Plan confirmations</string>
+    <string name="push_channel_other">Other notifications</string>
+    <string name="push_channel_other_desc">Anything else from ATX Friends</string>
+
+    <!-- "Stay Connected!" after a first mutual match (iOS NotificationPermissionPromptView). -->
+    <string name="push_prompt_title">Stay Connected!</string>
+    <string name="push_prompt_body">You have a new match! 🎉\n\nEnable notifications so you never miss a message or plan from your new friends.</string>
+    <string name="push_prompt_enable">Enable Notifications</string>
+    <string name="push_prompt_not_now">Not Now</string>
+</resources>

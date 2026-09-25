@@ -7,19 +7,20 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.tasks.await
 
-data class AuthUser(val uid: String, val email: String?)
+/** [displayName] is Firebase Auth's own (a Google account's name; null for email accounts). */
+data class AuthUser(val uid: String, val email: String?, val displayName: String? = null)
 
 /**
- * Firebase Auth for existing accounts only. There is intentionally no create-account method:
- * new accounts must pass the location gate and profile setup, which Android doesn't have yet.
- * Firebase persists the session itself, so a signed-in user stays signed in across launches.
+ * Firebase Auth sign-in for existing accounts. Creating (and abandoning) accounts lives in
+ * SignupRepository, behind the location gate. Firebase persists the session itself, so a
+ * signed-in user stays signed in across launches.
  */
 class AuthRepository(private val auth: FirebaseAuth) {
 
     /** The signed-in user, or null. Emits the current value immediately, then on every change. */
     val currentUser: Flow<AuthUser?> = callbackFlow {
         val listener = FirebaseAuth.AuthStateListener { a ->
-            trySend(a.currentUser?.let { AuthUser(it.uid, it.email) })
+            trySend(a.currentUser?.let { AuthUser(it.uid, it.email, it.displayName) })
         }
         auth.addAuthStateListener(listener)
         awaitClose { auth.removeAuthStateListener(listener) }

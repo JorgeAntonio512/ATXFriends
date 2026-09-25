@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launch theme for MainActivity: the app icon on the app background (light or dark),
+         then MainActivity.installSplashScreen() swaps in the normal window theme. -->
+    <style name="Theme.ATXFriends.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/app_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.ATXFriends</item>
+    </style>
+</resources>

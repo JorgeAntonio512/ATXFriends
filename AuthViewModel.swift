@@ -291,12 +291,18 @@ final class AuthViewModel {
     /// Signs out the current user
     /// - Returns: True if successful, false otherwise
     @MainActor
-    func signOut() -> Bool {
+    func signOut() async -> Bool {
         // Clear previous errors
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
-        
+
+        // Remove this device's push token while still signed in — afterwards the owner-only
+        // users rule rejects the write and this phone would keep getting the account's pushes.
+        if let userID = Auth.auth().currentUser?.uid {
+            await NotificationManager.shared.unregisterBeforeSignOut(userID: userID)
+        }
+
         do {
             try authService.signOut()
 

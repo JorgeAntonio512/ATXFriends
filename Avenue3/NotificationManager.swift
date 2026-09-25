@@ -163,6 +163,53 @@ final class NotificationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Takes this device's token off the account right before sign-out, while the user can
+    /// still write their own users doc — the users rule is owner-only, so once Firebase has
+    /// signed out the removal is rejected and the phone keeps getting that account's pushes.
+    /// Waits at most 4 seconds. If the removal fails or times out, deletes the token itself so
+    /// FCM stops delivering to it (the server prunes it as dead on the next send).
+    @MainActor
+    func unregisterBeforeSignOut(userID: String) async {
+        // Stop storing tokens for this account, including a fresh one issued after a delete.
+        currentUserID = nil
+        guard let token = fcmToken else { return }
+
+        let removed = await Self.withTimeout(seconds: 4) { [firestoreService] in
+            do {
+                try await firestoreService.removeFCMToken(userID: userID, token: token)
+                return true
+            } catch {
+                print("❌ Error removing FCM token before sign-out: \(error.localizedDescription)")
+                return false
+            }
+        }
+        if removed {
+            print("✅ FCM token removed before sign-out for user: \(userID)")
+            return
+        }
+
+        print("⚠️ Couldn't remove FCM token before sign-out — deleting it instead")
+        fcmToken = nil
+        do {
+            try await Messaging.messaging().deleteToken()
+        } catch {
+            print("⚠️ Failed to delete FCM token: \(error.localizedDescription)")
+        }
+    }
+
+    /// Runs `operation`, returning false if it hasn't finished within `seconds`. (A Firestore
+    /// write waits for the server, so offline it would otherwise never return.)
+    private static func withTimeout(seconds: Double, _ operation: @escaping @Sendable () async -> Bool) async -> Bool {
+        await withCheckedContinuation { continuation in
+            let once = ResumeOnce(continuation)
+            Task { once.resume(await operation()) }
+            Task {
+                try? await Task.sleep(for: .seconds(seconds))
+                once.resume(false)
+            }
+        }
+    }
+
     /// Folds a legacy single `fcmToken` field into `fcmTokens`, if present.
     /// Call once per launch after sign-in; a no-op once already migrated.
     /// - Parameter userID: The Firebase UID of the user
@@ -272,6 +319,24 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
         default:
             print("⚠️ Unknown notification type: \(type)")
         }
+    }
+}
+
+/// Resumes a continuation exactly once, from whichever caller gets there first.
+private final class ResumeOnce: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+
+    init(_ continuation: CheckedContinuation<Bool, Never>) {
+        self.continuation = continuation
+    }
+
+    func resume(_ value: Bool) {
+        lock.lock()
+        let pending = continuation
+        continuation = nil
+        lock.unlock()
+        pending?.resume(returning: value)
     }
 }
 

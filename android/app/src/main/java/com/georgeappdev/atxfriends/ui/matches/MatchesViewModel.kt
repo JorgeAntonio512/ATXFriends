@@ -71,6 +71,11 @@ data class MatchesUiState(
     val decisionFailed: Boolean = false,
     /** Match whose "You're connected!" celebration is showing. */
     val celebrationMatchID: String? = null,
+    /**
+     * A Yay just made a mutual match: the moment iOS offers to turn on notifications
+     * (MatchesViewModel.checkAndRequestNotificationPermission). The screen decides whether to ask.
+     */
+    val offerNotifications: Boolean = false,
 ) {
     val isEmpty: Boolean get() = pending.isEmpty() && connected.isEmpty()
     val selected: MatchUi? get() = selectedMatchID?.let(::find)
@@ -164,11 +169,16 @@ class MatchesViewModel(
                     selectedMatchID = if (it.selectedMatchID == matchID) null else it.selectedMatchID,
                 )
             }
-            if (yay && write.completesMutualMatch) celebrate(matchID)
+            if (yay && write.completesMutualMatch) {
+                celebrate(matchID)
+                _state.update { it.copy(offerNotifications = true) }
+            }
         }
     }
 
     fun dismissDecisionError() = _state.update { it.copy(decisionFailed = false) }
+
+    fun notificationOfferHandled() = _state.update { it.copy(offerNotifications = false) }
 
     /** "Maybe later", or a tap on the dimmed background. */
     fun dismissCelebration() = _state.update { it.copy(celebrationMatchID = null) }

@@ -22,6 +22,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import com.georgeappdev.atxfriends.navigation.AppTab
+import com.georgeappdev.atxfriends.navigation.LocalTabNavigator
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -58,6 +60,15 @@ fun MessagesScreen(viewModel: MessagesViewModel = viewModel(factory = MessagesVi
 
     // Runs each time the tab appears, like iOS rebuilding the list on every tab switch.
     LaunchedEffect(Unit) { viewModel.onAppear() }
+
+    // A tapped new-match push whose thread didn't load falls back to Matches (iOS).
+    val tabs = LocalTabNavigator.current
+    LaunchedEffect(state.showMatchesTab) {
+        if (state.showMatchesTab) {
+            viewModel.matchesTabShown()
+            tabs.open(AppTab.MATCHES)
+        }
+    }
 
     Column(Modifier.fillMaxSize().background(colors.appBackground)) {
         // iOS large navigation title.

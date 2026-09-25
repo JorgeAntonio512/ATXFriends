@@ -176,7 +176,7 @@ fun ReschedulePlanSheet(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .heightIn(min = 54.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(colors.appPrimary)
                     .clickable(enabled = !isSaving && dateState.selectedDateMillis != null, role = Role.Button) {

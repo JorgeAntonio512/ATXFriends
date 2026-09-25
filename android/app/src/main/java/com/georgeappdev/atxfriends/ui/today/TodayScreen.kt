@@ -376,6 +376,7 @@ private fun OpenSlotsSection(
                     TodayFeed.nextUsualSlotLine(next.dayOfWeek.raw.orEmpty(), next.timeSlot.raw.orEmpty()),
                     style = atxText(13.sp, FontWeight.Medium),
                     color = colors.textTertiary,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 Icon(painterResource(R.drawable.ic_arrow_forward), contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(13.dp))
             }

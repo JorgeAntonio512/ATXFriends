@@ -59,12 +59,13 @@ import com.georgeappdev.atxfriends.ui.theme.AtxRadius
 import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
- * Port of iOS SignInView (email path only). Left out this round: the "or" divider, the
- * Apple/Google buttons, and the "New here? Create an account" prompt, which leads to sign-up.
+ * Port of iOS SignInView. Existing accounts never see the location gate; "New here? Create an
+ * account" (shown for a wrong email/password) leads to it. Sign in with Apple isn't on Android.
  */
 @Composable
 fun SignInScreen(
     onBack: () -> Unit,
+    onCreateAccount: () -> Unit,
     viewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -143,7 +144,21 @@ fun SignInScreen(
                     )
                 }
 
-                state.error?.let { ErrorCard(it) }
+                state.error?.let { error ->
+                    ErrorCard(error) {
+                        if (error.suggestsAccountCreation) {
+                            Text(
+                                stringResource(R.string.sign_in_create_account),
+                                style = atxText(13.sp, FontWeight.SemiBold),
+                                color = colors.appPrimary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .clickable(role = Role.Button, onClick = onCreateAccount)
+                                    .padding(vertical = 4.dp),
+                            )
+                        }
+                    }
+                }
 
                 AtxPrimaryButton(
                     text = stringResource(R.string.action_sign_in),
@@ -153,6 +168,8 @@ fun SignInScreen(
                         viewModel.submit()
                     },
                 )
+                OrDivider(fontSize = 13.sp, modifier = Modifier.padding(vertical = 4.dp))
+                GoogleButton(height = 52.dp, fontSize = 17.sp)
                 Spacer(Modifier.height(16.dp))
             }
         }
@@ -181,7 +198,7 @@ fun SignInScreen(
 
 /** iOS toolbar back button: chevron + "Back" in burnt orange. */
 @Composable
-private fun BackButton(onBack: () -> Unit) {
+internal fun BackButton(onBack: () -> Unit) {
     val color = AtxTheme.colors.appPrimary
     Row(
         Modifier
@@ -197,20 +214,22 @@ private fun BackButton(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ErrorCard(message: AuthMessage) {
+internal fun ErrorCard(message: AuthMessage, action: (@Composable () -> Unit)? = null) {
     val danger = AtxTheme.colors.danger
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AtxRadius.md))
             .background(danger.copy(alpha = 0.1f))
             .padding(16.dp)
             .semantics { liveRegion = LiveRegionMode.Polite },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(painterResource(R.drawable.ic_error), contentDescription = null, tint = danger, modifier = Modifier.size(20.dp))
-        Text(stringResource(message.text), style = atxText(14.sp, FontWeight.Medium), color = danger)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(painterResource(R.drawable.ic_error), contentDescription = null, tint = danger, modifier = Modifier.size(20.dp))
+            Text(stringResource(message.text), style = atxText(14.sp, FontWeight.Medium), color = danger)
+        }
+        action?.invoke()
     }
 }
 

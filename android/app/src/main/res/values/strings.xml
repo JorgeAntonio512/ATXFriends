@@ -7,6 +7,8 @@
     <string name="tab_simpatico">Simpatico</string>
     <string name="tab_messages">Messages</string>
     <string name="tab_settings">Settings</string>
+    <!-- TalkBack state for the selected tab when it also shows the unread dot (replaces the default "Selected"). -->
+    <string name="tab_badge_unread_selected">Selected, unread messages</string>
 
     <string name="debug_firebase_project">Firebase: %1$s</string>
     <string name="debug_firebase_unavailable">unavailable</string>

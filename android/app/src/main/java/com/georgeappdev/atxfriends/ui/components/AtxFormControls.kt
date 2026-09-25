@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,12 +47,13 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.georgeappdev.atxfriends.R
+import com.georgeappdev.atxfriends.ui.theme.AppFontFamily
 import com.georgeappdev.atxfriends.ui.theme.AtxRadius
 import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /** iOS text style helper: every iOS call site is `.system(size:weight:design: .rounded)`. */
 fun atxText(size: TextUnit, weight: FontWeight = FontWeight.Normal) =
-    TextStyle(fontSize = size, fontWeight = weight)
+    TextStyle(fontSize = size, fontWeight = weight, fontFamily = AppFontFamily)
 
 /** The labeled input used on iOS sign-in: label above, icon + field inside a bordered card. */
 @Composable
@@ -127,7 +128,7 @@ fun AtxPrimaryButton(
     Box(
         modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .shadow(12.dp, shape, ambientColor = colors.appNavy.copy(alpha = 0.3f), spotColor = colors.appNavy.copy(alpha = 0.3f))
             .clip(shape)
             .background(colors.appNavy)
@@ -154,7 +155,7 @@ fun AtxSecondaryButton(
     Box(
         modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .clip(shape)
             .background(colors.cardBackground)
             .border(1.dp, colors.border, shape)

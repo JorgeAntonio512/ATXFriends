@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -142,7 +143,7 @@ private fun SimpaticoIntroView(showUpgradeBanner: Boolean, onStart: () -> Unit) 
             Modifier
                 .padding(horizontal = 24.dp, vertical = 16.dp)
                 .fillMaxWidth()
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .softShadow(8.dp, shape, 0.30f, colors.appPrimary)
                 .clip(shape)
                 .background(colors.appPrimary)
@@ -219,13 +220,15 @@ private fun ProgressHeader(state: SimpaticoUiState, modifier: Modifier = Modifie
         label = "simpaticoProgress",
     )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // SpaceBetween + a non-filling weight looks the same as the old Spacer layout, but at
+        // large font sizes the progress text wraps instead of squeezing the category pill away.
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
                 stringResource(R.string.simpatico_question_progress, state.currentIndex + 1, state.totalCount),
                 style = atxText(15.sp, FontWeight.SemiBold),
                 color = colors.secondaryText,
+                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
             )
-            Spacer(Modifier.weight(1f))
             Text(
                 state.currentQuestion.category.displayName,
                 style = atxText(12.sp, FontWeight.Medium),
@@ -378,7 +381,7 @@ private fun NavButtons(state: SimpaticoUiState, viewModel: SimpaticoViewModel, m
 
         Box(
             Modifier
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .clip(shape)
                 .background(colors.cardBackground)
                 .clickable(enabled = !state.isSaving, role = Role.Button, onClick = viewModel::skip)
@@ -393,7 +396,7 @@ private fun NavButtons(state: SimpaticoUiState, viewModel: SimpaticoViewModel, m
         Row(
             Modifier
                 .weight(1f)
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .then(if (state.canAdvance) Modifier.softShadow(8.dp, shape, 0.30f, colors.appPrimary) else Modifier)
                 .clip(shape)
                 .background(if (state.canAdvance) colors.appPrimary else colors.border)
@@ -476,7 +479,7 @@ private fun SimpaticoCompleteView(state: SimpaticoUiState, onEdit: () -> Unit) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(colors.cardBackground)
                 .clickable(role = Role.Button, onClick = onEdit),

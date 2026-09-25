@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,6 +77,7 @@ fun SettingsSubScreen(
             Row(
                 Modifier
                     .align(Alignment.CenterStart)
+                    .heightIn(min = 48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable(enabled = backEnabled, role = Role.Button, onClick = onBack)
                     .padding(horizontal = 8.dp, vertical = 10.dp),
@@ -90,6 +92,7 @@ fun SettingsSubScreen(
                 style = atxText(17.sp, FontWeight.SemiBold),
                 color = colors.primaryText,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.align(Alignment.Center).widthIn(max = 220.dp).semantics { heading() },
             )
             if (action != null) Box(Modifier.align(Alignment.CenterEnd)) { action() }

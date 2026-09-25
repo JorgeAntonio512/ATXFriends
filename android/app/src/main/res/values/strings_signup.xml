@@ -1,0 +1,130 @@
+<resources>
+    <!-- Welcome (iOS OnboardingView) — the sign-up half -->
+    <string name="welcome_continue_google">Continue with Google</string>
+    <string name="welcome_or">or</string>
+    <string name="welcome_register">Register</string>
+
+    <!-- Sign in (iOS SignInView) — the sign-up half -->
+    <string name="sign_in_create_account">New here? Create an account</string>
+
+    <!-- Auth errors (iOS AuthErrorMessage.swift + AuthViewModel.validateSignUp) -->
+    <string name="auth_error_email_in_use">An account with this email already exists. Try signing in instead.</string>
+    <string name="auth_error_weak_password">That password is too weak. Try a longer one.</string>
+    <string name="auth_error_password_too_short">Password must be at least 6 characters.</string>
+    <string name="auth_error_passwords_dont_match">Passwords do not match.</string>
+    <!-- Android-only: iOS logs a failed Google sign-in without showing anything. -->
+    <string name="auth_error_google_failed">Couldn\'t sign in with Google. Please try again.</string>
+
+    <!-- Location gate (iOS LocationGateView + LocationPermissionManager) -->
+    <string name="gate_title">One quick check</string>
+    <string name="gate_body">ATX Friends is Austin-only for now — we need to confirm you\'re nearby before creating your account.</string>
+    <string name="gate_privacy_title">Your Privacy</string>
+    <string name="gate_privacy_body">We only check your location once, at signup. We don\'t track you after that.</string>
+    <string name="action_continue">Continue</string>
+    <string name="gate_timeout">Couldn\'t get your location in time.</string>
+    <string name="gate_checking">Checking your location</string>
+
+    <!-- Location permission needed (iOS LocationPermissionNeededView) -->
+    <string name="permission_needed_title">We need your location</string>
+    <string name="permission_needed_body">We need your location to confirm you\'re in the Austin area. Open Settings and turn on Location for ATX Friends, then come back — we\'ll pick up right where you left off.</string>
+    <string name="permission_needed_open_settings">Open Settings</string>
+    <string name="action_not_now">Not now</string>
+    <!-- Android-only: the phone's Location switch is off (iOS shows its permission screen for this). -->
+    <string name="location_off_title">Turn on Location</string>
+    <string name="location_off_body">Your phone\'s Location is off, so we can\'t confirm you\'re in the Austin area. Open Settings and turn on Location, then come back — we\'ll pick up right where you left off.</string>
+
+    <!-- Waitlist (iOS WaitlistView) -->
+    <string name="waitlist_title">ATX Friends is Austin-only for now</string>
+    <string name="waitlist_body">We\'re starting in Austin, TX. Leave your email and we\'ll notify you when we expand to your area.</string>
+    <string name="waitlist_submit">Notify me when you expand</string>
+    <string name="waitlist_success_title">You\'re on the list!</string>
+    <string name="waitlist_success_body">We\'ll email you when ATX Friends launches in your area.</string>
+    <string name="waitlist_failed">Failed to sign up — please try again.</string>
+
+    <!-- Pending Google sign-up (iOS RootView "Account Error" alert) -->
+    <string name="account_error_title">Account Error</string>
+    <string name="account_error_create_failed">Failed to create account. Please try again.</string>
+    <!-- Android-only: iOS ignores a failed delete of the pending account. -->
+    <string name="account_error_cancel_failed">Couldn\'t cancel sign-up. Check your connection and try again.</string>
+
+    <!-- Sign up (iOS SignUpView) -->
+    <string name="sign_up_title">Welcome to ATX Friends</string>
+    <string name="sign_up_subtitle">Let\'s create your account</string>
+    <string name="sign_up_password_placeholder">At least 6 characters</string>
+    <string name="sign_up_confirm_label">Confirm Password</string>
+    <string name="sign_up_confirm_placeholder">Re-enter password</string>
+    <string name="sign_up_button">Create Account</string>
+    <string name="sign_up_next_title">What happens next?</string>
+    <string name="sign_up_next_body">After creating your account, you\'ll set up your profile with 3 photos, 3+ activities, and 3+ time slots.</string>
+    <string name="sign_up_terms">By creating an account, you agree to our\nTerms of Service and Privacy Policy</string>
+
+    <!-- Profile setup (iOS ProfileSetupFlowView) -->
+    <string name="setup_step_counter">Step %1$d of %2$d</string>
+
+    <string name="setup_name_title">What\'s your name?</string>
+    <string name="setup_name_subtitle">This is how other people will see you on ATX Friends</string>
+    <string name="setup_name_label">Display Name</string>
+    <string name="setup_name_placeholder">Enter your name</string>
+    <string name="setup_name_error">Please enter a name (2-30 characters)</string>
+    <string name="setup_name_count">%1$d/30</string>
+    <string name="setup_bio_label">Short Bio</string>
+    <string name="setup_bio_placeholder">A little about you... (optional)</string>
+    <string name="setup_bio_count">%1$d/150</string>
+    <string name="setup_tips_title">Tips</string>
+    <string name="setup_name_tip_1">• Use your first name or a friendly nickname</string>
+    <string name="setup_name_tip_2">• Keep it appropriate and respectful</string>
+    <string name="setup_name_tip_3">• You can change this later in Settings</string>
+
+    <string name="setup_photos_title">Add Your Photos</string>
+    <string name="setup_photos_subtitle">Choose 3 photos that show the real you.\nNo filters needed!</string>
+    <string name="setup_photo_slot">Photo %1$d</string>
+    <string name="setup_photo_remove">Remove photo %1$d</string>
+    <string name="setup_photo_view">Photo %1$d. Tap to view full screen</string>
+    <string name="setup_photos_loading">Loading photos...</string>
+
+    <string name="setup_activities_title">Your Activities</string>
+    <string name="setup_activities_subtitle">Pick 3 Main activities you love,\nplus up to 7 Extras.</string>
+    <string name="setup_activities_main">Main (%1$d/3)</string>
+    <string name="setup_activities_extras">Extras (%1$d/7)</string>
+    <string name="setup_activities_add">Add \"%1$s\"</string>
+    <string name="setup_activities_add_hint">Choose a category to create it</string>
+    <string name="setup_activities_loading">Loading activities...</string>
+    <string name="setup_activities_start_title">Start typing to find activities...</string>
+    <string name="setup_activities_start_body">Search for activities like hiking, cooking, gaming, etc.</string>
+    <string name="setup_activities_none_title">No activities found</string>
+    <string name="setup_activities_none_body">Try a different search term</string>
+    <string name="setup_activities_load_error_title">Error Loading Activities</string>
+    <string name="setup_activities_load_error_body">Failed to load activities. Please check your connection and try again.</string>
+    <string name="setup_activities_max">You can only select up to 10 activities.</string>
+    <string name="setup_activities_clear_search">Clear search</string>
+    <string name="action_retry">Retry</string>
+
+    <string name="setup_times_title">When Are You\nAvailable?</string>
+    <string name="setup_times_subtitle">Pick at least 3 times when you\'re usually\nfree to hang out. Pick more if you\'re free a lot!</string>
+    <string name="setup_times_selected">%1$d selected</string>
+
+    <string name="setup_done_title">You\'re All Set!</string>
+    <string name="setup_done_subtitle">Your profile is ready.\nLet\'s find your people in Austin!</string>
+    <string name="setup_done_photos">Photos</string>
+    <string name="setup_done_photos_value">%1$d photos selected</string>
+    <string name="setup_done_activities">Activities</string>
+    <string name="setup_done_activities_sub">Your interests</string>
+    <string name="setup_done_availability">Availability</string>
+    <string name="setup_done_availability_sub">When you\'re free</string>
+    <string name="setup_done_next_title">What\'s Next?</string>
+    <string name="setup_done_next_body">We\'ll find people who share your interests and availability. Start browsing to discover potential friends nearby!</string>
+    <string name="setup_done_saving">Saving...</string>
+    <string name="setup_done_enter">Enter ATX Friends</string>
+
+    <string name="setup_save_error_title">Save Error</string>
+    <string name="setup_save_error_generic">Failed to save your profile. Please try again.</string>
+    <!-- Android-only: iOS saves the profile first and uploads photos afterwards, in the background. -->
+    <string name="setup_save_error_photos">Couldn\'t upload your photos. Check your connection and try again.</string>
+    <!-- ProfileViewModel.validateProfile -->
+    <string name="setup_invalid_name">Please enter your name.</string>
+    <string name="setup_invalid_photos">Please upload exactly 3 photos.</string>
+    <string name="setup_invalid_activity_count">Please select 3 to 10 activities.</string>
+    <string name="setup_invalid_main_count">Please choose exactly 3 Main activities.</string>
+    <string name="setup_invalid_times">Please select at least 3 time slots.</string>
+    <string name="setup_invalid_location">Please enable location access.</string>
+</resources>

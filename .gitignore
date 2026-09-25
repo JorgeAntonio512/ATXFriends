@@ -66,4 +66,11 @@ android/.idea/
 android/.kotlin/
 *.jks
 *.keystore
+# Release signing secrets (android/keystore.properties). Never commit.
+keystore.properties
+# Built release packages (Android Studio writes signed ones to android/app/release/)
+*.aab
+*.apk
 # android/app/google-services.json is committed on purpose (like GoogleService-Info.plist)
+
+android/keystore.properties

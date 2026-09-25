@@ -40,11 +40,82 @@ class SessionManagerTest {
     }
 
     @Test
-    fun notFinished_forMissingUnreadableOrIncompleteProfiles() = test {
-        for (doc in listOf(UserDoc.Missing, UserDoc.Unreadable, UserDoc.Found(incompleteProfile))) {
-            val m = manager(MutableStateFlow(sam)) { doc }
-            assertEquals(doc.toString(), SessionState.NotFinished(sam), m.state.value)
+    fun incompleteProfile_goesToProfileSetup() = test {
+        val m = manager(MutableStateFlow(sam)) { UserDoc.Found(incompleteProfile) }
+        assertEquals(SessionState.NeedsProfileSetup(sam, incompleteProfile), m.state.value)
+    }
+
+    @Test
+    fun unreadableDoc_isNeverRecreated() = test {
+        val m = manager(MutableStateFlow(sam)) { UserDoc.Unreadable }
+        assertEquals(SessionState.NotFinished(sam), m.state.value)
+    }
+
+    /** iOS RootView orphan recovery: signed in with no doc (app killed mid-gate) → the gate. */
+    @Test
+    fun missingDoc_resumesAtTheLocationGate_withTheAuthName() = test {
+        val google = AuthUser("uid-g", "sam@gmail.com", "Sam Rivera")
+        val m = manager(MutableStateFlow(google)) { UserDoc.Missing }
+        assertEquals(SessionState.NeedsLocationGate(google, PendingSignup("uid-g", "Sam Rivera", "resume")), m.state.value)
+    }
+
+    @Test
+    fun missingDoc_forAnEmailAccount_resumesWithNoName_neverTheEmail() = test {
+        val emailOnly = AuthUser("uid-e", "sam@example.com", null)
+        val m = manager(MutableStateFlow(emailOnly)) { UserDoc.Missing }
+        assertEquals(PendingSignup("uid-e", "", "resume"), (m.state.value as SessionState.NeedsLocationGate).pending)
+    }
+
+    @Test
+    fun newGoogleAccount_pendingSignupIsUsed_andResolvingRoutesToSetup() = test {
+        val google = AuthUser("uid-g", "sam@gmail.com", "Sam Rivera")
+        var doc: UserDoc = UserDoc.Missing
+        val m = manager(MutableStateFlow(google)) { doc }
+        m.startPendingSignup(PendingSignup("uid-g", "Sam R.", "google"))
+        assertEquals(PendingSignup("uid-g", "Sam R.", "google"), (m.state.value as SessionState.NeedsLocationGate).pending)
+
+        doc = UserDoc.Found(incompleteProfile) // the gate passed and wrote the doc
+        m.pendingSignupResolved()
+        assertTrue(m.state.value is SessionState.NeedsProfileSetup)
+    }
+
+    @Test
+    fun aPendingSignupForAnotherAccount_isIgnored() = test {
+        val m = manager(MutableStateFlow(sam)) { UserDoc.Missing }
+        m.startPendingSignup(PendingSignup("someone-else", "X", "google"))
+        assertEquals("uid-sam", (m.state.value as SessionState.NeedsLocationGate).pending.uid)
+        assertEquals("resume", (m.state.value as SessionState.NeedsLocationGate).pending.path)
+    }
+
+    /** Email sign-up: the Auth account exists a moment before its doc; nothing may route yet. */
+    @Test
+    fun holdRouting_keepsTheSignUpScreen_untilTheDocIsWritten() = test {
+        val user = MutableStateFlow<AuthUser?>(null)
+        var doc: UserDoc = UserDoc.Missing
+        var reads = 0
+        val m = manager(user) { reads++; doc }
+        m.holdRoutingWhile {
+            user.value = sam // createUser succeeded
+            assertEquals(SessionState.SignedOut, m.state.value)
+            doc = UserDoc.Found(incompleteProfile) // users doc written
+            assertEquals(SessionState.SignedOut, m.state.value)
         }
+        assertEquals("never read the half-made account", 1, reads)
+        assertEquals(SessionState.NeedsProfileSetup(sam, incompleteProfile), m.state.value)
+    }
+
+    @Test
+    fun holdRouting_whenSignUpRolledBack_endsSignedOut() = test {
+        val user = MutableStateFlow<AuthUser?>(null)
+        val m = manager(user) { error("must not read Firestore") }
+        runCatching {
+            m.holdRoutingWhile {
+                user.value = sam
+                user.value = null // doc failed → account deleted
+                throw IOException("offline")
+            }
+        }
+        assertEquals(SessionState.SignedOut, m.state.value)
     }
 
     @Test

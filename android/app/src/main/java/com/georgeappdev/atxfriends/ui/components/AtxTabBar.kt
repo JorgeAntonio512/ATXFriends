@@ -96,7 +96,8 @@ private fun AtxTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val badgeDescription = stringResource(R.string.tab_badge_unread)
+    // A custom stateDescription replaces TalkBack's own "Selected", so say both when badged.
+    val badgeDescription = stringResource(if (selected) R.string.tab_badge_unread_selected else R.string.tab_badge_unread)
     val tint = if (selected) AtxTheme.colors.appPrimary else AtxTheme.colors.secondaryText
     val labelStyle = MaterialTheme.typography.labelSmall
     Column(

@@ -19,31 +19,34 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.georgeappdev.atxfriends.R
 import com.georgeappdev.atxfriends.ui.components.AtxLogoMark
+import com.georgeappdev.atxfriends.ui.components.AtxPrimaryButton
 import com.georgeappdev.atxfriends.ui.components.AtxSecondaryButton
 import com.georgeappdev.atxfriends.ui.components.AtxWordmark
 import com.georgeappdev.atxfriends.ui.components.atxText
 import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
- * Port of iOS OnboardingView, shown whenever nobody is signed in. This round it offers only
- * the email Sign In path: Register and the Apple/Google buttons are intentionally absent.
+ * Port of iOS OnboardingView, shown whenever nobody is signed in. Register always goes through
+ * the location gate first; Sign In never does. Sign in with Apple isn't offered on Android yet.
  */
 @Composable
-fun WelcomeScreen(onSignIn: () -> Unit) {
+fun WelcomeScreen(onRegister: () -> Unit, onSignIn: () -> Unit) {
     val colors = AtxTheme.colors
     BoxWithConstraints(
         Modifier
@@ -87,7 +90,14 @@ fun WelcomeScreen(onSignIn: () -> Unit) {
             }
 
             Spacer(Modifier.weight(1f).heightIn(min = 24.dp))
-            AtxSecondaryButton(text = stringResource(R.string.action_sign_in), onClick = onSignIn)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                GoogleButton()
+                OrDivider(fontSize = 14.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AtxPrimaryButton(text = stringResource(R.string.welcome_register), onClick = onRegister, modifier = Modifier.weight(1f))
+                    AtxSecondaryButton(text = stringResource(R.string.action_sign_in), onClick = onSignIn, modifier = Modifier.weight(1f))
+                }
+            }
         }
     }
 }
@@ -107,8 +117,13 @@ private fun FeatureRow(@DrawableRes icon: Int, @StringRes text: Int) {
     }
 }
 
-@Preview
+/** iOS: a hairline, "or", a hairline. */
 @Composable
-private fun WelcomeScreenPreview() {
-    AtxTheme { WelcomeScreen(onSignIn = {}) }
+internal fun OrDivider(fontSize: TextUnit, modifier: Modifier = Modifier) {
+    val colors = AtxTheme.colors
+    Row(modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        HorizontalDivider(Modifier.weight(1f), color = Color.Gray.copy(alpha = 0.3f))
+        Text(stringResource(R.string.welcome_or), style = atxText(fontSize, FontWeight.Medium), color = colors.textMuted)
+        HorizontalDivider(Modifier.weight(1f), color = Color.Gray.copy(alpha = 0.3f))
+    }
 }

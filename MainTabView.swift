@@ -1008,7 +1008,7 @@ struct SettingsTabView: View {
             Button("Cancel", role: .cancel) { }
             Button("Sign Out", role: .destructive) {
                 print("✅ User confirmed sign out")
-                _ = authViewModel.signOut()
+                Task { _ = await authViewModel.signOut() }
             }
         } message: {
             Text("Are you sure you want to sign out?")

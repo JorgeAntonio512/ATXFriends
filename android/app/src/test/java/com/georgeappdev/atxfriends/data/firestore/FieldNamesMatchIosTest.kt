@@ -28,9 +28,13 @@ class FieldNamesMatchIosTest {
 
     @Test
     fun collections() = assertKeys(
-        listOf("users", "activities", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports"),
+        listOf("users", "activities", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports", "waitlistSignups"),
         Collections,
     )
+
+    /** WaitlistView.submit. */
+    @Test
+    fun waitlistSignups() = assertKeys(listOf("email", "submittedAt"), WaitlistFields)
 
     @Test
     fun users() = assertKeys(
@@ -39,6 +43,7 @@ class FieldNamesMatchIosTest {
             "daySlotCombos", "location", "latitude", "longitude", "radiusMiles", "createdAt", "updatedAt",
             "isProfileComplete", "notificationPreferences", "blockedUsers", "locationSharingMode",
             "locationUpdatedAt", "showUpThumbsUp", "showUpTotal", "fcmTokens", "unreadCount",
+            "fcmToken", "fcmTokenUpdatedAt",
         ),
         UserFields,
     )

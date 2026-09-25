@@ -8,12 +8,13 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -47,6 +48,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
@@ -220,10 +222,10 @@ private fun ShareMyLocationContent(state: SettingsUiState, viewModel: SettingsVi
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(44.dp)
+                    .heightIn(min = 44.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(colors.appPrimary.copy(alpha = 0.12f))
-                    .selectable(selected = false, enabled = !share.isUpdating, role = Role.Button, onClick = viewModel::updateNow),
+                    .clickable(enabled = !share.isUpdating, role = Role.Button, onClick = viewModel::updateNow),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -295,6 +297,7 @@ private fun <T> SegmentedPicker(
                     color = if (enabled) colors.primaryText else colors.textMuted,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

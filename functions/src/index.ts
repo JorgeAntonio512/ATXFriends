@@ -25,6 +25,18 @@ const DEAD_TOKEN_ERROR_CODES = new Set([
   "messaging/invalid-registration-token",
 ]);
 
+// Android notification channel for each push type (android/.../push/PushTypes.kt). One channel
+// per notification preference, so Android users can turn each kind off in system settings.
+// Unknown types go to "other". iOS ignores the android block.
+const ANDROID_CHANNELS: { [type: string]: string } = {
+  newMatch: "new_matches",
+  newMessage: "messages",
+  planRequest: "plan_requests",
+  planRescheduleRequested: "plan_requests",
+  planConfirmed: "plan_confirmations",
+  planRescheduleDeclined: "plan_confirmations",
+};
+
 // ─── Helper: get user data ────────────────────────────────────────────────────
 
 async function getUserData(userId: string) {
@@ -85,6 +97,10 @@ async function sendNotification(
         data: data ?? {},
         apns: {
           payload: { aps: { sound: "default", badge: newCount } },
+        },
+        android: {
+          priority: "high",
+          notification: { channelId: ANDROID_CHANNELS[data?.type ?? ""] ?? "other" },
         },
       })
     )

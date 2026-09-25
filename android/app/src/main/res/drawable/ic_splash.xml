@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon: the launcher icon as a burnt-orange circle. The SplashScreen API shows this
+     288dp drawable masked to its centre 192dp circle, i.e. the middle 72 of these 108 units, so
+     the circle and letters line up with ic_launcher_foreground exactly (same path, same scale). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/ic_launcher_background"
+        android:pathData="M54,18.5 A35.5,35.5 0 1,1 54,89.5 A35.5,35.5 0 1,1 54,18.5 Z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.9"
+        android:scaleY="0.9">
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M34.42,45 L39.9,45 L46.48,62.83 L41.89,62.83 L40.76,59.46 L33.56,59.46 L32.45,62.83 L27.83,62.83 Z M37.18,49.18 L39.59,56.22 L34.73,56.22 Z M44.84,45 L61.26,45 L61.26,48.39 L55.35,48.39 L55.35,62.83 L50.75,62.83 L50.75,48.39 L44.84,48.39 Z M62.19,45 L66.94,45 L70.86,50.78 L74.74,45 L79.59,45 L73.62,53.74 L79.8,62.83 L75.02,62.83 L70.86,56.74 L66.73,62.83 L61.93,62.83 L68.12,53.74 Z" />
+    </group>
+</vector>

@@ -12,6 +12,7 @@ import com.georgeappdev.atxfriends.data.model.Match
 import com.georgeappdev.atxfriends.data.repository.UserDoc
 import com.georgeappdev.atxfriends.domain.messages.MessageThread
 import com.georgeappdev.atxfriends.domain.messages.sortThreadsForDisplay
+import com.georgeappdev.atxfriends.navigation.ThreadRequest
 import com.georgeappdev.atxfriends.session.SessionState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -39,6 +40,8 @@ data class MessagesUiState(
     val unreadMatchIDs: Set<String> = emptySet(),
     /** The conversation open full screen, if any. */
     val openThread: MessageThread? = null,
+    /** A tapped new-match push whose thread isn't in the list: switch to Matches (iOS fallback). */
+    val showMatchesTab: Boolean = false,
     val myID: String = "",
     val myPhotoURL: String? = null,
 )
@@ -55,7 +58,7 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
      * A thread another tab asked to open (Today's "I'm in"), waiting for the next load to finish
      * so a just-created match is in the list (iOS MessagesListView pendingRoute).
      */
-    private var pendingThreadID: String? = null
+    private var pendingThread: ThreadRequest? = null
 
     init {
         val ready = container.session.state.value as? SessionState.Ready
@@ -63,7 +66,10 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
             _state.update { it.copy(myID = ready.user.uid, myPhotoURL = ready.profile.photoURLs.firstOrNull()) }
             viewModelScope.launch {
                 container.threadRequests.pending.collect { request ->
-                    if (request != null) pendingThreadID = container.threadRequests.consume()?.matchID
+                    if (request == null) return@collect
+                    pendingThread = container.threadRequests.consume()
+                    // Already on screen (e.g. a push tapped while Messages is showing): load now.
+                    if (!_state.value.isLoading) load(isRefresh = false)
                 }
             }
             viewModelScope.launch {
@@ -133,10 +139,15 @@ class MessagesViewModel(private val container: AppContainer) : ViewModel() {
      * (its Matches-tab fallback isn't used for this route).
      */
     private fun openPendingThread() {
-        val id = pendingThreadID ?: return
-        pendingThreadID = null
-        if (_state.value.threads.any { it.id == id }) open(id)
+        val request = pendingThread ?: return
+        pendingThread = null
+        when {
+            _state.value.threads.any { it.id == request.matchID } -> open(request.matchID)
+            request.fallbackToMatchesTab -> _state.update { it.copy(showMatchesTab = true) }
+        }
     }
+
+    fun matchesTabShown() = _state.update { it.copy(showMatchesTab = false) }
 
     /**
      * Same reads as iOS loadMessageThreads: every mutual match, the other person's profile

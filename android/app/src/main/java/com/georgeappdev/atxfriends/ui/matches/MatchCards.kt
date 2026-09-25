@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -67,7 +68,7 @@ fun PendingMatchCard(
         Column(Modifier.clickable(role = Role.Button, onClick = onTap)) {
             RemotePhoto(
                 url = match.firstPhotoURL,
-                contentDescription = match.name,
+                contentDescription = null, // the name Text below is read in the same merged node
                 modifier = Modifier.fillMaxWidth().height(200.dp),
                 loading = { PhotoPlaceholder(iconSize = 80.dp, showSpinner = true) },
                 fallback = { PhotoPlaceholder(iconSize = 80.dp, showSpinner = false) },
@@ -144,7 +145,7 @@ private fun DecisionButton(
 ) {
     Row(
         modifier
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(background)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
@@ -180,7 +181,7 @@ fun ConnectedMatchRow(match: MatchUi, onTap: () -> Unit, modifier: Modifier = Mo
     ) {
         RemotePhoto(
             url = match.firstPhotoURL,
-            contentDescription = match.name,
+            contentDescription = null, // the name Text is read in the same merged row
             modifier = Modifier.size(60.dp).clip(CircleShape),
             loading = { PhotoPlaceholder(iconSize = 40.dp, showSpinner = false) },
         )
@@ -251,7 +252,7 @@ private fun SimpaticoBadge(score: Int) {
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Icon(painterResource(R.drawable.ic_tab_simpatico_selected), contentDescription = null, tint = primary, modifier = Modifier.size(11.dp))
-        Text(stringResource(R.string.matches_simpatico_score, score), style = atxText(11.sp, FontWeight.SemiBold), color = primary, maxLines = 1)
+        Text(stringResource(R.string.matches_simpatico_score, score), style = atxText(11.sp, FontWeight.SemiBold), color = primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

@@ -306,7 +306,13 @@ private fun InviteeChecklist(state: ComposerUiState, onToggle: (String) -> Unit,
         when {
             state.isLoadingInvitees -> CircularProgressIndicator(color = colors.appPrimary, modifier = Modifier.size(24.dp))
             state.inviteesLoadFailed -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.composer_invitees_load_error), style = atxText(14.sp), color = colors.danger)
+                // Weighted so a long error (or large font) wraps instead of pushing "Try again" off-screen.
+                Text(
+                    stringResource(R.string.composer_invitees_load_error),
+                    style = atxText(14.sp),
+                    color = colors.danger,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
                 TextButton(onClick = onRetry) { Text(stringResource(R.string.action_try_again), color = colors.appPrimary) }
             }
             state.inviteeOptions.isEmpty() -> Text(stringResource(R.string.composer_no_mutual_matches), style = atxText(14.sp), color = colors.secondaryText)

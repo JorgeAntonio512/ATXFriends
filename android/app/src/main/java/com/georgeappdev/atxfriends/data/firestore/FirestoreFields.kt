@@ -15,6 +15,7 @@ object Collections {
     const val GROUP_PLANS = "groupPlans"
     const val SIMPATICO_ANSWERS = "simpaticoAnswers"
     const val SHOW_UP_REPORTS = "showUpReports"
+    const val WAITLIST_SIGNUPS = "waitlistSignups"
 }
 
 /** `users/{uid}` — FirestoreService.userToFirestoreData / firestoreDataToUser. */
@@ -40,6 +41,9 @@ object UserFields {
     const val SHOW_UP_THUMBS_UP = "showUpThumbsUp"
     const val SHOW_UP_TOTAL = "showUpTotal"
     const val FCM_TOKENS = "fcmTokens"
+    /** Legacy single-token field; iOS folds it into [FCM_TOKENS] once, then deletes it. */
+    const val FCM_TOKEN = "fcmToken"
+    const val FCM_TOKEN_UPDATED_AT = "fcmTokenUpdatedAt"
     const val UNREAD_COUNT = "unreadCount"
 }
 
@@ -176,4 +180,10 @@ object ShowUpReportFields {
     const val PLAN_ID = "planID"
     const val DID_SHOW_UP = "didShowUp"
     const val CREATED_AT = "createdAt"
+}
+
+/** `waitlistSignups/{auto-id}` — WaitlistView.submit. Rules accept exactly these two keys. */
+object WaitlistFields {
+    const val EMAIL = "email"
+    const val SUBMITTED_AT = "submittedAt"
 }

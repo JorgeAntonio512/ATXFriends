@@ -2,13 +2,25 @@ package com.georgeappdev.atxfriends.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.georgeappdev.atxfriends.R
 
-// iOS uses SF Pro Rounded everywhere (design: .rounded). Android has no system rounded
-// face, so this uses the platform default (Roboto) until a bundled font is chosen.
-private val AppFontFamily = FontFamily.Default
+// iOS uses SF Pro Rounded everywhere (design: .rounded). Android has no system rounded face,
+// so the app bundles Nunito (SIL OFL; license in assets/licenses/Nunito-OFL.txt). Upstream only
+// ships it as a variable font, so each weight the app uses is one instance of that file.
+private fun nunito(weight: FontWeight) =
+    Font(R.font.nunito, weight, variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)))
+
+val AppFontFamily = FontFamily(
+    nunito(FontWeight.Normal),
+    nunito(FontWeight.Medium),
+    nunito(FontWeight.SemiBold),
+    nunito(FontWeight.Bold),
+)
 
 // iOS has no type scale; sizes are literal per call site. The most common iOS combos
 // (15 semibold, 14 semibold, 16 medium) are mapped onto the M3 slots below; the rest

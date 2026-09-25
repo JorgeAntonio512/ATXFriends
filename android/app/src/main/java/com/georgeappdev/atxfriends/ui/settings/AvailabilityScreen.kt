@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -204,8 +205,8 @@ private fun TimeSlotGrid(state: AvailabilityUiState, onToggle: (DayOfWeek, TimeS
             AvailabilityRules.slots.forEach { slot ->
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(slot.icon, style = atxText(16.sp))
-                    Text(slot.raw.orEmpty(), style = atxText(10.sp, FontWeight.SemiBold), color = colors.textBody, textAlign = TextAlign.Center, maxLines = 2)
-                    Text(slot.timeRange, style = atxText(9.sp), color = colors.textMuted, textAlign = TextAlign.Center, maxLines = 2)
+                    Text(slot.raw.orEmpty(), style = atxText(10.sp, FontWeight.SemiBold), color = colors.textBody, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(slot.timeRange, style = atxText(9.sp), color = colors.textMuted, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
         }

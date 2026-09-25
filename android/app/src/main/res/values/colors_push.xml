@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification accent: the brand burnt orange (AppColors.swift appPrimary). -->
+    <color name="push_accent">#BF5700</color>
+</resources>

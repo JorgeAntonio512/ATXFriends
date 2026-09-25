@@ -20,12 +20,16 @@ class NoWholeDocumentWritesTest {
     )
 
     /**
-     * The one reviewed exception (file path, exact code line): `WriteBatch.createDocument` in
-     * NewDocument.kt, which only targets a fresh auto-ID or a deterministic ID just found missing.
+     * The reviewed exceptions (file path, exact code line): `WriteBatch.createDocument` and
+     * `Transaction.createDocument` in NewDocument.kt, which only target a fresh auto-ID or a
+     * deterministic ID just found missing.
      */
     private val allowed = setOf(
         "com/georgeappdev/atxfriends/data/firestore/NewDocument.kt" to
             "fun WriteBatch.createDocument(ref: DocumentReference, doc: NewDocument): WriteBatch = this.set(ref, doc.fields)",
+        // Only inside a transaction that just read the doc and found it missing (SignupRepository).
+        "com/georgeappdev/atxfriends/data/firestore/NewDocument.kt" to
+            "fun Transaction.createDocument(ref: DocumentReference, doc: NewDocument): Transaction = this.set(ref, doc.fields)",
     )
 
     @Test

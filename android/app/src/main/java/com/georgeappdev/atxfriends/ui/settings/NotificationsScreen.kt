@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -17,7 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,6 +32,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +78,12 @@ fun NotificationsScreen(onBack: () -> Unit, viewModel: NotificationsViewModel = 
         onPauseOrDispose { }
     }
     val status = remember(refresh) { notificationStatus(context) }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { refresh++ }
+    LaunchedEffect(status) { Log.i("ATXF", "notifications: permission status = $status") }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        // React to the answer itself, not only to the screen resuming afterwards.
+        Log.i("ATXF", "notifications: prompt answered, granted=$granted")
+        refresh++
+    }
     // Like iOS, the toggles only work once the system allows notifications.
     val canToggle = status == NotificationStatus.ENABLED
 
@@ -107,6 +114,7 @@ fun NotificationsScreen(onBack: () -> Unit, viewModel: NotificationsViewModel = 
                         onClick = {
                             NotificationPermissionPrefs.markAsked(context)
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                Log.i("ATXF", "notifications: showing the system prompt")
                                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             }
                         },
@@ -212,7 +220,7 @@ private fun ActionCard(title: String, body: String, @DrawableRes icon: Int, butt
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .heightIn(min = 50.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(colors.appPrimary)
                 .clickable(role = Role.Button, onClick = onClick),
@@ -276,7 +284,7 @@ private fun openNotificationSettings(context: Context) {
 }
 
 /** Remembers (on this device) that the app has shown the notification prompt. */
-private object NotificationPermissionPrefs {
+internal object NotificationPermissionPrefs {
     private const val FILE = "settings"
     private const val KEY = "askedNotificationPermission"
 

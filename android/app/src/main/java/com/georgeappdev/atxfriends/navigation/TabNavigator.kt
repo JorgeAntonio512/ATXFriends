@@ -15,8 +15,17 @@ class TabNavigator(private val selectTab: (AppTab) -> Unit) {
 
 val LocalTabNavigator = staticCompositionLocalOf { TabNavigator {} }
 
-/** A request to open one match's message thread (iOS `.navigateToMatchThread` userInfo). */
-data class ThreadRequest(val matchID: String, val otherUserID: String, val otherUserName: String)
+/**
+ * A request to open one match's message thread (iOS `.navigateToMatchThread` userInfo). With
+ * [fallbackToMatchesTab] (a tapped new-match push, iOS PendingThreadRoute), the Matches tab opens
+ * instead if the thread isn't in the loaded list.
+ */
+data class ThreadRequest(
+    val matchID: String,
+    val otherUserID: String,
+    val otherUserName: String,
+    val fallbackToMatchesTab: Boolean = false,
+)
 
 /**
  * Holds a thread-open request until the Messages tab picks it up. Today's "I'm in" posts one and

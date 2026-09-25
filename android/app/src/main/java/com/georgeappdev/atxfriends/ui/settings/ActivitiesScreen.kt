@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,6 +58,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -327,7 +329,7 @@ private fun InlineAddButton(name: String, enabled: Boolean, onPick: (ActivityCat
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(painterResource(R.drawable.ic_set_add_circle), contentDescription = null, tint = primary, modifier = Modifier.size(24.dp))
-            Text(stringResource(R.string.activities_add_inline, name), style = atxText(16.sp, FontWeight.SemiBold), color = primary, maxLines = 2)
+            Text(stringResource(R.string.activities_add_inline, name), style = atxText(16.sp, FontWeight.SemiBold), color = primary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         CategoryMenu(expanded = menuOpen, onDismiss = { menuOpen = false }, onPick = {
             menuOpen = false
@@ -337,7 +339,7 @@ private fun InlineAddButton(name: String, enabled: Boolean, onPick: (ActivityCat
 }
 
 @Composable
-private fun CategoryMenu(expanded: Boolean, onDismiss: () -> Unit, onPick: (ActivityCategory) -> Unit) {
+internal fun CategoryMenu(expanded: Boolean, onDismiss: () -> Unit, onPick: (ActivityCategory) -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         ActivityCategory.entries.forEach { category ->
             DropdownMenuItem(text = { Text(category.displayName) }, onClick = { onPick(category) })
@@ -491,7 +493,7 @@ private fun AddCustomActivitySheet(
                 Modifier
                     .padding(horizontal = 32.dp)
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .heightIn(min = 56.dp)
                     .then(if (canSubmit) Modifier.shadow(12.dp, buttonShape, ambientColor = colors.appPrimary.copy(alpha = 0.3f), spotColor = colors.appPrimary.copy(alpha = 0.3f)) else Modifier)
                     .clip(buttonShape)
                     .background(if (canSubmit) colors.appPrimary else Color.Gray.copy(alpha = 0.3f))
