@@ -113,6 +113,18 @@ The main app is a custom tab bar with exactly **six tabs**, left to right (no Pl
 
 ---
 
+## Android
+
+A native Android port lives in `android/` (Kotlin, Jetpack Compose, Material 3, single activity), on the same Firebase backend as iOS.
+
+- **Behavior source of truth:** `docs/android-parity-spec.md`. Android must match the live iOS app as described there.
+- **Package / applicationId:** `com.georgeappdev.atxfriends` (permanent — never change it)
+- **Build:** `cd android && ./gradlew assembleDebug` (unit tests: `./gradlew test`). Needs JDK 17–21; if the system Java is newer, use Android Studio's bundled JDK: `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
+- **Layout:** `android/app/src/main/java/com/georgeappdev/atxfriends/` — `navigation/` (six tabs, one nested nav graph per tab), `ui/theme/` (iOS color tokens, type, shapes), `ui/components/`, and one package per feature screen. Dependency versions live in `android/gradle/libs.versions.toml`.
+- `android/app/google-services.json` is committed to the private repo only (excluded by `.publicignore`).
+
+---
+
 ## What This App Is NOT
 
 - Not a dating app

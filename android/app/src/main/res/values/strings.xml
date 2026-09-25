@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">ATX Friends</string>
+
+    <string name="tab_matches">Matches</string>
+    <string name="tab_today">Today</string>
+    <string name="tab_upcoming">Upcoming</string>
+    <string name="tab_simpatico">Simpatico</string>
+    <string name="tab_messages">Messages</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="debug_firebase_project">Firebase: %1$s</string>
+    <string name="debug_firebase_unavailable">unavailable</string>
+</resources>

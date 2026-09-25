@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window-level theme only; all in-app styling comes from the Compose theme. -->
+    <style name="Theme.ATXFriends" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
+
+    <color name="app_background">#FAF6EE</color>
+</resources>

@@ -57,3 +57,13 @@ GoogleService-Info.plist
 
 # Your own notes — don't ship these (relevant if you fork this repo)
 PRE-PUBLISH-CHECKLIST.md
+
+# Android (android/)
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.jks
+*.keystore
+# android/app/google-services.json is committed on purpose (like GoogleService-Info.plist)
