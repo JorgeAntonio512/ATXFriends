@@ -105,6 +105,22 @@ final class NotificationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Called after this account was permanently deleted. The server already removed the
+    /// user's fcmTokens along with their users doc, so this only stops the device from
+    /// re-registering: it forgets the user and the token (so the sign-out path doesn't try
+    /// to update a deleted doc), then deletes the token so FCM issues a fresh one for the
+    /// next account signed in on this device.
+    @MainActor
+    func handleAccountDeleted() {
+        currentUserID = nil
+        fcmToken = nil
+        Messaging.messaging().deleteToken { error in
+            if let error {
+                print("⚠️ Failed to delete FCM token after account deletion: \(error.localizedDescription)")
+            }
+        }
+    }
+
     /// Updates the FCM token
     /// - Parameter token: The new FCM token
     @MainActor

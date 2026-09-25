@@ -176,21 +176,6 @@ final class FirebaseStorageService {
         try await storageRef.delete()
     }
     
-    /// Deletes all profile photos for a user
-    /// - Parameter userID: The user's Firebase UID
-    /// - Throws: Storage errors
-    func deleteAllProfilePhotos(userID: String) async throws {
-        let userRef = storage.reference().child(profilePhotosPath).child(userID)
-        
-        // List all files in the user's folder
-        let result = try await userRef.listAll()
-        
-        // Delete each file
-        for item in result.items {
-            try await item.delete()
-        }
-    }
-    
     // MARK: - Download Operations
     
     /// Downloads a profile photo from a URL

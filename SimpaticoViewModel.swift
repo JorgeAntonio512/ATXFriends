@@ -164,7 +164,14 @@ final class SimpaticoViewModel {
 
     // MARK: - Local position (Firestore has no record of skipped questions)
 
-    private func positionKey(_ userID: String) -> String { "simpaticoV2Position.\(userID)" }
+    private func positionKey(_ userID: String) -> String { Self.positionKey(userID) }
+
+    private static func positionKey(_ userID: String) -> String { "simpaticoV2Position.\(userID)" }
+
+    /// Forgets a user's saved question position (used on account deletion).
+    static func clearSavedPosition(userID: String) {
+        UserDefaults.standard.removeObject(forKey: positionKey(userID))
+    }
 
     private func savedPosition(userID: String) -> Int {
         UserDefaults.standard.integer(forKey: positionKey(userID))

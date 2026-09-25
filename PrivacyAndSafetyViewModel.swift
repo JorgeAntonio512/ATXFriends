@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import AuthenticationServices
 
 @Observable
 class PrivacyAndSafetyViewModel {
@@ -367,50 +368,52 @@ class PrivacyAndSafetyViewModel {
     }
     
     // MARK: - Delete Account
-    
-    func scheduleAccountDeletion() async -> Bool {
-        print("🗑️ DEBUG: scheduleAccountDeletion() called")
-        
-        guard let currentUserId = Auth.auth().currentUser?.uid else {
-            print("❌ DEBUG: No current user ID found - cannot schedule deletion")
+
+    /// Permanently deletes the signed-in account and everything the user created (server-side,
+    /// via the deleteMyAccount Cloud Function), then signs out and clears this device's local
+    /// state for the user. Sign in with Apple accounts are first re-authenticated so the app's
+    /// Apple sign-in can be revoked, as Apple requires. Returns false and sets errorMessage on
+    /// failure; nothing is signed out unless the deletion succeeded.
+    @MainActor
+    func deleteAccount() async -> Bool {
+        errorMessage = nil
+        guard let userID = Auth.auth().currentUser?.uid else {
+            errorMessage = "You're not signed in."
             return false
         }
-        
-        print("🗑️ DEBUG: Current user ID: \(currentUserId)")
-        print("🗑️ DEBUG: Calculating deletion date (30 days from now)")
-        
-        let deletionDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
-        print("🗑️ DEBUG: Scheduled deletion date: \(deletionDate)")
-        
-        do {
-            print("🗑️ DEBUG: Starting Firestore update for user document: \(currentUserId)")
-            print("🗑️ DEBUG: Update data: scheduledDeletionDate = \(deletionDate), isScheduledForDeletion = true")
-            
-            try await db.collection("users").document(currentUserId).updateData([
-                "scheduledDeletionDate": Timestamp(date: deletionDate),
-                "isScheduledForDeletion": true
-            ])
-            
-            print("✅ DEBUG: Firestore update completed successfully!")
-            print("✅ DEBUG: Account scheduled for deletion on \(deletionDate)")
-            print("🗑️ DEBUG: Returning true from scheduleAccountDeletion()")
-            
-            return true
-        } catch {
-            print("❌ DEBUG: Error scheduling account deletion")
-            print("❌ DEBUG: Error type: \(type(of: error))")
-            print("❌ DEBUG: Error description: \(error.localizedDescription)")
-            print("❌ DEBUG: Full error: \(error)")
-            
-            if let firestoreError = error as NSError? {
-                print("❌ DEBUG: Firestore error code: \(firestoreError.code)")
-                print("❌ DEBUG: Firestore error domain: \(firestoreError.domain)")
-                print("❌ DEBUG: Firestore error userInfo: \(firestoreError.userInfo)")
+
+        let deletionService = AccountDeletionService.shared
+        if deletionService.isSignedInWithApple {
+            do {
+                try await deletionService.revokeAppleSignIn()
+            } catch let error as ASAuthorizationError where error.code == .canceled {
+                errorMessage = "Deletion cancelled. Confirm with Apple to delete your account."
+                return false
+            } catch {
+                // Don't block deletion on revocation (e.g. if Apple revocation isn't configured
+                // in Firebase yet); the account and its data are still deleted.
+                print("⚠️ Apple sign-in revocation failed: \(error.localizedDescription)")
             }
-            
-            errorMessage = error.localizedDescription
+        }
+
+        let planIDs: [String]
+        do {
+            planIDs = try await deletionService.deleteMyAccount()
+        } catch {
+            print("❌ deleteMyAccount failed: \(error)")
+            errorMessage = "We couldn't delete your account. Check your connection and try again."
             return false
         }
+
+        // Local cleanup for this user. The server already removed their FCM tokens with the
+        // users doc; this stops this device from registering the old token again.
+        NotificationManager.shared.handleAccountDeleted()
+        AddedToCalendarStore.clear(planIDs: planIDs)
+        SimpaticoViewModel.clearSavedPosition(userID: userID)
+        GoogleSignInHelper().signOut()
+        try? Auth.auth().signOut()
+        NotificationCenter.default.post(name: .authStateDidChange, object: nil)
+        return true
     }
     
     // MARK: - Export Data

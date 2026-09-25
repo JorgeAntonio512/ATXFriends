@@ -1192,33 +1192,25 @@ struct ReportReasonRow: View {
     }
 }
 
-/// View for deleting user account with 30-day grace period
+/// Permanent, immediate account deletion. Typing DELETE and tapping the button is the one
+/// confirmation step; the deletion itself runs server-side (see AccountDeletionService).
 struct DeleteAccountView: View {
     var viewModel: PrivacyAndSafetyViewModel
-    @Environment(\.dismiss) private var dismiss
-    
+
     @State private var confirmationText = ""
     @State private var isDeleting = false
     @State private var showError = false
     @State private var errorMessage = ""
-    
+
     private var isConfirmationValid: Bool {
-        confirmationText == "DELETE"
+        confirmationText.trimmingCharacters(in: .whitespaces) == "DELETE"
     }
-    
+
     var body: some View {
         ZStack {
-            // Warm gradient background
-            LinearGradient(
-                colors: [
-                    Color.appBackground,
-                    Color.appBackground
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
+            Color.appBackground
+                .ignoresSafeArea()
+
             ScrollView {
                 VStack(spacing: 24) {
                     // Warning Header
@@ -1226,91 +1218,59 @@ struct DeleteAccountView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 60))
                             .foregroundColor(Color.appDangerStrong)
-                        
+                            .accessibilityHidden(true)
+
                         Text("Delete Account")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appTextStrong)
-                        
-                        Text("This action will schedule your account for permanent deletion")
+
+                        Text("This permanently deletes your account right away. It can't be undone.")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(Color.appDangerStrong)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
                     }
                     .padding(.top, 16)
-                    
-                    // 30-Day Grace Period Info
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "calendar.badge.clock")
-                                .font(.system(size: 24))
-                                .foregroundColor(Color.appIconInfo)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("30-Day Grace Period")
-                                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color.appTextStrong)
-                                
-                                Text("Your account will be scheduled for deletion in 30 days. You can cancel this by signing back in before the deletion date.")
-                                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                                    .foregroundColor(Color.appSecondaryText)
-                                    .lineSpacing(4)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color.appCardBackground.opacity(0.6))
-                    .cornerRadius(16)
-                    .padding(.horizontal, 20)
-                    
+
                     // What Will Be Deleted
                     VStack(alignment: .leading, spacing: 16) {
                         Text("What will be deleted:")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appTextStrong)
                             .padding(.horizontal, 20)
-                        
+
                         VStack(spacing: 0) {
                             DeletedDataRow(
                                 icon: "person.fill",
-                                title: "Profile",
-                                description: "Your name, bio, and all profile information"
+                                title: "Profile & Photos",
+                                description: "Your profile, photos, and Simpatico answers"
                             )
-                            
+
                             Divider()
                                 .padding(.leading, 56)
-                            
-                            DeletedDataRow(
-                                icon: "photo.fill",
-                                title: "Photos",
-                                description: "All photos uploaded to your profile"
-                            )
-                            
-                            Divider()
-                                .padding(.leading, 56)
-                            
+
                             DeletedDataRow(
                                 icon: "person.2.fill",
                                 title: "Matches",
-                                description: "All your matches and connections"
+                                description: "All your matches — removed for the other person too"
                             )
-                            
+
                             Divider()
                                 .padding(.leading, 56)
-                            
+
                             DeletedDataRow(
                                 icon: "message.fill",
                                 title: "Messages",
-                                description: "All conversations and message history"
+                                description: "Every conversation, including the messages you received — the other person's thread with you disappears"
                             )
-                            
+
                             Divider()
                                 .padding(.leading, 56)
-                            
+
                             DeletedDataRow(
                                 icon: "calendar.badge.exclamationmark",
                                 title: "Plans",
-                                description: "All proposed and confirmed plans"
+                                description: "Your plans, Today plans, and group plans you host — removed for everyone involved. You're also removed from group plans you were invited to."
                             )
                         }
                         .padding()
@@ -1318,19 +1278,19 @@ struct DeleteAccountView: View {
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
-                    
+
                     // Confirmation Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Type DELETE to confirm")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundColor(Color.appTextStrong)
                             .padding(.horizontal, 20)
-                        
+
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("To confirm deletion, please type DELETE in the field below:")
+                            Text("Your account and everything above will be gone for good. To confirm, type DELETE below:")
                                 .font(.system(size: 15, weight: .regular, design: .rounded))
                                 .foregroundColor(Color.appSecondaryText)
-                            
+
                             TextField("Type DELETE", text: $confirmationText)
                                 .font(.system(size: 17, weight: .medium, design: .rounded))
                                 .foregroundColor(Color.appTextStrong)
@@ -1348,18 +1308,17 @@ struct DeleteAccountView: View {
                                 )
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.characters)
+                                .disabled(isDeleting)
                         }
                         .padding()
                         .background(Color.appCardBackground.opacity(0.6))
                         .cornerRadius(16)
                         .padding(.horizontal, 20)
                     }
-                    
+
                     // Delete Button
                     Button {
-                        Task {
-                            await scheduleAccountDeletion()
-                        }
+                        Task { await deleteAccount() }
                     } label: {
                         HStack(spacing: 8) {
                             if isDeleting {
@@ -1368,8 +1327,8 @@ struct DeleteAccountView: View {
                             } else {
                                 Image(systemName: "trash.fill")
                             }
-                            
-                            Text(isDeleting ? "Scheduling Deletion..." : "Delete My Account")
+
+                            Text(isDeleting ? "Deleting Your Account…" : "Permanently Delete My Account")
                                 .font(.system(size: 17, weight: .bold, design: .rounded))
                         }
                         .foregroundColor(.white)
@@ -1384,14 +1343,7 @@ struct DeleteAccountView: View {
                     }
                     .disabled(!isConfirmationValid || isDeleting)
                     .padding(.horizontal, 20)
-                    
-                    // Cancel Note
-                    Text("Changed your mind? You can cancel by signing back in within 30 days.")
-                        .font(.system(size: 14, weight: .regular, design: .rounded))
-                        .foregroundColor(Color.appSecondaryText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                        .padding(.bottom, 20)
+                    .padding(.bottom, 20)
                 }
                 .padding(.vertical, 20)
             }
@@ -1399,62 +1351,26 @@ struct DeleteAccountView: View {
         }
         .navigationTitle("Delete Account")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Error", isPresented: $showError) {
+        .navigationBarBackButtonHidden(isDeleting)
+        .interactiveDismissDisabled(isDeleting)
+        .alert("Couldn't Delete Account", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage)
         }
     }
-    
+
     // MARK: - Actions
-    
-    private func scheduleAccountDeletion() async {
-        print("🗑️ VIEW: scheduleAccountDeletion() called in DeleteAccountView")
+
+    private func deleteAccount() async {
         isDeleting = true
-        
-        print("🗑️ VIEW: Calling viewModel.scheduleAccountDeletion()")
-        // Schedule account deletion in Firestore
-        let success = await viewModel.scheduleAccountDeletion()
-        
-        print("🗑️ VIEW: viewModel.scheduleAccountDeletion() returned: \(success)")
-        
-        if success {
-            print("✅ VIEW: Account successfully scheduled for deletion")
-            print("🗑️ VIEW: Attempting to sign out user")
-            
-            // Sign out the user
-            do {
-                print("🗑️ VIEW: Calling FirebaseAuthService.shared.signOut()")
-                try FirebaseAuthService.shared.signOut()
-                print("✅ VIEW: Sign out successful! Posting userSignedOut notification")
-                
-                // Post notification to trigger navigation to auth screen
-                NotificationCenter.default.post(name: NSNotification.Name("userSignedOut"), object: nil)
-                print("✅ VIEW: userSignedOut notification posted")
-                
-                // Reset state
-                isDeleting = false
-                
-            } catch {
-                print("❌ VIEW: Sign out failed!")
-                print("❌ VIEW: Sign out error type: \(type(of: error))")
-                print("❌ VIEW: Sign out error: \(error)")
-                print("❌ VIEW: Sign out error localized: \(error.localizedDescription)")
-                
-                isDeleting = false
-                errorMessage = "Account scheduled for deletion, but sign out failed. Please sign out manually."
-                showError = true
-            }
-        } else {
-            print("❌ VIEW: Failed to schedule account deletion")
-            print("❌ VIEW: Error message from viewModel: \(viewModel.errorMessage ?? "No error message")")
-            
-            isDeleting = false
-            errorMessage = viewModel.errorMessage ?? "Failed to schedule account deletion. Please try again."
+        let success = await viewModel.deleteAccount()
+        isDeleting = false
+        // On success the app returns to onboarding via authStateDidChange.
+        if !success {
+            errorMessage = viewModel.errorMessage ?? "We couldn't delete your account. Please try again."
             showError = true
         }
-        
-        print("🗑️ VIEW: scheduleAccountDeletion() function complete")
     }
 }
 

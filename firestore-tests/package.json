@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore,auth --project avenue3-73bb4 \"node run.js\""
+    "test": "firebase emulators:exec --only firestore,auth --project avenue3-73bb4 \"node run.js\"",
+    "test:functions": "npm --prefix ../functions run build && firebase emulators:exec --only firestore,auth,functions,storage --project avenue3-73bb4 \"node deleteAccount.test.js\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",

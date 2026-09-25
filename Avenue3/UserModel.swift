@@ -56,12 +56,6 @@ struct FirebaseUser: Identifiable, Codable {
     
     /// User's bio
     var bio: String
-    
-    /// Scheduled deletion date (if account deletion is scheduled)
-    var scheduledDeletionDate: Date?
-    
-    /// Whether account is scheduled for deletion
-    var isScheduledForDeletion: Bool
 
     /// "off" | "once" | "onOpen" — see LocationSharingMode. Defaults to "off" for
     /// every existing and new user.
@@ -96,8 +90,6 @@ struct FirebaseUser: Identifiable, Codable {
         blockedUsers: [String] = [],
         email: String = "",
         bio: String = "",
-        scheduledDeletionDate: Date? = nil,
-        isScheduledForDeletion: Bool = false,
         showUpThumbsUp: Int = 0,
         showUpTotal: Int = 0,
         locationSharingMode: String = LocationSharingMode.off.rawValue,
@@ -118,8 +110,6 @@ struct FirebaseUser: Identifiable, Codable {
         self.blockedUsers = blockedUsers
         self.email = email
         self.bio = bio
-        self.scheduledDeletionDate = scheduledDeletionDate
-        self.isScheduledForDeletion = isScheduledForDeletion
         self.showUpThumbsUp = showUpThumbsUp
         self.showUpTotal = showUpTotal
         self.locationSharingMode = locationSharingMode

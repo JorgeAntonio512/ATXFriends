@@ -73,6 +73,7 @@
 		18F096AF2FC3E08100630A9A /* NOTIFICATION_SETTINGS_CHANGES.md in Resources */ = {isa = PBXBuildFile; fileRef = 18F096AE2FC3E08100630A9A /* NOTIFICATION_SETTINGS_CHANGES.md */; };
 		18F096B32FC3E75900630A9A /* NOTIFICATION_PROMPT_STYLING.md in Resources */ = {isa = PBXBuildFile; fileRef = 18F096B22FC3E75900630A9A /* NOTIFICATION_PROMPT_STYLING.md */; };
 		18F096B52FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F096B42FC3EB7E00630A9A /* PrivacyAndSafetyViewModel.swift */; };
+		18F0A1F22FC5000000AB0001 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 18F0A1F12FC5000000AB0001 /* FirebaseFunctions */; };
 		6801F0B6305EAEF200E19C84 /* LocationSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B5305EAEF200E19C84 /* LocationSearchViewModel.swift */; };
 		6801F0B8305F4D5A00E19C84 /* PlanLocationField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6801F0B7305F4D5A00E19C84 /* PlanLocationField.swift */; };
 		6823A29230597F2E00388E7E /* LocationPermissionNeededView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6823A29130597F2E00388E7E /* LocationPermissionNeededView.swift */; };
@@ -307,6 +308,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				18F096AB2FC3D5F200630A9A /* FirebaseMessaging in Frameworks */,
+				18F0A1F22FC5000000AB0001 /* FirebaseFunctions in Frameworks */,
 				18345AC22FB7A03E00CF18FF /* GoogleSignInSwift in Frameworks */,
 				18A775072FAB09300045B6D3 /* FirebaseAuth in Frameworks */,
 				18345AC02FB7A03E00CF18FF /* GoogleSignIn in Frameworks */,
@@ -488,6 +490,7 @@
 				18345ABF2FB7A03E00CF18FF /* GoogleSignIn */,
 				18345AC12FB7A03E00CF18FF /* GoogleSignInSwift */,
 				18F096AA2FC3D5F200630A9A /* FirebaseMessaging */,
+				18F0A1F12FC5000000AB0001 /* FirebaseFunctions */,
 				1504053404556EDEC5370930 /* MSAL */,
 			);
 			productName = Avenue3;
@@ -1032,6 +1035,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 18A775052FAB09300045B6D3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		18F0A1F12FC5000000AB0001 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18A775052FAB09300045B6D3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

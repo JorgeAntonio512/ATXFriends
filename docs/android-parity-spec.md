@@ -286,14 +286,15 @@ of profile/activities/availability/photo URLs/matches/messages/plans via
 `UIActivityViewController` — no write; description text says "friendship mode" which doesn't
 exist, see §11); "How We Protect Your Data" (opens `https://avenue3.app/privacy.html` in an
 in-app Safari view); **"Delete Account"** (nav link, subtitle "Permanently delete your data") →
-`DeleteAccountView`: "30-Day Grace Period" info card, "What will be deleted" list (Profile,
-Photos, Matches, Messages, Plans), requires typing the literal word `"DELETE"` to enable the
-button `"Delete My Account"`. On confirm: `scheduleAccountDeletion()` sets
-`scheduledDeletionDate = now+30d`, `isScheduledForDeletion = true` on the user doc — **this does
-not delete any data**, it only flags the account, then force-signs-out. UNCONFIRMED whether any
-Cloud Function actually sweeps these after 30 days (none found in `functions/src/index.ts`, see
-§4/§12). Cancelling: any subsequent sign-in clears the flag automatically
-(`cancelScheduledDeletionIfNeeded`).
+`DeleteAccountView`: **immediate, permanent deletion — no grace period.** Header: "This
+permanently deletes your account right away. It can't be undone." "What will be deleted" list:
+Profile & Photos (profile, photos, Simpatico answers); Matches ("removed for the other person
+too"); Messages ("every conversation, including the messages you received — the other person's
+thread with you disappears"); Plans (plans, Today plans, hosted group plans removed for everyone;
+removed from group plans you were invited to). The single confirmation step is typing the literal
+word `"DELETE"` to enable the button `"Permanently Delete My Account"`. While deleting: button
+shows a spinner and "Deleting Your Account…", back navigation is disabled. On failure: alert
+"Couldn't Delete Account" with a retry-able message; nothing is signed out. Full flow in §2.8.
 
 ### 1.7 Screens shared across tabs
 
@@ -406,9 +407,8 @@ exists immediately either way), then branch on Firebase's own
 - **New user**: sets `pendingNewSSOUser = PendingNewSSOUser(userID, displayName, provider: "apple"
   | "google")`. **No Firestore user doc is created yet.** RootView sees this and shows
   `LocationGateView` instead of `ProfileSetupFlowView`.
-- **Returning user**: calls `cancelScheduledDeletionIfNeeded(userID:)` — clears
-  `isScheduledForDeletion`/`scheduledDeletionDate` on the existing doc if set (errors here are
-  swallowed so a failed check never blocks sign-in).
+- **Returning user**: goes straight in (no extra checks; there is no scheduled-deletion state to
+  cancel — account deletion is immediate, §2.8).
 
 **Gate pass** → `AuthViewModel.createNewSSOUser(coordinate:)` creates the initial
 `FirebaseUser(photoURLs: [], activities: [], daySlotCombos: [], radiusMiles: 10.0,
@@ -489,15 +489,33 @@ denominator is hardcoded 4 and hidden entirely on the complete step.
   reactively elsewhere via `.authStateDidChange`). **`GoogleSignInHelper.signOut()` is defined but
   never called from here** — Google's own cached Calendar session survives an app sign-out (real
   gap, confirmed by exhaustive grep — its only caller is unused).
-- **Immediate account deletion** (`AuthViewModel.deleteAccount()`): deletes `users/{uid}` (single
-  doc only), deletes all Storage profile photos, then deletes the Firebase Auth identity. **Does
-  not cascade to matches/plans/messages/groupPlans/reports** — those documents keep referencing
-  the deleted user ID indefinitely. UNCONFIRMED where in the UI this method is actually invoked
-  from (not found in any Settings file read for this spec).
-- **Scheduled ("soft") deletion** (Settings → Privacy & Safety → Delete Account, §1.6): only sets
-  `scheduledDeletionDate`/`isScheduledForDeletion` and force-signs-out; does not delete anything.
-  Automatically cancelled on next sign-in. No Cloud Function that performs the actual 30-day sweep
-  was found (see §4, §12).
+- **Account deletion** (Settings → Privacy & Safety → Delete Account, §1.6) is **immediate and
+  permanent — there is no grace period and no scheduled/soft deletion.** Everything the user
+  created is deleted, including both sides of their message threads; the other person's thread
+  with them simply disappears. Client flow (`PrivacyAndSafetyViewModel.deleteAccount()`):
+  1. **Sign in with Apple accounts only** (`providerData` contains `apple.com`): re-authenticate
+     with Apple (`ASAuthorizationAppleIDProvider` request) to get a fresh authorization code, then
+     `Auth.auth().revokeToken(withAuthorizationCode:)` — Apple requires revoking the app's Apple
+     sign-in on account deletion. If the user dismisses the Apple sheet, deletion is aborted
+     ("Deletion cancelled…"). If revocation itself fails (e.g. not configured in Firebase), it is
+     logged and deletion **continues**. Android equivalent: revoke via the Apple token as Firebase
+     documents for Android, or skip if Apple sign-in isn't offered there.
+  2. Call the callable Cloud Function **`deleteMyAccount`** (no arguments; §4). It deletes
+     everything server-side, then the Firebase Auth user, and returns `{ planIDs: [String] }` — the
+     1-on-1 plan and group-plan IDs the user was part of.
+  3. On success only: forget this device's FCM token (`NotificationManager.handleAccountDeleted()`
+     — clears the in-memory user/token and calls `Messaging.deleteToken()`, so the old token is
+     never re-registered; the server already removed `fcmTokens` with the users doc), clear local
+     UserDefaults for the user (`addedToCalendar.{provider}.{planID}` for every returned plan ID
+     and every provider, and `simpaticoV2Position.{uid}`), `GIDSignIn` sign-out, Firebase
+     `signOut()`, then post `.authStateDidChange` → RootView returns to the onboarding screen.
+  4. On failure: show the error, stay signed in, nothing local is cleared. Retrying is safe.
+- The old client-side paths are gone: `AuthViewModel.deleteAccount()` (users doc + photos + Auth
+  only), `PrivacyAndSafetyViewModel.scheduleAccountDeletion()`, `cancelScheduledDeletionIfNeeded`,
+  and the `scheduledDeletionDate`/`isScheduledForDeletion` model fields. Nothing writes those
+  fields anymore; they may still exist on old production user docs and should be ignored.
+  (`FirebaseAuthService.deleteAccount()` — deleting only the Auth identity — still exists solely
+  for abandoning a brand-new SSO signup before any user doc exists, §2.5.)
 
 ---
 
@@ -529,7 +547,7 @@ are called out explicitly.
 | fcmToken (legacy), fcmTokenUpdatedAt | String / Timestamp | — | legacy single-token field, migrated into `fcmTokens` |
 | unreadCount | Int | — | server-mirrored copy of the client-computed badge count |
 | email | String | — | **on the Swift model but absent from the actual write dict** (`userToFirestoreData`) — likely never persisted despite existing on the type |
-| scheduledDeletionDate, isScheduledForDeletion | Date?/Bool | — | same gap — on the model, absent from the general write dict (written only by the dedicated deletion-scheduling code path) |
+| scheduledDeletionDate, isScheduledForDeletion | Date?/Bool | — | **legacy, no longer written or read** — may exist on old docs from the removed 30-day scheduled-deletion flow; ignore (§2.8) |
 
 Reads: one-time only, everywhere (`FirestoreService.swift` has zero `addSnapshotListener` calls).
 Writes: `createUser` (create), `updateUser` (update, merge), plus narrow single-purpose updates —
@@ -675,8 +693,9 @@ if any one of the 3 fails. No Storage security-rules file (`storage.rules`) was 
 
 ## 4. Backend touchpoints
 
-### Cloud Functions (`functions/src/index.ts`) — all Firestore-triggered, Firebase Functions v1.
-**No callable/HTTPS functions, no scheduled/cron functions exist in this codebase.**
+### Cloud Functions (`functions/src/index.ts`) — Firebase Functions v1.
+All are Firestore-triggered except **`deleteMyAccount`**, the only callable (HTTPS) function. No
+scheduled/cron functions exist in this codebase.
 
 1. **`onNewMutualMatch`** — trigger `matches/{matchId}` onUpdate, fires only on
    `isMutualMatch: false→true`. Notifies both users (each gated by their own
@@ -697,6 +716,29 @@ if any one of the 3 fails. No Storage security-rules file (`storage.rules`) was 
    user's `showUpTotal` (+1) and, if `didShowUp`, `showUpThumbsUp` (+1). **Sends no push
    notification.** This function — not any client code — is the only writer of
    `showUpTotal`/`showUpThumbsUp`.
+
+6. **`deleteMyAccount`** — **callable** (`https.onCall`), region `us-central1`. Deletes only the
+   caller's own account, identified by `context.auth.uid`; takes no input. Unauthenticated calls
+   are rejected with `unauthenticated`. Runs with admin access, so **no security rules were
+   loosened** — clients still cannot delete other users' data directly. Deletes, in order:
+   - every `messages` doc in any of the user's matches (queried by `matchID`, 30 IDs per `in`
+     query), plus every message where they are `senderID` or `receiverID` — flushed first, so a
+     partial failure can still find the rest;
+   - every `matches` doc where they are `user1ID` or `user2ID`; every `plans` doc where they are
+     `proposerID` or `receiverID`; every `todayPlans` doc they created (`creatorID`) or claimed
+     (`claimerID`); every `groupPlans` doc they host (`hostID`); every `showUpReports` doc they
+     filed (`reporterID`) or were the subject of (`reportedUserID`);
+   - `groupPlans` they're **invited** to are kept for everyone else: the user is removed from
+     `inviteeIDs` (`arrayRemove`) and their key is deleted from `responses`. (Nothing else changes,
+     even if that leaves the plan with no invitees.);
+   - `simpaticoAnswers/{uid}` and `users/{uid}` (which also removes their `fcmTokens`);
+   - every file under Storage `profile_photos/{uid}/`;
+   - **last**, the Firebase Auth user (Admin SDK; `auth/user-not-found` is treated as success).
+   Other users' `showUpTotal`/`showUpThumbsUp` counts are **not** adjusted. Writes go through a
+   Firestore `BulkWriter` (handles batch limits and retries); if any write ultimately fails it
+   throws `internal` so the client can retry. **Safe to retry**: every step tolerates data that's
+   already gone. Logs one line of counts only (no personal data). Returns `{ planIDs }` (§2.8).
+   Emulator-tested in `firestore-tests/deleteAccount.test.js` (`npm run test:functions`).
 
 Shared helper `sendNotification`: increments the recipient's `unreadCount` optimistically, sends
 one FCM message per registered token with `aps.badge` set to that new count, and prunes any token
@@ -993,8 +1035,8 @@ exist anywhere in the app's source. All local state is plain `UserDefaults.stand
 |---|---|---|---|---|
 | `hasRequestedNotificationPermission` | Bool | after the OS permission prompt is shown once | never | avoid re-prompting the OS dialog |
 | `hasBeenAskedForNotifications` | Bool | after the in-app "Stay Connected!" soft-ask card is dismissed/actioned | never | separate from the key above — tracks the app's own soft-ask UI, not the OS dialog |
-| `addedToCalendar.{provider}.{planID}` | Bool | when a plan is added to that calendar provider | never | per-device, per-provider "already added" flag (§6) |
-| `simpaticoV2Position.{userID}` | Int | on every Simpatico Next/Skip | on completing the last question | resume cursor for the question flow, since Firestore doesn't record skipped questions |
+| `addedToCalendar.{provider}.{planID}` | Bool | when a plan is added to that calendar provider | on account deletion, for every plan ID returned by `deleteMyAccount` (§2.8) | per-device, per-provider "already added" flag (§6) |
+| `simpaticoV2Position.{userID}` | Int | on every Simpatico Next/Skip | on completing the last question, and on account deletion | resume cursor for the question flow, since Firestore doesn't record skipped questions |
 
 ---
 
@@ -1165,10 +1207,11 @@ assumed from naming:
    `counter` status there is no UI anywhere that can move it back to `confirmed`.
 6. **`GoogleSignInHelper.signOut()` is never called** by `AuthViewModel.signOut()` — a user's
    Google Calendar session survives app sign-out.
-7. **`AuthViewModel.deleteAccount()` (immediate deletion) only deletes the `users/{uid}` doc** —
-   it does not cascade to matches, plans, messages, groupPlans, or reports referencing that user.
-8. **`email`, `scheduledDeletionDate`, `isScheduledForDeletion` exist on the `FirebaseUser` Swift
-   model but `email` is absent from the general `userToFirestoreData` write path** — likely never
+7. ~~`AuthViewModel.deleteAccount()` only deleted the `users/{uid}` doc~~ — **fixed**: account
+   deletion now runs server-side in `deleteMyAccount` and cascades to everything the user created
+   (§2.8, §4). The unused abuse-report `reports` collection is not touched by it (no rules block,
+   §11.9).
+8. **`email` exists on the `FirebaseUser` Swift model but is absent from the general `userToFirestoreData` write path** — likely never
    actually persisted via normal profile saves despite being a model field.
 9. **`groups`/`groupMembers` and `conversations` collections have no `firestore.rules` block**
    despite (dead) client code that reads/writes them — either production rules differ from the
@@ -1211,11 +1254,11 @@ assumed from naming:
    them entirely.
 3. **Is there a Storage security-rules file (`storage.rules`) deployed?** None was found in the
    repo; Storage-side authorization for `profile_photos/` is unverified from source alone.
-4. **Does any server-side process actually perform the 30-day scheduled account deletion**, or
-   sweep orphaned Firebase Auth accounts from abandoned SSO signups? No such Cloud Function exists
-   in `functions/src/index.ts` — if this is handled elsewhere (a separate function file not in this
-   repo, a manual process, or genuinely nothing), Android's parity expectations should match
-   reality, not the Settings copy that promises a 30-day grace period.
+4. ~~Does any server-side process perform the 30-day scheduled account deletion?~~ **Answered:**
+   George chose immediate, permanent deletion with no grace period; the 30-day flow was removed
+   and `deleteMyAccount` (§4) does the deletion. Still open: nothing sweeps orphaned Firebase Auth
+   accounts from SSO signups abandoned without tapping Cancel (the app deletes them only when the
+   user cancels or joins the waitlist, §2.5).
 5. **Is the counter-proposed-plan re-confirmation gap (§5.5, §11.5) a known, accepted limitation**,
    or should Android's plan-status model include the re-confirm step iOS is missing?
 6. **Should Android skip the entire dead-code surface listed in §10 outright**, or is any of it

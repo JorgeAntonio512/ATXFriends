@@ -168,9 +168,6 @@ final class AuthViewModel {
             // Sign in user
             let userID = try await authService.signIn(email: email, password: password)
             
-            // Check and cancel scheduled deletion if needed
-            await cancelScheduledDeletionIfNeeded(userID: userID)
-            
             // Update local state
             currentUserID = userID
             authState = .authenticated
@@ -228,9 +225,6 @@ final class AuthViewModel {
                 // (RootView will show LocationGateView while pendingNewSSOUser is set).
                 pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName, provider: "apple")
                 logOnboarding(path: "apple", step: "locationGate", gate: .notRun)
-            } else {
-                // Existing user - check and cancel scheduled deletion if needed
-                await cancelScheduledDeletionIfNeeded(userID: userID)
             }
 
             // Update local state
@@ -274,9 +268,6 @@ final class AuthViewModel {
                 // (RootView will show LocationGateView while pendingNewSSOUser is set).
                 pendingNewSSOUser = PendingNewSSOUser(userID: userID, displayName: displayName, provider: "google")
                 logOnboarding(path: "google", step: "locationGate", gate: .notRun)
-            } else {
-                // Existing user - check and cancel scheduled deletion if needed
-                await cancelScheduledDeletionIfNeeded(userID: userID)
             }
 
             // Update local state
@@ -354,46 +345,6 @@ final class AuthViewModel {
         }
     }
     
-    // MARK: - Delete Account
-    
-    /// Deletes the current user's account and all associated data
-    /// - Returns: True if successful, false otherwise
-    @MainActor
-    func deleteAccount() async -> Bool {
-        // Clear previous errors
-        errorMessage = nil
-        isLoading = true
-        defer { isLoading = false }
-        
-        guard let userID = currentUserID else {
-            errorMessage = "No user is currently signed in."
-            return false
-        }
-        
-        do {
-            // Delete user data from Firestore
-            try await firestoreService.deleteUser(userID: userID)
-            
-            // Delete profile photos from Storage
-            try await FirebaseStorageService.shared.deleteAllProfilePhotos(userID: userID)
-            
-            // Delete Firebase Auth account
-            try await authService.deleteAccount()
-            
-            // Clear local state
-            currentUserID = nil
-            authState = .unauthenticated
-            
-            // Notify that auth state changed
-            NotificationCenter.default.post(name: .authStateDidChange, object: nil)
-            
-            return true
-        } catch {
-            errorMessage = "Failed to delete account. Please try again."
-            return false
-        }
-    }
-    
     // MARK: - SSO Location Gate
 
     /// Creates the Firestore user doc for a new SSO user after the location gate passes.
@@ -437,46 +388,6 @@ final class AuthViewModel {
         NotificationCenter.default.post(name: .authStateDidChange, object: nil)
     }
 
-    // MARK: - Scheduled Deletion Management
-    
-    /// Checks if the user has a scheduled deletion and cancels it
-    /// - Parameter userID: The user's Firebase UID
-    private func cancelScheduledDeletionIfNeeded(userID: String) async {
-        print("🔍 Checking for scheduled deletion for user: \(userID)")
-        
-        do {
-            // Fetch the user's Firestore document
-            let db = Firestore.firestore()
-            let document = try await db.collection("users").document(userID).getDocument()
-            
-            guard document.exists, let data = document.data() else {
-                print("⚠️ User document not found for deletion check")
-                return
-            }
-            
-            // Check if account is scheduled for deletion
-            let isScheduledForDeletion = data["isScheduledForDeletion"] as? Bool ?? false
-            
-            if isScheduledForDeletion {
-                print("✅ Account deletion cancelled — user signed back in.")
-                
-                // Cancel the scheduled deletion
-                try await db.collection("users").document(userID).updateData([
-                    "isScheduledForDeletion": false,
-                    "scheduledDeletionDate": FieldValue.delete()
-                ])
-                
-                print("✅ Successfully removed deletion scheduling from user document")
-            } else {
-                print("ℹ️ No scheduled deletion found for this user")
-            }
-        } catch {
-            print("❌ Error checking/canceling scheduled deletion: \(error)")
-            print("❌ Error details: \(error.localizedDescription)")
-            // Don't fail the sign-in if this check fails
-        }
-    }
-    
     // MARK: - Validation
     
     /// Validates sign up inputs

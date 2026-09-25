@@ -156,6 +156,15 @@ enum AddedToCalendarStore {
     static func markAdded(planID: String, provider: CalendarProvider) {
         UserDefaults.standard.set(true, forKey: key(for: planID, provider: provider))
     }
+
+    /// Forgets the flags for the given plans on every provider (used on account deletion).
+    static func clear(planIDs: [String]) {
+        for planID in planIDs {
+            for provider in CalendarProvider.allCases {
+                UserDefaults.standard.removeObject(forKey: key(for: planID, provider: provider))
+            }
+        }
+    }
 }
 
 /// Shared logic for adding a confirmed `Plan` to a calendar provider (Apple EventKit or

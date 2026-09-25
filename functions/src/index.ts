@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldPath, FieldValue } from "firebase-admin/firestore";
 
 admin.initializeApp();
 
@@ -443,4 +443,131 @@ function formatPlanTime(ts: admin.firestore.Timestamp): string {
     timeZone: "America/Chicago", hour: "numeric", minute: "2-digit",
   });
   return `${day} at ${time}`;
+}
+
+// ─── 7. Delete My Account (callable) ─────────────────────────────────────────
+//
+// Immediate, permanent deletion of the caller's own account. The caller is
+// identified only by context.auth.uid — no user ID is accepted as input.
+// Deletes everything the user created, including both sides of their message
+// threads, then deletes the Firebase Auth user last. Safe to retry: every step
+// tolerates data that's already gone. Returns the IDs of plans the user was
+// part of so the client can clear its per-plan "added to calendar" flags.
+
+export const deleteMyAccount = functions.https.onCall(async (_data, context) => {
+  const uid = context.auth?.uid;
+  if (!uid) {
+    throw new functions.https.HttpsError("unauthenticated", "You must be signed in to delete your account.");
+  }
+
+  const summary = await deleteAccountData(uid);
+
+  try {
+    await admin.auth().deleteUser(uid);
+    summary.authUser = 1;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    if (code !== "auth/user-not-found") throw error;
+  }
+
+  const { planIDs, ...counts } = summary;
+  console.log(`🗑️ deleteMyAccount: deleted account data ${JSON.stringify(counts)}`);
+  return { planIDs };
+});
+
+type DeleteAccountSummary = {
+  planIDs: string[];
+  [key: string]: number | string[];
+};
+
+/// Deletes all Firestore and Storage data belonging to `uid`. Throws if any
+/// write failed, so the caller can retry; already-deleted data is skipped.
+async function deleteAccountData(uid: string): Promise<DeleteAccountSummary> {
+  const idsWhere = async (collection: string, field: string, op: FirebaseFirestore.WhereFilterOp = "==") =>
+    (await db.collection(collection).where(field, op, uid).select().get()).docs.map((d) => d.ref);
+
+  // Matches, and every message in them (plus any message they sent or received)
+  const matchRefs = [
+    ...(await idsWhere("matches", "user1ID")),
+    ...(await idsWhere("matches", "user2ID")),
+  ];
+  const messageRefs = new Map<string, FirebaseFirestore.DocumentReference>();
+  for (let i = 0; i < matchRefs.length; i += 30) {
+    const ids = matchRefs.slice(i, i + 30).map((ref) => ref.id);
+    const snap = await db.collection("messages").where("matchID", "in", ids).select().get();
+    snap.docs.forEach((d) => messageRefs.set(d.ref.path, d.ref));
+  }
+  for (const ref of [
+    ...(await idsWhere("messages", "senderID")),
+    ...(await idsWhere("messages", "receiverID")),
+  ]) {
+    messageRefs.set(ref.path, ref);
+  }
+
+  const planRefs = uniqueRefs([
+    ...(await idsWhere("plans", "proposerID")),
+    ...(await idsWhere("plans", "receiverID")),
+  ]);
+  const todayPlanRefs = uniqueRefs([
+    ...(await idsWhere("todayPlans", "creatorID")),
+    ...(await idsWhere("todayPlans", "claimerID")),
+  ]);
+  const hostedGroupPlanRefs = await idsWhere("groupPlans", "hostID");
+  const hostedPaths = new Set(hostedGroupPlanRefs.map((ref) => ref.path));
+  const invitedGroupPlanRefs = (await idsWhere("groupPlans", "inviteeIDs", "array-contains"))
+    .filter((ref) => !hostedPaths.has(ref.path));
+  const showUpReportRefs = uniqueRefs([
+    ...(await idsWhere("showUpReports", "reporterID")),
+    ...(await idsWhere("showUpReports", "reportedUserID")),
+  ]);
+
+  // Messages first, so a partial failure can still find the rest via the matches.
+  await runBulkWrites((writer) => [...messageRefs.values()].map((ref) => writer.delete(ref)));
+
+  await runBulkWrites((writer) => [
+    ...[...planRefs, ...todayPlanRefs, ...hostedGroupPlanRefs, ...showUpReportRefs, ...matchRefs]
+      .map((ref) => writer.delete(ref)),
+    // Invited group plans stay intact for everyone else; only this user is removed.
+    ...invitedGroupPlanRefs.map((ref) => writer.update(
+      ref,
+      "inviteeIDs", FieldValue.arrayRemove(uid),
+      new FieldPath("responses", uid), FieldValue.delete(),
+    )),
+    writer.delete(db.collection("simpaticoAnswers").doc(uid)),
+    writer.delete(db.collection("users").doc(uid)),
+  ]);
+
+  const [photoFiles] = await admin.storage().bucket().getFiles({ prefix: `profile_photos/${uid}/` });
+  await Promise.all(photoFiles.map((file) => file.delete({ ignoreNotFound: true })));
+
+  return {
+    planIDs: [...planRefs, ...hostedGroupPlanRefs, ...invitedGroupPlanRefs].map((ref) => ref.id),
+    messages: messageRefs.size,
+    matches: matchRefs.length,
+    plans: planRefs.length,
+    todayPlans: todayPlanRefs.length,
+    hostedGroupPlans: hostedGroupPlanRefs.length,
+    invitedGroupPlans: invitedGroupPlanRefs.length,
+    showUpReports: showUpReportRefs.length,
+    profilePhotos: photoFiles.length,
+    authUser: 0,
+  };
+}
+
+/// Runs a batch of writes through a BulkWriter (which handles Firestore's batch
+/// limits and retries) and throws if any individual write ultimately failed.
+async function runBulkWrites(
+  enqueue: (writer: FirebaseFirestore.BulkWriter) => Promise<unknown>[]
+): Promise<void> {
+  const writer = db.bulkWriter();
+  const results = Promise.allSettled(enqueue(writer));
+  await writer.close();
+  const failures = (await results).filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    throw new functions.https.HttpsError("internal", `${failures.length} write(s) failed; please retry.`);
+  }
+}
+
+function uniqueRefs(refs: FirebaseFirestore.DocumentReference[]): FirebaseFirestore.DocumentReference[] {
+  return [...new Map(refs.map((ref) => [ref.path, ref])).values()];
 }

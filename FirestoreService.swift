@@ -174,13 +174,6 @@ final class FirestoreService {
         return firestoreDataToUser(id: userID, data: data)
     }
     
-    /// Deletes a user document from Firestore
-    /// - Parameter userID: The user's Firebase UID
-    /// - Throws: Firestore errors
-    func deleteUser(userID: String) async throws {
-        try await db.collection(usersCollection).document(userID).delete()
-    }
-    
     /// Fetches nearby users within a specified radius
     /// - Parameters:
     ///   - center: The center location (current user's location)
