@@ -71,6 +71,7 @@ keystore.properties
 # Built release packages (Android Studio writes signed ones to android/app/release/)
 *.aab
 *.apk
+android/app/release/
 # android/app/google-services.json is committed on purpose (like GoogleService-Info.plist)
 
 android/keystore.properties
