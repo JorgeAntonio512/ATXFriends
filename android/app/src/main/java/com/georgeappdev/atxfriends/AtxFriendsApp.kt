@@ -2,8 +2,10 @@ package com.georgeappdev.atxfriends
 
 import android.app.Application
 import android.content.Context
+import com.georgeappdev.atxfriends.data.places.GooglePlaceSearch
 import com.georgeappdev.atxfriends.data.repository.AccountRepository
 import com.georgeappdev.atxfriends.data.repository.ActivityRepository
+import com.georgeappdev.atxfriends.data.repository.AppleAuthRepository
 import com.georgeappdev.atxfriends.data.repository.AuthRepository
 import com.georgeappdev.atxfriends.data.repository.GroupPlanRepository
 import com.georgeappdev.atxfriends.data.repository.MatchRepository
@@ -30,6 +32,7 @@ import com.georgeappdev.atxfriends.push.PushChannels
 import com.georgeappdev.atxfriends.push.PushRoutes
 import com.georgeappdev.atxfriends.push.PushTokens
 import com.georgeappdev.atxfriends.session.SessionManager
+import com.georgeappdev.atxfriends.ui.auth.AppleSignInHandler
 import com.georgeappdev.atxfriends.ui.signup.EmailAccountCreator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -48,6 +51,7 @@ class AtxFriendsApp : Application() {
         // Channels must exist before the first push arrives with the app closed.
         PushChannels.create(this)
         container.startPush()
+        container.recoverAppleSignIn()
     }
 }
 
@@ -70,6 +74,9 @@ class AppContainer(context: Context) {
     val activities = ActivityRepository(firestore)
     val session = SessionManager(auth.currentUser, users::fetchUser, ::signOut, appScope)
     val threadRequests = ThreadRequests()
+
+    // The plan composer's "Where?" search. Free text only when no Places key is configured.
+    val placeSearch by lazy { GooglePlaceSearch.create(appContext, BuildConfig.PLACES_API_KEY) }
 
     // Settings tab.
     val profiles = ProfileRepository(firestore)
@@ -99,6 +106,10 @@ class AppContainer(context: Context) {
         abandonAccount = signup::abandonPendingAccount,
     )
 
+    // Sign in with Apple (Firebase's web flow; same two-phase new-user handling as Google).
+    val appleAuth = AppleAuthRepository(firebaseAuth)
+    val appleSignIn = AppleSignInHandler(session::startPendingSignup, appleAuth::saveNameIfMissing)
+
     // Push notifications.
     val pushTokens = PushTokens(FirestoreTokenStore(firestore), FirebaseDeviceToken(), PrefsPendingTokenDelete(appContext))
     val pushRoutes = PushRoutes()
@@ -111,6 +122,11 @@ class AppContainer(context: Context) {
                 if (user != null) pushTokens.onSignedIn(user.uid) else pushRoutes.clear()
             }
         }
+    }
+
+    /** An Apple sign-in that finished while the app's activity was gone (see pendingSignIn). */
+    fun recoverAppleSignIn() {
+        appScope.launch { appleAuth.pendingSignIn()?.let { appleSignIn.signedIn(it) } }
     }
 
     /** A refreshed FCM token (from the messaging service). */

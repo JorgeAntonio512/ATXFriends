@@ -124,3 +124,20 @@ enum class TimeSlot(override val raw: String?) : FirestoreEnum {
         fun fromRaw(raw: String?) = firestoreEnumOf(raw, UNKNOWN)
     }
 }
+
+/** iOS `ReportReason`: the raw value is also the text iOS shows. */
+enum class ReportReason(override val raw: String?) : FirestoreEnum {
+    INAPPROPRIATE_BEHAVIOR("Inappropriate behavior"),
+    HARASSMENT("Harassment"),
+    FAKE_PROFILE("Fake profile"),
+    SPAM("Spam"),
+    OTHER("Other"),
+    UNKNOWN(null);
+
+    companion object {
+        fun fromRaw(raw: String?) = firestoreEnumOf(raw, UNKNOWN)
+
+        /** The choices, in iOS's order. */
+        val choices: List<ReportReason> get() = entries.filter { it != UNKNOWN }
+    }
+}

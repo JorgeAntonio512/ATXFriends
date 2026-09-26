@@ -33,7 +33,7 @@ sealed interface SessionState {
     data class Ready(val user: AuthUser, val profile: UserProfile) : SessionState
 
     /**
-     * Signed in with no `users/{uid}` doc: a brand-new Google account, or a sign-up the app was
+     * Signed in with no `users/{uid}` doc: a brand-new Google or Apple account, or a sign-up the app was
      * killed in the middle of. iOS RootView shows LocationGateView (`pendingNewSSOUser`); the
      * doc is created only when the gate passes, and backing out deletes the Auth account.
      */
@@ -54,7 +54,7 @@ sealed interface SessionState {
 
 /**
  * iOS `PendingNewSSOUser`: a signed-in account still waiting on the location gate, with no
- * `users` doc yet. [path] ("email", "google", or "resume" after a relaunch) is for logs only.
+ * `users` doc yet. [path] ("email", "google", "apple", or "resume" after a relaunch) is for logs only.
  */
 data class PendingSignup(val uid: String, val displayName: String, val path: String)
 
@@ -111,7 +111,7 @@ class SessionManager(
         signOutAction()
     }
 
-    /** A new Google account passed Firebase sign-in: gate it before any doc exists. */
+    /** A new Google or Apple account passed Firebase sign-in: gate it before any doc exists. */
     fun startPendingSignup(signup: PendingSignup) {
         Log.i(TAG, "[Onboarding] path=${signup.path} step=locationGate gate=notRun")
         pending.value = signup

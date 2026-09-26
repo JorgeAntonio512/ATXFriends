@@ -78,6 +78,7 @@ class AuthMessagesTest {
             AuthMessage.PASSWORDS_DONT_MATCH to "Passwords do not match.",
             // Android-only (iOS shows nothing).
             AuthMessage.GOOGLE_FAILED to "Couldn't sign in with Google. Please try again.",
+            AuthMessage.APPLE_FAILED to "Couldn't sign in with Apple. Please try again.",
         )
         assertEquals(AuthMessage.entries.toSet(), ios.keys)
         val strings = loadStrings()

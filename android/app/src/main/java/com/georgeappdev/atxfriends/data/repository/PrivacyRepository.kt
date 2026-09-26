@@ -5,11 +5,17 @@ import com.georgeappdev.atxfriends.data.firestore.Collections
 import com.georgeappdev.atxfriends.data.firestore.DocReader
 import com.georgeappdev.atxfriends.data.firestore.MatchFields
 import com.georgeappdev.atxfriends.data.firestore.MessageFields
+import com.georgeappdev.atxfriends.data.firestore.NewDocument
 import com.georgeappdev.atxfriends.data.firestore.PlanFields
+import com.georgeappdev.atxfriends.data.firestore.ReportFields
+import com.georgeappdev.atxfriends.data.firestore.addDocument
+import com.georgeappdev.atxfriends.data.model.ReportReason
 import com.georgeappdev.atxfriends.domain.export.ExportMessage
 import com.georgeappdev.atxfriends.domain.export.ExportPlan
+import android.util.Log
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
@@ -29,8 +35,27 @@ interface PrivacyReader {
     suspend fun exportPlans(uid: String): List<ExportPlan>
 }
 
+/** "Report a User" (a seam for tests). */
+fun interface ReportSubmitter {
+    /** Creates one `reports` doc. Throws if the server doesn't accept it in time. */
+    suspend fun submitReport(report: NewDocument)
+}
+
 /** The same queries PrivacyAndSafetyViewModel runs. All throw on network/permission failure. */
-class PrivacyRepository(private val db: FirebaseFirestore) : PrivacyReader {
+class PrivacyRepository(private val db: FirebaseFirestore) : PrivacyReader, ReportSubmitter {
+
+    override suspend fun submitReport(report: NewDocument) {
+        Log.i(TAG, "report: submitting")
+        try {
+            val id = withWriteTimeout { db.collection(Collections.REPORTS).addDocument(report) }
+            Log.i(TAG, "report: saved reports/$id")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "report: failed", e)
+            throw e
+        }
+    }
 
     override suspend fun blockCandidates(uid: String, blocked: Set<String>): BlockCandidates =
         BlockCandidateRules.classify(myMatches(uid), uid, blocked)
@@ -82,6 +107,24 @@ class PrivacyRepository(private val db: FirebaseFirestore) : PrivacyReader {
         (asUser1.await().documents + asUser2.await().documents).distinctBy { it.id }.mapNotNull { it.data }
     }
 }
+
+/** The `reports` doc PrivacyAndSafetyViewModel.submitReport writes. */
+object ReportWrites {
+    /** Comments are trimmed; iOS sends them as typed. The rules cap them at [MAX_COMMENT_CHARS]. */
+    fun report(reporterID: String, reportedID: String, reason: ReportReason, comments: String, now: Instant): NewDocument =
+        NewDocument.Builder()
+            .put(ReportFields.REPORTED_USER_ID, reportedID)
+            .put(ReportFields.REPORTING_USER_ID, reporterID)
+            .put(ReportFields.REASON, reason)
+            .put(ReportFields.COMMENTS, comments.trim())
+            .put(ReportFields.TIMESTAMP, now)
+            .build()
+
+    /** Matches the `reports` rule's limit on `comments`. */
+    const val MAX_COMMENT_CHARS = 2000
+}
+
+private const val TAG = "ATXF"
 
 /** PrivacyAndSafetyViewModel.loadSearchableContacts' sorting of match docs. */
 object BlockCandidateRules {

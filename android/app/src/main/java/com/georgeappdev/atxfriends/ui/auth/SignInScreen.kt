@@ -169,6 +169,7 @@ fun SignInScreen(
                     },
                 )
                 OrDivider(fontSize = 13.sp, modifier = Modifier.padding(vertical = 4.dp))
+                AppleButton(height = 52.dp, fontSize = 17.sp)
                 GoogleButton(height = 52.dp, fontSize = 17.sp)
                 Spacer(Modifier.height(16.dp))
             }

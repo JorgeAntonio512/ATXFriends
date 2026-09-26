@@ -15,6 +15,15 @@ val keystoreProperties = Properties().apply {
     if (file.exists()) file.inputStream().use(::load)
 }
 
+// The Google Places API key for the plan composer's "Where?" search is read from
+// android/local.properties (PLACES_API_KEY=...), which is git- and public-ignored. Never put it
+// anywhere else. Without it the app builds normally and "Where?" is plain free text.
+val placesApiKey: String = Properties().run {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use(::load)
+    getProperty("PLACES_API_KEY").orEmpty().trim()
+}
+
 android {
     namespace = "com.georgeappdev.atxfriends"
     compileSdk = 37
@@ -27,6 +36,8 @@ android {
         // versionName matches the iOS app target's MARKETING_VERSION. Bump versionCode by 1 for
         // every upload to Play; it can never go down or repeat.
         versionName = "1.0"
+
+        buildConfigField("String", "PLACES_API_KEY", "\"${placesApiKey.replace("\\", "").replace("\"", "")}\"")
     }
 
     signingConfigs {
@@ -99,6 +110,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.places)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

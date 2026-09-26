@@ -587,3 +587,41 @@ async function runBulkWrites(
 function uniqueRefs(refs: FirebaseFirestore.DocumentReference[]): FirebaseFirestore.DocumentReference[] {
   return [...new Map(refs.map((ref) => [ref.path, ref])).values()];
 }
+
+// ─── Scheduled: purge reports older than a year ─────────────────────────────
+//
+// "Report a User" docs (`reports`) are kept for one year for safety, then
+// deleted. The privacy policy and the account-deletion page promise this, and
+// deleteMyAccount deliberately leaves reports in place so a deleted account
+// can't erase reports about someone else. Runs daily; `timestamp` is the
+// client time the report was filed.
+
+const REPORT_RETENTION_DAYS = 365;
+const PURGE_PAGE_SIZE = 400;
+
+export const purgeOldReports = functions.pubsub
+  .schedule("every day 03:30")
+  .timeZone("America/Chicago")
+  .onRun(async () => {
+    const retentionMs = REPORT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+    const cutoff = new Date(Date.now() - retentionMs);
+    let deleted = 0;
+    for (;;) {
+      const snap = await db.collection("reports")
+        .where("timestamp", "<", cutoff)
+        .limit(PURGE_PAGE_SIZE)
+        .select()
+        .get();
+      if (snap.empty) break;
+      const batch = db.batch();
+      snap.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+      deleted += snap.size;
+      if (snap.size < PURGE_PAGE_SIZE) break;
+    }
+    console.log(
+      `🧹 purgeOldReports: deleted ${deleted} report(s) ` +
+      `filed before ${cutoff.toISOString()}`
+    );
+    return null;
+  });

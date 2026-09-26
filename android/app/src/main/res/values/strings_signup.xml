@@ -1,5 +1,6 @@
 <resources>
     <!-- Welcome (iOS OnboardingView) — the sign-up half -->
+    <string name="welcome_sign_in_apple">Sign in with Apple</string>
     <string name="welcome_continue_google">Continue with Google</string>
     <string name="welcome_or">or</string>
     <string name="welcome_register">Register</string>
@@ -14,6 +15,7 @@
     <string name="auth_error_passwords_dont_match">Passwords do not match.</string>
     <!-- Android-only: iOS logs a failed Google sign-in without showing anything. -->
     <string name="auth_error_google_failed">Couldn\'t sign in with Google. Please try again.</string>
+    <string name="auth_error_apple_failed">Couldn\'t sign in with Apple. Please try again.</string>
 
     <!-- Location gate (iOS LocationGateView + LocationPermissionManager) -->
     <string name="gate_title">One quick check</string>

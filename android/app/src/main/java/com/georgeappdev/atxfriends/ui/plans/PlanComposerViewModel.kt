@@ -22,6 +22,7 @@ import com.georgeappdev.atxfriends.domain.plans.PlaceSearchState
 import com.georgeappdev.atxfriends.domain.plans.PlaceSuggestion
 import com.georgeappdev.atxfriends.session.SessionState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -108,7 +109,7 @@ data class ComposerUiState(
     val date: Instant,
     val zone: ZoneId,
     val where: WhereState = WhereState(),
-    /** Place-search suggestions for the "Where?" text (always Idle until a PlaceSearch exists). */
+    /** Place-search suggestions for the "Where?" text (always Idle with no Places API key). */
     val placeSearch: PlaceSearchState = PlaceSearchState.Idle,
     val inviteeOptions: List<InviteeOption> = emptyList(),
     val isLoadingInvitees: Boolean = false,
@@ -163,6 +164,12 @@ class PlanComposerViewModel(
     private var availableActivities: List<String> = emptyList()
     private var inviteesJob: Job? = null
     private var searchJob: Job? = null
+    private var resolveJob: Job? = null
+
+    /** My profile, fetched once: open-post chips and the place-search bias both use it. */
+    private val myProfile = viewModelScope.async(start = CoroutineStart.LAZY) {
+        (attempt { fetchUser(myID) } as? UserDoc.Found)?.profile
+    }
 
     init {
         viewModelScope.launch { loadActivities() }
@@ -222,7 +229,7 @@ class PlanComposerViewModel(
         availableActivities = attempt {
             when (mode) {
                 is ComposerMode.Proposal, ComposerMode.GroupInvite -> fetchActivityNames()
-                ComposerMode.OpenPost -> (fetchUser(myID) as? UserDoc.Found)?.profile?.activities?.map { it.name }
+                ComposerMode.OpenPost -> myProfile.await()?.activities?.map { it.name }
             }
         }.orEmpty()
     }
@@ -268,6 +275,7 @@ class PlanComposerViewModel(
 
     /** Editing the text drops a picked place's name and coordinates unless it still matches. */
     fun onWhereChange(text: String) {
+        if (text != _state.value.where.text) resolveJob?.cancel()
         _state.update {
             val w = it.where
             it.copy(where = if (text != w.locationName) w.copy(text = text, locationName = null, latitude = null, longitude = null) else w.copy(text = text))
@@ -276,15 +284,20 @@ class PlanComposerViewModel(
     }
 
     fun onWhereCleared() {
+        resolveJob?.cancel()
         _state.update { it.copy(where = it.where.copy(text = "", locationName = null, latitude = null, longitude = null)) }
         search("")
     }
 
-    /** iOS feeds every keystroke to the completer (`queryFragment`); the newest query wins. */
+    /**
+     * iOS feeds every keystroke to the completer (`queryFragment`); the newest query wins. Search
+     * is biased to my stored signup coordinates, never a fresh location fix.
+     */
     private fun search(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            placeSearch.search(query, null, null).collect { s -> _state.update { it.copy(placeSearch = s) } }
+            val me = if (placeSearch === PlaceSearch.None || query.isBlank()) null else myProfile.await()
+            placeSearch.search(query, me?.latitude, me?.longitude).collect { s -> _state.update { it.copy(placeSearch = s) } }
         }
     }
 
@@ -293,15 +306,28 @@ class PlanComposerViewModel(
         _state.update { it.copy(where = it.where.copy(touched = true)) }
     }
 
-    /** A place-search pick (no search source yet — see PlaceSearch). */
+    /**
+     * A place-search pick fills the text right away. The name and coordinates are saved together
+     * once the coordinates arrive (iOS never saves one without the other); if that lookup fails,
+     * or the text is edited first, the pick stays plain free text.
+     */
     fun onPlacePicked(place: PlaceSuggestion) {
         searchJob?.cancel()
+        resolveJob?.cancel()
         _state.update {
-            it.copy(
-                where = it.where.copy(text = place.name, locationName = place.name, latitude = place.latitude, longitude = place.longitude),
-                placeSearch = PlaceSearchState.Idle,
-            )
+            it.copy(where = it.where.copy(text = place.name, locationName = null, latitude = null, longitude = null), placeSearch = PlaceSearchState.Idle)
         }
+        resolveJob = viewModelScope.launch {
+            val spot = attempt { placeSearch.resolve(place) } ?: return@launch
+            _state.update {
+                if (it.where.text != place.name) it
+                else it.copy(where = it.where.copy(locationName = place.name, latitude = spot.latitude, longitude = spot.longitude))
+            }
+        }
+    }
+
+    override fun onCleared() {
+        placeSearch.endSession()
     }
 
     // ── Invitees (.groupInvite) ────────────────────────────────────────────────────────
@@ -448,6 +474,7 @@ class PlanComposerViewModel(
                     propose = container.plans::propose,
                     postTodayPlan = container.todayPlans::create,
                     createGroupPlan = container.groupPlans::create,
+                    placeSearch = container.placeSearch,
                 )
             }
         }

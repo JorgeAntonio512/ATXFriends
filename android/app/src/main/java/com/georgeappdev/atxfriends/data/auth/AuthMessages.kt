@@ -26,8 +26,9 @@ enum class AuthMessage(@param:StringRes val text: Int) {
     RESET_INVALID_EMAIL(R.string.auth_reset_error_invalid_email),
     RESET_FAILED(R.string.auth_reset_error_failed),
 
-    // Android-only: iOS logs Google sign-in failures without showing anything.
-    GOOGLE_FAILED(R.string.auth_error_google_failed);
+    // Android-only: iOS logs Google and Apple sign-in failures without showing anything.
+    GOOGLE_FAILED(R.string.auth_error_google_failed),
+    APPLE_FAILED(R.string.auth_error_apple_failed);
 
     /** iOS `suggestsAccountCreation`: the sign-in screen then offers "New here? Create an account". */
     val suggestsAccountCreation: Boolean get() = this == INCORRECT_CREDENTIALS

@@ -1,5 +1,6 @@
 package com.georgeappdev.atxfriends.ui.settings
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.georgeappdev.atxfriends.AtxFriendsApp
 import com.georgeappdev.atxfriends.R
 import com.georgeappdev.atxfriends.data.repository.AccountDeleter
+import com.georgeappdev.atxfriends.data.repository.AppleTokenRevoker
+import com.georgeappdev.atxfriends.ui.auth.AppleReauth
+import com.georgeappdev.atxfriends.ui.auth.rememberAppleReauth
 import com.georgeappdev.atxfriends.ui.components.atxText
 import com.georgeappdev.atxfriends.ui.messages.AddedToCalendarStore
 import com.georgeappdev.atxfriends.ui.messages.SharedPrefsAddedToCalendarStore
@@ -62,6 +66,8 @@ data class DeleteAccountUiState(
     val confirmation: String = "",
     val isDeleting: Boolean = false,
     val failed: Boolean = false,
+    /** A Sign in with Apple account closed Apple's confirmation page: nothing was deleted. */
+    val appleCancelled: Boolean = false,
 ) {
     /** iOS: the typed text, trimmed, must be exactly "DELETE". */
     val isConfirmed: Boolean get() = confirmation.trim() == CONFIRM_WORD
@@ -79,12 +85,15 @@ data class DeleteAccountUiState(
  * welcome screen. On failure nothing is signed out or cleared, and retrying is safe.
  *
  * Like iOS, it also forgets the "Added to Calendar" flags for every plan the function deleted.
- * (iOS first revokes Sign in with Apple for Apple accounts and drops its FCM token; Android
- * has neither yet.)
+ *
+ * Sign in with Apple accounts first confirm with Apple (a fresh access token from Apple's page),
+ * then revoke the app's Apple sign-in, as Apple requires. Closing Apple's page cancels the
+ * deletion; any other revocation failure is logged and deletion continues, as on iOS.
  */
 class DeleteAccountViewModel(
     private val currentUid: () -> String?,
     private val deleter: AccountDeleter,
+    private val apple: AppleTokenRevoker,
     private val positions: SimpaticoPositionStore,
     private val calendarFlags: AddedToCalendarStore,
     private val signOut: () -> Unit,
@@ -95,15 +104,19 @@ class DeleteAccountViewModel(
 
     fun onConfirmationChange(text: String) = _state.update { it.copy(confirmation = text) }
 
-    fun delete() {
+    fun delete(appleReauth: AppleReauth) {
         if (!_state.value.canDelete) return
         val uid = currentUid()
         if (uid == null) {
             _state.update { it.copy(failed = true) }
             return
         }
-        _state.update { it.copy(isDeleting = true, failed = false) }
+        _state.update { it.copy(isDeleting = true, failed = false, appleCancelled = false) }
         viewModelScope.launch {
+            if (apple.isAppleAccount() && !revokeApple(appleReauth)) {
+                _state.update { it.copy(isDeleting = false, appleCancelled = true) }
+                return@launch
+            }
             val planIDs = try {
                 deleter.deleteMyAccount()
             } catch (e: CancellationException) {
@@ -118,7 +131,26 @@ class DeleteAccountViewModel(
         }
     }
 
-    fun dismissError() = _state.update { it.copy(failed = false) }
+    fun dismissError() = _state.update { it.copy(failed = false, appleCancelled = false) }
+
+    /** iOS AccountDeletionService.revokeAppleSignIn. False only when the person closed Apple's page. */
+    private suspend fun revokeApple(reauth: AppleReauth): Boolean {
+        try {
+            val token = reauth.freshAccessToken()
+            if (token == null) {
+                Log.i(TAG, "delete: Apple confirmation closed — not deleting")
+                return false
+            }
+            apple.revokeAccessToken(token)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Don't block deletion on revocation (e.g. Apple's code flow not configured in
+            // Firebase); the account and its data are still deleted.
+            Log.w(TAG, "delete: Apple sign-in revocation failed — deleting anyway", e)
+        }
+        return true
+    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -128,6 +160,7 @@ class DeleteAccountViewModel(
                 DeleteAccountViewModel(
                     currentUid = { c.session.currentProfile?.id },
                     deleter = c.account,
+                    apple = c.appleAuth,
                     positions = SharedPrefsSimpaticoPositionStore(app),
                     calendarFlags = SharedPrefsAddedToCalendarStore(app),
                     signOut = c.session::signOut,
@@ -141,6 +174,7 @@ class DeleteAccountViewModel(
 @Composable
 fun DeleteAccountScreen(onBack: () -> Unit, viewModel: DeleteAccountViewModel = viewModel(factory = DeleteAccountViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val appleReauth = rememberAppleReauth()
     val colors = AtxTheme.colors
     val danger = SettingsColors.dangerStrong
 
@@ -213,18 +247,20 @@ fun DeleteAccountScreen(onBack: () -> Unit, viewModel: DeleteAccountViewModel = 
                 background = if (state.isConfirmed) danger else colors.textSubtle,
                 busy = state.isDeleting,
                 enabled = state.canDelete,
-                onClick = viewModel::delete,
+                onClick = { viewModel.delete(appleReauth) },
                 modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 20.dp),
             )
         }
     }
 
-    if (state.failed) {
+    if (state.failed || state.appleCancelled) {
         AlertDialog(
             onDismissRequest = viewModel::dismissError,
             title = { Text(stringResource(R.string.delete_error_title)) },
-            text = { Text(stringResource(R.string.delete_error_body)) },
+            text = { Text(stringResource(if (state.appleCancelled) R.string.delete_apple_cancelled else R.string.delete_error_body)) },
             confirmButton = { TextButton(onClick = viewModel::dismissError) { Text(stringResource(R.string.action_ok)) } },
         )
     }
 }
+
+private const val TAG = "ATXF"

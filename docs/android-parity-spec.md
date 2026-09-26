@@ -1209,8 +1209,11 @@ assumed from naming:
    Google Calendar session survives app sign-out.
 7. ~~`AuthViewModel.deleteAccount()` only deleted the `users/{uid}` doc~~ — **fixed**: account
    deletion now runs server-side in `deleteMyAccount` and cascades to everything the user created
-   (§2.8, §4). The unused abuse-report `reports` collection is not touched by it (no rules block,
-   §11.9).
+   (§2.8, §4). It deliberately leaves the abuse-report `reports` collection alone: reports are
+   kept for one year, then deleted by the `purgeOldReports` scheduled function.
+   `firestore.rules` now has a create-only `reports` block (android-16), so "Report a User"
+   works on both platforms once the rules are deployed. Android also lists blocked users as
+   reportable; iOS doesn't.
 8. **`email` exists on the `FirebaseUser` Swift model but is absent from the general `userToFirestoreData` write path** — likely never
    actually persisted via normal profile saves despite being a model field.
 9. **`groups`/`groupMembers` and `conversations` collections have no `firestore.rules` block**

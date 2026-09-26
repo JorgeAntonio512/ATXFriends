@@ -173,7 +173,7 @@
     <string name="privacy_row_export_sub">Download a copy of your data</string>
     <string name="privacy_row_protect">How We Protect Your Data</string>
     <string name="privacy_row_protect_sub">Learn about our privacy practices</string>
-    <string name="privacy_policy_url" translatable="false">https://avenue3.app/privacy.html</string>
+    <string name="privacy_policy_url" translatable="false">https://atxfriends.app/privacy</string>
 
     <!-- Block a User (iOS BlockUserView) -->
     <string name="block_title">Block a User</string>
@@ -208,6 +208,32 @@
     <string name="blocked_load_failed">Couldn\'t load your blocked list. Check your connection and try again.</string>
     <string name="blocked_unblock_failed">Couldn\'t unblock this person. Check your connection and try again.</string>
 
+    <!-- Report a User (iOS ReportUserView) -->
+    <string name="privacy_row_report">Report a User</string>
+    <string name="privacy_row_report_sub">Report inappropriate behavior</string>
+    <string name="report_title">Report a User</string>
+    <string name="report_loading">Loading matches...</string>
+    <string name="report_empty_title">No Matches to Report</string>
+    <string name="report_empty_body">You don\'t have any current matches. Only users you\'ve matched with can be reported.</string>
+    <string name="report_header">Select a user to report</string>
+    <!-- Android-only section: people you've blocked can still be reported. -->
+    <string name="report_section_blocked">Blocked</string>
+    <string name="report_reporting">Reporting %1$s</string>
+    <string name="report_reason_prompt">Select a reason for your report</string>
+    <string name="report_reason_inappropriate">Inappropriate behavior</string>
+    <string name="report_reason_harassment">Harassment</string>
+    <string name="report_reason_fake">Fake profile</string>
+    <string name="report_reason_spam">Spam</string>
+    <string name="report_reason_other">Other</string>
+    <string name="report_comments_label">Additional Comments (Optional)</string>
+    <string name="report_submit">Submit Report</string>
+    <string name="report_submitting">Submitting...</string>
+    <string name="report_success_title">Report Submitted</string>
+    <string name="report_success_body">We take all reports seriously and will review this promptly.</string>
+    <!-- Android-only: iOS sets these errors but never shows them. -->
+    <string name="report_load_failed">Couldn\'t load your matches. Check your connection and try again.</string>
+    <string name="report_failed">Couldn\'t send your report. Check your connection and try again.</string>
+
     <!-- Delete Account (iOS DeleteAccountView) -->
     <string name="delete_title">Delete Account</string>
     <string name="delete_warning">This permanently deletes your account right away. It can\'t be undone.</string>
@@ -227,6 +253,7 @@
     <string name="delete_button_busy">Deleting Your Account…</string>
     <string name="delete_error_title">Couldn\'t Delete Account</string>
     <string name="delete_error_body">We couldn\'t delete your account. Check your connection and try again.</string>
+    <string name="delete_apple_cancelled">Deletion cancelled. Confirm with Apple to delete your account.</string>
 
     <!-- Export My Data (iOS ExportDataView) -->
     <string name="export_title">Export My Data</string>

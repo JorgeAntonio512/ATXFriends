@@ -360,6 +360,33 @@ service cloud.firestore {
     }
 
     // ====================
+    // REPORTS COLLECTION ("Report a User")
+    // ====================
+    match /reports/{reportID} {
+      // Written by PrivacyAndSafetyViewModel.submitReport (iOS) and ReportUserViewModel
+      // (Android). A user may file a report only as themselves, about someone else, with
+      // exactly these five fields. Note the lowercase "Id" in the field names.
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(
+          ["reportedUserId", "reportingUserId", "reason", "comments", "timestamp"]) &&
+        request.resource.data.keys().hasAll(
+          ["reportedUserId", "reportingUserId", "reason", "comments", "timestamp"]) &&
+        request.resource.data.reportingUserId == request.auth.uid &&
+        request.resource.data.reportedUserId is string &&
+        request.resource.data.reportedUserId.size() > 0 &&
+        request.resource.data.reportedUserId != request.auth.uid &&
+        request.resource.data.reason in
+          ["Inappropriate behavior", "Harassment", "Fake profile", "Spam", "Other"] &&
+        request.resource.data.comments is string &&
+        request.resource.data.comments.size() <= 2000 &&
+        request.resource.data.timestamp is timestamp;
+
+      // Reports are write-once and private: reviewed in the Firebase console only, and
+      // deleted after a year by the purgeOldReports Cloud Function.
+      allow read, update, delete: if false;
+    }
+
+    // ====================
     // WAITLIST SIGNUPS COLLECTION
     // ====================
     match /waitlistSignups/{docID} {

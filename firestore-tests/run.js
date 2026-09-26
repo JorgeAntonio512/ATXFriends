@@ -414,6 +414,61 @@ async function main() {
   });
 
   // ============================================================
+  // REPORTS ("Report a User")
+  // ============================================================
+  const report = (over = {}) => ({
+    reportedUserId: 'bob', reportingUserId: 'alice', reason: 'Harassment',
+    comments: 'Kept messaging after I said no', timestamp: new Date(), ...over,
+  });
+
+  await check('reports: user can report someone as themselves (the iOS/Android shape)', () =>
+    assertSucceeds(addDoc(collection(alice, 'reports'), report())));
+
+  await check('reports: empty comments are fine', () =>
+    assertSucceeds(addDoc(collection(alice, 'reports'), report({ comments: '' }))));
+
+  await check('reports: every iOS reason is accepted', async () => {
+    for (const reason of ['Inappropriate behavior', 'Harassment', 'Fake profile', 'Spam', 'Other']) {
+      await assertSucceeds(addDoc(collection(alice, 'reports'), report({ reason })));
+    }
+  });
+
+  await check('reports: cannot report as someone else', () =>
+    assertFails(addDoc(collection(carol, 'reports'), report())));
+
+  await check('reports: cannot report yourself', () =>
+    assertFails(addDoc(collection(alice, 'reports'), report({ reportedUserId: 'alice' }))));
+
+  await check('reports: unauthenticated cannot report', () =>
+    assertFails(addDoc(collection(anon, 'reports'), report())));
+
+  await check('reports: rejects an unknown reason', () =>
+    assertFails(addDoc(collection(alice, 'reports'), report({ reason: 'Boring' }))));
+
+  await check('reports: rejects extra fields', () =>
+    assertFails(addDoc(collection(alice, 'reports'), report({ extra: true }))));
+
+  await check('reports: rejects a missing field', async () => {
+    const { comments, ...noComments } = report();
+    await assertFails(addDoc(collection(alice, 'reports'), noComments));
+  });
+
+  await check('reports: rejects comments over 2000 characters', () =>
+    assertFails(addDoc(collection(alice, 'reports'), report({ comments: 'x'.repeat(2001) }))));
+
+  await check('reports: rejects a non-timestamp timestamp', () =>
+    assertFails(addDoc(collection(alice, 'reports'), report({ timestamp: 'yesterday' }))));
+
+  await check('reports: nobody can read, edit, or delete a report (not even the reporter)', async () => {
+    await seed((db) => setDoc(doc(db, 'reports/rep1'), report()));
+    await assertFails(getDoc(doc(alice, 'reports/rep1')));
+    await assertFails(getDoc(doc(bob, 'reports/rep1')));
+    await assertFails(getDocs(collection(alice, 'reports')));
+    await assertFails(updateDoc(doc(alice, 'reports/rep1'), { comments: 'changed' }));
+    await assertFails(deleteDoc(doc(alice, 'reports/rep1')));
+  });
+
+  // ============================================================
   // WAITLIST SIGNUPS
   // ============================================================
   await check('waitlistSignups: unauthenticated signup with a valid email', () =>

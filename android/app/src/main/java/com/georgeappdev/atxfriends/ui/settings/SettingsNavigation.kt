@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object SettingsPrivacy
 @Serializable data object SettingsBlockUser
 @Serializable data object SettingsBlockedUsers
+@Serializable data object SettingsReportUser
 @Serializable data object SettingsDeleteAccount
 @Serializable data object SettingsExportData
 
@@ -32,6 +33,7 @@ fun NavGraphBuilder.settingsDestinations(navController: NavHostController) {
     composable<SettingsPrivacy> { entry -> PrivacySafetyScreen(onBack = { entry.back() }, onNavigate = { route -> entry.ifResumed { navController.navigate(route) } }) }
     composable<SettingsBlockUser> { BlockUserScreen(onBack = { it.back() }) }
     composable<SettingsBlockedUsers> { BlockedUsersScreen(onBack = { it.back() }) }
+    composable<SettingsReportUser> { ReportUserScreen(onBack = { it.back() }) }
     composable<SettingsDeleteAccount> { DeleteAccountScreen(onBack = { it.back() }) }
     composable<SettingsExportData> { ExportDataScreen(onBack = { it.back() }) }
 }

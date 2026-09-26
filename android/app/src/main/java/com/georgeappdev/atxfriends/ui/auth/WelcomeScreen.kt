@@ -43,7 +43,8 @@ import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
  * Port of iOS OnboardingView, shown whenever nobody is signed in. Register always goes through
- * the location gate first; Sign In never does. Sign in with Apple isn't offered on Android yet.
+ * the location gate first; Sign In never does. Apple and Google new accounts go through the gate
+ * too (SessionManager routes them there); returning ones go straight in.
  */
 @Composable
 fun WelcomeScreen(onRegister: () -> Unit, onSignIn: () -> Unit) {
@@ -91,6 +92,7 @@ fun WelcomeScreen(onRegister: () -> Unit, onSignIn: () -> Unit) {
 
             Spacer(Modifier.weight(1f).heightIn(min = 24.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                AppleButton()
                 GoogleButton()
                 OrDivider(fontSize = 14.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -16,6 +16,7 @@ object Collections {
     const val SIMPATICO_ANSWERS = "simpaticoAnswers"
     const val SHOW_UP_REPORTS = "showUpReports"
     const val WAITLIST_SIGNUPS = "waitlistSignups"
+    const val REPORTS = "reports"
 }
 
 /** `users/{uid}` — FirestoreService.userToFirestoreData / firestoreDataToUser. */
@@ -180,6 +181,18 @@ object ShowUpReportFields {
     const val PLAN_ID = "planID"
     const val DID_SHOW_UP = "didShowUp"
     const val CREATED_AT = "createdAt"
+}
+
+/**
+ * `reports/{auto-id}` — PrivacyAndSafetyViewModel.submitReport. Note the lowercase "Id"
+ * (unlike `reportedUserID` in `showUpReports`); the rules accept exactly these five keys.
+ */
+object ReportFields {
+    const val REPORTED_USER_ID = "reportedUserId"
+    const val REPORTING_USER_ID = "reportingUserId"
+    const val REASON = "reason"
+    const val COMMENTS = "comments"
+    const val TIMESTAMP = "timestamp"
 }
 
 /** `waitlistSignups/{auto-id}` — WaitlistView.submit. Rules accept exactly these two keys. */

@@ -6,6 +6,7 @@ import com.georgeappdev.atxfriends.data.model.GroupPlanStatus
 import com.georgeappdev.atxfriends.data.model.LocationSharingMode
 import com.georgeappdev.atxfriends.data.model.MessageKind
 import com.georgeappdev.atxfriends.data.model.PlanStatus
+import com.georgeappdev.atxfriends.data.model.ReportReason
 import com.georgeappdev.atxfriends.data.model.SimpaticoImportance
 import com.georgeappdev.atxfriends.data.model.TimeSlot
 import com.georgeappdev.atxfriends.data.model.TodayPlanStatus
@@ -28,13 +29,17 @@ class FieldNamesMatchIosTest {
 
     @Test
     fun collections() = assertKeys(
-        listOf("users", "activities", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports", "waitlistSignups"),
+        listOf("users", "activities", "matches", "messages", "plans", "todayPlans", "groupPlans", "simpaticoAnswers", "showUpReports", "waitlistSignups", "reports"),
         Collections,
     )
 
     /** WaitlistView.submit. */
     @Test
     fun waitlistSignups() = assertKeys(listOf("email", "submittedAt"), WaitlistFields)
+
+    /** PrivacyAndSafetyViewModel.submitReport. */
+    @Test
+    fun reports() = assertKeys(listOf("reportedUserId", "reportingUserId", "reason", "comments", "timestamp"), ReportFields)
 
     @Test
     fun users() = assertKeys(
@@ -135,5 +140,9 @@ class FieldNamesMatchIosTest {
             DayOfWeek.entries.map { it.raw },
         )
         assertEquals(listOf("Wake Up", "Afternoon", "Evening", "Night", "Owl Hours", null), TimeSlot.entries.map { it.raw })
+        assertEquals(
+            listOf("Inappropriate behavior", "Harassment", "Fake profile", "Spam", "Other", null),
+            ReportReason.entries.map { it.raw },
+        )
     }
 }

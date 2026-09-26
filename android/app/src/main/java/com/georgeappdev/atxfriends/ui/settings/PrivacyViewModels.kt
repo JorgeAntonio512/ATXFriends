@@ -7,8 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.georgeappdev.atxfriends.AtxFriendsApp
+import com.georgeappdev.atxfriends.data.model.ReportReason
 import com.georgeappdev.atxfriends.data.model.UserProfile
 import com.georgeappdev.atxfriends.data.repository.PrivacyReader
+import com.georgeappdev.atxfriends.data.repository.ReportSubmitter
+import com.georgeappdev.atxfriends.data.repository.ReportWrites
 import com.georgeappdev.atxfriends.data.repository.UserDoc
 import com.georgeappdev.atxfriends.data.repository.UserWrites
 import com.georgeappdev.atxfriends.domain.export.DataExport
@@ -212,6 +215,119 @@ class BlockedUsersViewModel(
             initializer {
                 val c = (this[APPLICATION_KEY] as AtxFriendsApp).container
                 BlockedUsersViewModel(ProfileEdits(c.session, c.profiles), c.users::fetchUser)
+            }
+        }
+    }
+}
+
+/** How long iOS shows "Report Submitted" before leaving the screen. */
+private const val REPORT_SUCCESS_MS = 2_500L
+
+data class ReportUserUiState(
+    val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
+    val pending: List<PersonRow> = emptyList(),
+    val connections: List<PersonRow> = emptyList(),
+    /** Android-only: people you've blocked can still be reported (see [ReportUserViewModel]). */
+    val blocked: List<PersonRow> = emptyList(),
+    /** Step 2 (reason and comments) is showing while someone is selected. */
+    val selected: PersonRow? = null,
+    val reason: ReportReason? = null,
+    val comments: String = "",
+    val isSubmitting: Boolean = false,
+    val submitFailed: Boolean = false,
+    /** The "Report Submitted" overlay is up. */
+    val submitted: Boolean = false,
+    val done: Boolean = false,
+) {
+    val isEmpty: Boolean get() = pending.isEmpty() && connections.isEmpty() && blocked.isEmpty()
+    val canSubmit: Boolean get() = selected != null && reason != null && !isSubmitting && !submitted
+}
+
+/**
+ * iOS ReportUserView: pick a match or connection, pick a reason, add optional comments, and
+ * create one `reports` doc. Nobody is notified.
+ *
+ * One deliberate difference: iOS lists only people you haven't blocked, so blocking someone
+ * first (the natural thing to do when they're harassing you) hides them from the report list.
+ * Android also lists your blocked users, in their own section.
+ */
+class ReportUserViewModel(
+    private val profile: () -> UserProfile?,
+    private val privacy: PrivacyReader,
+    private val reports: ReportSubmitter,
+    private val fetchUser: suspend (String) -> UserDoc,
+    private val clock: () -> Instant = Instant::now,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(ReportUserUiState())
+    val state: StateFlow<ReportUserUiState> = _state.asStateFlow()
+
+    init {
+        load()
+    }
+
+    fun load() {
+        val me = profile() ?: return
+        _state.update { it.copy(isLoading = true, loadFailed = false) }
+        viewModelScope.launch {
+            try {
+                val blockedIDs = ((fetchUser(me.id) as? UserDoc.Found)?.profile ?: me).blockedUsers.toSet()
+                val candidates = privacy.blockCandidates(me.id, blockedIDs)
+                val pending = fetchPeople(candidates.pendingIDs, fetchUser)
+                val connections = fetchPeople(candidates.mutualIDs, fetchUser)
+                val blocked = fetchPeople(blockedIDs, fetchUser)
+                _state.update { it.copy(isLoading = false, pending = pending, connections = connections, blocked = blocked) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _state.update { it.copy(isLoading = false, loadFailed = true) }
+            }
+        }
+    }
+
+    fun select(person: PersonRow) = _state.update {
+        if (it.isSubmitting) it else it.copy(selected = person, reason = null, comments = "", submitFailed = false)
+    }
+
+    /** Back from step 2 to the list. */
+    fun backToPeople() = _state.update { if (it.isSubmitting || it.submitted) it else it.copy(selected = null, submitFailed = false) }
+
+    fun setReason(reason: ReportReason) = _state.update { if (it.isSubmitting) it else it.copy(reason = reason) }
+
+    fun setComments(text: String) = _state.update {
+        if (it.isSubmitting) it else it.copy(comments = text.take(ReportWrites.MAX_COMMENT_CHARS))
+    }
+
+    fun submit() {
+        val s = _state.value
+        if (!s.canSubmit) return
+        val me = profile() ?: return
+        val person = s.selected ?: return
+        val reason = s.reason ?: return
+        _state.update { it.copy(isSubmitting = true, submitFailed = false) }
+        viewModelScope.launch {
+            try {
+                reports.submitReport(ReportWrites.report(me.id, person.id, reason, s.comments, clock()))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _state.update { it.copy(isSubmitting = false, submitFailed = true) }
+                return@launch
+            }
+            _state.update { it.copy(isSubmitting = false, submitted = true) }
+            delay(REPORT_SUCCESS_MS)
+            _state.update { it.copy(done = true) }
+        }
+    }
+
+    fun dismissError() = _state.update { it.copy(submitFailed = false) }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val c = (this[APPLICATION_KEY] as AtxFriendsApp).container
+                ReportUserViewModel({ c.session.currentProfile }, c.privacy, c.privacy, c.users::fetchUser)
             }
         }
     }

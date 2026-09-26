@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -47,7 +48,7 @@ import com.georgeappdev.atxfriends.ui.theme.AtxTheme
 
 /**
  * Port of iOS PlanLocationField, the shared, required "Where?" field. Free-typed text is a
- * valid location; a place pick (when a [PlaceSearchState] source exists) only adds a name and
+ * valid location; a place pick (Google Places, when a key is configured) only adds a name and
  * coordinates. The red hint appears only after the field was focused and then left empty, and
  * clears the moment there's text. Search status rows show only while the field has focus.
  */
@@ -63,6 +64,7 @@ fun PlanLocationField(
 ) {
     val colors = AtxTheme.colors
     var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     val placeholder = stringResource(R.string.where_placeholder)
     val label = stringResource(R.string.where_label)
 
@@ -116,7 +118,11 @@ fun PlanLocationField(
                 PlaceSearchState.Searching -> StatusRow(stringResource(R.string.where_searching), showsProgress = true)
                 PlaceSearchState.NoMatches -> StatusRow(stringResource(R.string.where_no_matches), icon = R.drawable.ic_error)
                 PlaceSearchState.Error -> StatusRow(stringResource(R.string.where_search_error), icon = R.drawable.ic_error)
-                is PlaceSearchState.Results -> ResultsList(searchState.places, onPlacePicked)
+                // Like iOS, a pick fills the field and puts the keyboard away.
+                is PlaceSearchState.Results -> ResultsList(searchState.places) { place ->
+                    onPlacePicked(place)
+                    focusManager.clearFocus()
+                }
             }
         }
 

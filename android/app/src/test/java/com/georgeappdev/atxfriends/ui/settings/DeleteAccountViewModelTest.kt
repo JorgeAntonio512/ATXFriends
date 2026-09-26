@@ -2,6 +2,8 @@ package com.georgeappdev.atxfriends.ui.settings
 
 import com.georgeappdev.atxfriends.data.repository.AccountDeleter
 import com.georgeappdev.atxfriends.data.repository.AccountRepository
+import com.georgeappdev.atxfriends.data.repository.AppleTokenRevoker
+import com.georgeappdev.atxfriends.ui.auth.AppleReauth
 import com.georgeappdev.atxfriends.ui.simpatico.SimpaticoPositionStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -40,14 +42,30 @@ class DeleteAccountViewModelTest {
         override fun clear(uid: String) { map.remove(uid) }
     }
 
+    private class FakeApple(var isApple: Boolean = false) : AppleTokenRevoker {
+        val revoked = mutableListOf<String>()
+        var error: Exception? = null
+        override fun isAppleAccount() = isApple
+        override suspend fun revokeAccessToken(accessToken: String) {
+            error?.let { throw it }
+            revoked += accessToken
+        }
+    }
+
     private val deleter = FakeDeleter()
+    private val apple = FakeApple()
+    private var reauths = 0
+
+    /** Apple's confirmation page: returns a fresh token, or null when closed. */
+    private var applePage: suspend () -> String? = { "apple-token" }
+    private val reauth = AppleReauth { reauths++; applePage() }
     private val positions = FakePositions()
     private var signedOut = 0
     private var uid: String? = "uid-sam"
 
     private val calendarFlags = FakeCalendarStore(mutableSetOf("plan-1", "plan-kept"))
 
-    private fun vm() = DeleteAccountViewModel({ uid }, deleter, positions, calendarFlags) { signedOut++ }
+    private fun vm() = DeleteAccountViewModel({ uid }, deleter, apple, positions, calendarFlags) { signedOut++ }
 
     @Before fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @After fun tearDown() = Dispatchers.resetMain()
@@ -58,7 +76,7 @@ class DeleteAccountViewModelTest {
         for (text in listOf("", "delete", "DELET", "DELETE!", "Delete")) {
             vm.onConfirmationChange(text)
             assertFalse(text, vm.state.value.isConfirmed)
-            vm.delete()
+            vm.delete(reauth)
         }
         assertEquals("nothing is called until DELETE is typed", 0, deleter.calls)
         vm.onConfirmationChange("  DELETE ")
@@ -69,7 +87,7 @@ class DeleteAccountViewModelTest {
     fun success_callsTheFunctionOnce_clearsThisUsersLocalData_andSignsOut() {
         val vm = vm()
         vm.onConfirmationChange("DELETE")
-        vm.delete()
+        vm.delete(reauth)
         assertEquals(1, deleter.calls)
         assertEquals(1, signedOut)
         assertFalse("uid-sam" in positions.map)
@@ -82,8 +100,8 @@ class DeleteAccountViewModelTest {
         deleter.gate = CompletableDeferred()
         val vm = vm()
         vm.onConfirmationChange("DELETE")
-        vm.delete()
-        vm.delete()
+        vm.delete(reauth)
+        vm.delete(reauth)
         assertTrue(vm.state.value.isDeleting)
         assertFalse(vm.state.value.canDelete)
         assertEquals(1, deleter.calls)
@@ -96,7 +114,7 @@ class DeleteAccountViewModelTest {
         deleter.error = IOException("internal")
         val vm = vm()
         vm.onConfirmationChange("DELETE")
-        vm.delete()
+        vm.delete(reauth)
         val s = vm.state.value
         assertTrue(s.failed)
         assertFalse(s.isDeleting)
@@ -106,7 +124,7 @@ class DeleteAccountViewModelTest {
 
         deleter.error = null
         vm.dismissError()
-        vm.delete()
+        vm.delete(reauth)
         assertEquals(2, deleter.calls)
         assertEquals(1, signedOut)
     }
@@ -116,9 +134,70 @@ class DeleteAccountViewModelTest {
         uid = null
         val vm = vm()
         vm.onConfirmationChange("DELETE")
-        vm.delete()
+        vm.delete(reauth)
         assertTrue(vm.state.value.failed)
         assertEquals(0, deleter.calls)
+    }
+
+    @Test
+    fun nonAppleAccount_neverOpensApplesPage() {
+        val vm = vm()
+        vm.onConfirmationChange("DELETE")
+        vm.delete(reauth)
+        assertEquals(0, reauths)
+        assertTrue(apple.revoked.isEmpty())
+        assertEquals(1, deleter.calls)
+    }
+
+    @Test
+    fun appleAccount_revokesWithAFreshToken_thenDeletes() {
+        apple.isApple = true
+        val vm = vm()
+        vm.onConfirmationChange("DELETE")
+        vm.delete(reauth)
+        assertEquals(listOf("apple-token"), apple.revoked)
+        assertEquals(1, deleter.calls)
+        assertEquals(1, signedOut)
+    }
+
+    @Test
+    fun appleAccount_closingApplesPage_cancelsTheDeletion() {
+        apple.isApple = true
+        applePage = { null }
+        val vm = vm()
+        vm.onConfirmationChange("DELETE")
+        vm.delete(reauth)
+        val s = vm.state.value
+        assertTrue(s.appleCancelled)
+        assertFalse(s.isDeleting)
+        assertEquals(0, deleter.calls)
+        assertEquals(0, signedOut)
+
+        vm.dismissError()
+        assertFalse(vm.state.value.appleCancelled)
+        applePage = { "apple-token" }
+        vm.delete(reauth)
+        assertEquals("retrying works", 1, deleter.calls)
+    }
+
+    /** iOS: a revocation failure (e.g. not configured in Firebase) never blocks deletion. */
+    @Test
+    fun appleAccount_revocationFailure_stillDeletes() {
+        apple.isApple = true
+        apple.error = IOException("OPERATION_NOT_ALLOWED")
+        val vm = vm()
+        vm.onConfirmationChange("DELETE")
+        vm.delete(reauth)
+        assertEquals(1, deleter.calls)
+        assertEquals(1, signedOut)
+
+        apple.error = null
+        applePage = { throw IOException("Code flow is not enabled for Apple.") }
+        val vm2 = vm()
+        vm2.onConfirmationChange("DELETE")
+        vm2.delete(reauth)
+        assertEquals(2, deleter.calls)
+        assertFalse(vm2.state.value.appleCancelled)
     }
 
     @Test
