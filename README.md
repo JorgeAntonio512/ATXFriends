@@ -124,8 +124,12 @@ A public TestFlight beta opened in late September 2026:
 
 Not on the App Store yet. Expect rough edges — that's what the Issues tab is for.
 
+**Android is coming.** A native Android version lives in [`android/`](android/),
+on the same backend as the iPhone app — same accounts, same matches, same
+messages. It isn't on Google Play yet.
+
 Signup is currently geofenced to **within 50 miles of Austin, TX**. If you fork
-this for your own city, that's the first thing you'll change (see Setup, step 7).
+this for your own city, that's the first thing you'll change (see Setup, step 8).
 
 ---
 
@@ -133,13 +137,14 @@ this for your own city, that's the first thing you'll change (see Setup, step 7)
 
 | Layer | What |
 |---|---|
-| App | Swift / SwiftUI, iOS |
-| Auth | Firebase Auth — email, Sign in with Apple, Google Sign-In |
+| iOS app | Swift / SwiftUI |
+| Android app | Kotlin / Jetpack Compose, Material 3 |
+| Auth | Firebase Auth — email, Sign in with Apple, Google Sign-In (both platforms) |
 | Database | Cloud Firestore |
 | Backend | Firebase Cloud Functions |
 | Calendar | Apple EventKit, Google Calendar API, Microsoft Graph API |
-| Places & maps | Apple MapKit |
-| Dependencies | Swift Package Manager (GoogleSignIn-iOS, MSAL, Firebase SDK) |
+| Places & maps | Apple MapKit (iOS), Google Places SDK (Android) |
+| Dependencies | Swift Package Manager (GoogleSignIn-iOS, MSAL, Firebase SDK); Gradle on Android |
 
 ---
 
@@ -158,6 +163,9 @@ configuration rather than code. Work through it in order.
   ($99/yr) is worth it the moment you have testers you won't see every week.
 - A **physical iPhone**. The Simulator can't do location, and location is
   load-bearing here.
+- **For Android (optional):** [Android Studio](https://developer.android.com/studio)
+  and an Android phone. Gradle needs JDK 17–21 — if your system Java is newer,
+  use the one bundled with Android Studio. See step 7.
 
 ### 1. Fork and clone it
 
@@ -207,7 +215,7 @@ Open your `GoogleService-Info.plist` and copy the `REVERSED_CLIENT_ID` value.
 In Xcode → your target → **Info** → **URL Types**, add it as a URL Scheme. This
 is what lets Google Sign-In return to your app after authenticating.
 
-If you also want Outlook calendar support (step 8), add a second URL scheme:
+If you also want Outlook calendar support (step 9), add a second URL scheme:
 `msauth.YOUR.BUNDLE.ID`
 
 ### 5. Deploy the backend
@@ -229,22 +237,77 @@ set your own signing team under Signing & Capabilities, and hit Run.
 You'll need to trust the developer certificate on the phone the first time:
 Settings → General → VPN & Device Management.
 
-### 7. 📍 Point it at your city
+### 7. Build and run on Android (optional)
+
+The Android app talks to the same Firebase project, so do steps 2 and 5 first.
+
+1. **Register the Android app in Firebase.** Project Settings → Your apps →
+   **Add app → Android**. Use your own package name — do **not** reuse
+   `com.georgeappdev.atxfriends` — and change `applicationId` in
+   `android/app/build.gradle.kts` to match.
+2. **Add `google-services.json`.** Download it and put it in `android/app/`.
+   Like the iOS plist, it's gitignored and should stay that way.
+3. **Add your SHA-1 fingerprint** (Google and Apple sign-in fail without it).
+   Run `cd android && ./gradlew signingReport`, copy the SHA-1 for each key you
+   build with, and add it in Firebase → Project Settings → your Android app →
+   **Add fingerprint**. Once you're on Google Play, add Play's app-signing
+   SHA-1 too (Play Console → App integrity → App signing).
+4. **Sign in with Apple needs extra setup on Android.** iOS signs in natively,
+   but Android goes through Apple's web sign-in, which Firebase can only do with
+   the **OAuth code flow configuration** filled in:
+   - In your Apple Developer account, create a **Services ID** grouped under
+     your iOS App ID (that's what makes one Apple ID the same account on both
+     phones). Set its domain to `YOUR-PROJECT-ID.firebaseapp.com` and its
+     return URL to `https://YOUR-PROJECT-ID.firebaseapp.com/__/auth/handler`.
+   - Create a **Sign in with Apple key** and download the `.p8`.
+   - In Firebase → Authentication → Apple, enter the Services ID, your Team ID,
+     the Key ID, and the private key.
+
+   The same setup lets account deletion revoke Apple sign-in, which Apple
+   requires — on iOS too.
+5. **Place search (optional).** The plan composer's "Where?" field uses the
+   Google Places SDK. In Google Cloud, enable **Places API (New)**, create an API
+   key restricted to your Android app, and add it to `android/local.properties`:
+   `PLACES_API_KEY=your-key`. Without one, "Where?" is plain text.
+6. **Build it:**
+
+   ```bash
+   cd android
+   ./gradlew assembleDebug    # debug APK
+   ./gradlew test             # unit tests
+   ```
+
+   Or open the `android/` folder in Android Studio and hit Run.
+7. **Release builds** are signed with an upload key you create yourself. Put its
+   details in `android/keystore.properties` (`storeFile`, `storePassword`,
+   `keyAlias`, `keyPassword`), then `./gradlew bundleRelease`. That file, the
+   keystore, and `local.properties` are all gitignored — keep them out of any
+   commit.
+
+> ⚠️ **Android and iOS share one database.** Android only ever updates the
+> fields it changes and never replaces a whole document, so it can't wipe data
+> the iPhone app relies on. If you change the data model, change it on both.
+> [`docs/android-parity-spec.md`](docs/android-parity-spec.md) describes exactly
+> how the live app behaves, for anyone porting a feature.
+
+### 8. 📍 Point it at your city
 
 **This is the important one if you're forking.**
 
 Signup is gated to a 50-mile radius around Austin. Search the codebase for the
-Austin coordinates (`30.2672, -97.7431`) and replace them with your city's.
+Austin coordinates (`30.2672, -97.7431`) and replace them with your city's —
+they're in the Swift code and in the Android app's `AustinGate.kt`.
 Change the radius too if your metro is a different shape.
 
 While you're in there, change the app's name and display strings. Please don't
 ship another "ATX Friends" — see [ETHOS.md](ETHOS.md) and the note on the name
 below.
 
-### 8. Calendar integrations (optional)
+### 9. Calendar integrations (optional)
 
 The app can write confirmed plans to a user's calendar. Apple Calendar works out
-of the box via EventKit. The other two need accounts:
+of the box via EventKit. On Android, plans go to the phone's own calendar app,
+with no extra setup. The other two iOS options need accounts:
 
 **Google Calendar**
 
@@ -265,13 +328,15 @@ list. Plan for that review to take a while when you get there.
 5. Redirect URI: `msauth.YOUR.BUNDLE.ID://auth`
 6. Put the Application (client) ID into the app's Microsoft config
 
-### 9. Running the tests
+### 10. Running the tests
 
 Firestore rules and Cloud Functions have emulator tests:
 
 ```bash
 firebase emulators:exec --only firestore,functions "npm test"
 ```
+
+The Android unit tests run with `cd android && ./gradlew test`.
 
 ---
 
@@ -284,6 +349,7 @@ ATXFriends/
 ├── ATX Friends/              # App assets and config (Info.plist, etc.)
 ├── Avenue3/                  # See note below
 ├── Avenue3Tests/             # iOS unit tests
+├── android/                  # Android app (Kotlin, Jetpack Compose) — open in Android Studio
 ├── functions/                # Firebase Cloud Functions
 ├── firestore-tests/          # Emulator tests for security rules + functions
 ├── docs/                     # Screenshots and docs
